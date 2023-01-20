@@ -1,0 +1,52 @@
+linters:
+  disable-all: true
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - decorder
+    - durationcheck
+    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - execinquery
+    - exhaustive
+    - exportloopref
+    - forcetypeassert
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - godot
+    - godox
+    - goerr113
+    - gomnd
+    - goprintffuncname
+    - govet
+    - ineffassign
+    - makezero
+    - misspell
+    - nilerr
+    - nlreturn
+    - prealloc
+    - predeclared
+    - reassign
+    - revive
+    - staticcheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - whitespace
+    - wsl
+linters-settings:
+  gomnd:
+    ignored-functions:
+      - 'strconv.ParseInt'
+      - 'strconv.ParseFloat'
+      - 'strconv.FormatInt'
+      - 'strconv.FormatFloat'
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
