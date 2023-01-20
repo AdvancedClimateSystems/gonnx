@@ -7,6 +7,7 @@ import (
 )
 
 var operators13 = map[string]func() ops.Operator{
+	"Abs":             newAbs,
 	"Add":             newAdd,
 	"Cast":            newCast,
 	"Concat":          newConcat,

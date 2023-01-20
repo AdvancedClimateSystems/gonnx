@@ -15,6 +15,11 @@ func TestGetOperator(t *testing.T) {
 		err      error
 	}{
 		{
+			"Abs",
+			newAbs(),
+			nil,
+		},
+		{
 			"Add",
 			newAdd(),
 			nil,
