@@ -142,3 +142,4 @@ we're excited to have you here. Let's make something amazing!
 
 - [@wipsel](https://www.github.com/wipsel)
 - [@swopper050](https://www.github.com/swopper050)
+- [@stensipma](https://www.github.com/stensipma)
