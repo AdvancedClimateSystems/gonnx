@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 
 	"gorgonia.org/tensor"
 )
@@ -120,7 +120,6 @@ func TestConstantOfShapeEmptyInit(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, []float32{0, 0, 0, 0}, res[0].Data())
-
 }
 
 func TestIncorrectInput(t *testing.T) {
@@ -139,7 +138,6 @@ func TestIncorrectInput(t *testing.T) {
 		"Value input tensor should be a single element tensor, but was [1  2  3]",
 		err.Error(),
 	)
-
 }
 
 func TestNegativeShapeNotAllowed(t *testing.T) {

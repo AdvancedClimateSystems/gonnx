@@ -3,8 +3,8 @@ package opset13
 import (
 	"fmt"
 
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
@@ -118,26 +118,33 @@ func (g *Gather) String() string {
 // Then output[i_{0}, ..., i_{q-1}, j_{0}, ..., j_{r-2}] = input[j_{0}, k, j_{1}, ..., j_{r-2}]
 // --------------------------
 // where q: size of `indices`
-//       r: size of `data`
-//       i and j are here indices which should be iterated over.
+//
+//	r: size of `data`
+//	i and j are here indices which should be iterated over.
 //
 // A simplified example of how i and j work in such a statement (not related to gather):
 // suppose x = [1, 2] and y = [4, 5], and we have statement:
-//   l = x[i_0]
-//   output[i_0, j_0] = y[j_0] - l
+//
+//	l = x[i_0]
+//	output[i_0, j_0] = y[j_0] - l
+//
 // This means, for each valid combination of (i_0, j_0) (in this case (0,0) (0,1), (1,0) (1,1) )
 // we evaluate the expression, so:
-//   l = x[0]                   -> l = 1
-//   output[0, 0] = y[0] - l    -> output[0,0] = 4 - 1 = 3
-//   l = x[0]                   -> l = 1
-//   output[0, 1] = y[1] - l    -> output[0,1] = 5 - 1 = 4
-//   l = x[1]                   -> l = 2
-//   output[1, 0] = y[0] - l    -> output[1,0] = 4 - 2 = 2
-//   l = x[1]                   -> l = 2
-//   output[1, 1] = y[1] - l    -> output[1,1] = 5 - 2 = 3
+//
+//	l = x[0]                   -> l = 1
+//	output[0, 0] = y[0] - l    -> output[0,0] = 4 - 1 = 3
+//	l = x[0]                   -> l = 1
+//	output[0, 1] = y[1] - l    -> output[0,1] = 5 - 1 = 4
+//	l = x[1]                   -> l = 2
+//	output[1, 0] = y[0] - l    -> output[1,0] = 4 - 2 = 2
+//	l = x[1]                   -> l = 2
+//	output[1, 1] = y[1] - l    -> output[1,1] = 5 - 2 = 3
+//
 // so this results in:
-//   output = [ 3  4 ]
-//            [ 2  3 ]
+//
+//	output = [ 3  4 ]
+//	         [ 2  3 ]
+//
 // -------------------------
 // The implementation iterates over each element in 'indices', and k is extracted.
 // For each given k (and therefore also [i_0, ..., i_q-1]) we need to iterate over each combination

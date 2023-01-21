@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/stretchr/testify v1.8.1
-	gitlab.advancedclimate.nl/smartbase/software/core/airgo v0.0.0-b1
 	google.golang.org/protobuf v1.28.1
 	gorgonia.org/tensor v0.9.24
 )
