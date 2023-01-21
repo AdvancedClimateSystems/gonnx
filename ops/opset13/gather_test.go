@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
@@ -63,53 +63,125 @@ func TestGather(t *testing.T) {
 		// >>> np.take(x, i, axis=0).shape
 		// Out: (1, 2)
 
-		{[]float32{1, 2, 3, 4}, []int{4},
-			[]int64{0}, []int{1}, 0,
-			[]float32{1}, tensor.Shape([]int{1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{4},
+			[]int64{0},
+			[]int{1},
+			0,
+			[]float32{1},
+			tensor.Shape([]int{1}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{2, 2},
-			[]int64{0}, []int{1}, 0,
-			[]float32{1, 2}, tensor.Shape([]int{1, 2})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{2, 2},
+			[]int64{0},
+			[]int{1},
+			0,
+			[]float32{1, 2},
+			tensor.Shape([]int{1, 2}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{2, 2},
-			[]int64{0}, []int{1}, 1,
-			[]float32{1, 3}, tensor.Shape([]int{2, 1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{2, 2},
+			[]int64{0},
+			[]int{1},
+			1,
+			[]float32{1, 3},
+			tensor.Shape([]int{2, 1}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{2, 2},
-			[]int64{0}, []int{1}, -1,
-			[]float32{1, 3}, tensor.Shape([]int{2, 1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{2, 2},
+			[]int64{0},
+			[]int{1},
+			-1,
+			[]float32{1, 3},
+			tensor.Shape([]int{2, 1}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{2, 2},
-			[]int64{1}, []int{1}, 1,
-			[]float32{2, 4}, tensor.Shape([]int{2, 1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{2, 2},
+			[]int64{1},
+			[]int{1},
+			1,
+			[]float32{2, 4},
+			tensor.Shape([]int{2, 1}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{2, 2},
-			[]int64{0}, []int{1, 1}, 1,
-			[]float32{1, 3}, tensor.Shape([]int{2, 1, 1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{2, 2},
+			[]int64{0},
+			[]int{1, 1},
+			1,
+			[]float32{1, 3},
+			tensor.Shape([]int{2, 1, 1}),
+		},
 
-		{[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, []int{3, 2, 2},
-			[]int64{0}, []int{1}, 2,
-			[]float32{1, 3, 5, 7, 9, 11}, tensor.Shape([]int{3, 2, 1})},
+		{
+			[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+			[]int{3, 2, 2},
+			[]int64{0},
+			[]int{1},
+			2,
+			[]float32{1, 3, 5, 7, 9, 11},
+			tensor.Shape([]int{3, 2, 1}),
+		},
 
-		{[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, []int{3, 2, 2},
-			[]int64{0}, []int{1}, 1,
-			[]float32{1, 2, 5, 6, 9, 10}, tensor.Shape([]int{3, 1, 2})},
+		{
+			[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+			[]int{3, 2, 2},
+			[]int64{0},
+			[]int{1},
+			1,
+			[]float32{1, 2, 5, 6, 9, 10},
+			tensor.Shape([]int{3, 1, 2}),
+		},
 
-		{[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9}, []int{3, 3},
-			[]int64{0, 2}, []int{1, 2}, 1,
-			[]float32{1, 3, 4, 6, 7, 9}, tensor.Shape([]int{3, 1, 2})},
+		{
+			[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9},
+			[]int{3, 3},
+			[]int64{0, 2},
+			[]int{1, 2},
+			1,
+			[]float32{1, 3, 4, 6, 7, 9},
+			tensor.Shape([]int{3, 1, 2}),
+		},
 
-		{[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, []int{3, 2, 2},
-			[]int64{-2}, []int{1}, 1,
-			[]float32{1, 2, 5, 6, 9, 10}, tensor.Shape([]int{3, 1, 2})},
+		{
+			[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+			[]int{3, 2, 2},
+			[]int64{-2},
+			[]int{1},
+			1,
+			[]float32{1, 2, 5, 6, 9, 10},
+			tensor.Shape([]int{3, 1, 2}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{4},
-			[]int64{-4}, []int{1}, 0,
-			[]float32{1}, tensor.Shape([]int{1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{4},
+			[]int64{-4},
+			[]int{1},
+			0,
+			[]float32{1},
+			tensor.Shape([]int{1}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{2, 2},
-			[]int64{0}, []int{1}, -1,
-			[]float32{1, 3}, tensor.Shape([]int{2, 1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{2, 2},
+			[]int64{0},
+			[]int{1},
+			-1,
+			[]float32{1, 3},
+			tensor.Shape([]int{2, 1}),
+		},
 	}
 
 	for _, test := range tests {

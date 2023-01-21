@@ -3,8 +3,8 @@ package gonnx
 import (
 	"fmt"
 
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops/opset13"
+	"github.com/advancedclimatesystems/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/ops/opset13"
 )
 
 // OpGetter is a function that gets an operator based on a string.

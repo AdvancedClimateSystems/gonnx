@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops/opset13"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops/opset13"
 	"google.golang.org/protobuf/proto"
 )
 

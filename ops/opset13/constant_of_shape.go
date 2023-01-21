@@ -3,8 +3,8 @@ package opset13
 import (
 	"fmt"
 
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
@@ -95,11 +95,9 @@ func (op *ConstantOfShape) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{
 		{tensor.Int64},
 	}
-
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
 func (op *ConstantOfShape) String() string {
 	return "constant of shape operator"
-
 }

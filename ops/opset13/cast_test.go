@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 

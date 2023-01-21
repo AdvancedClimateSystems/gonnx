@@ -3,8 +3,8 @@ package opset13
 import (
 	"fmt"
 
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
@@ -68,7 +68,6 @@ func (c *Cast) GetInputTypeConstraints() [][]tensor.Dtype {
 			tensor.Float32, tensor.Float64,
 		},
 	}
-
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
