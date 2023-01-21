@@ -3,7 +3,7 @@ package ops
 import (
 	"fmt"
 
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/onnx"
 	"gorgonia.org/tensor"
 )
 

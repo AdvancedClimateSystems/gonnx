@@ -3,7 +3,7 @@ package opset13
 import (
 	"fmt"
 
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/ops"
 )
 
 var operators13 = map[string]func() ops.Operator{

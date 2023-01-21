@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"google.golang.org/protobuf/proto"
 	"gorgonia.org/tensor"
 )
@@ -159,7 +159,7 @@ func (m *Model) Run(inputs Tensors) (Tensors, error) {
 		return nil, err
 	}
 
-	var tensors = make(Tensors)
+	tensors := make(Tensors)
 	for inputName, inputTensor := range inputs {
 		tensors[inputName] = inputTensor
 	}
@@ -179,7 +179,7 @@ func (m *Model) Run(inputs Tensors) (Tensors, error) {
 		}
 	}
 
-	var outputTensors = make(Tensors)
+	outputTensors := make(Tensors)
 	for _, outputName := range m.OutputNames() {
 		outputTensors[outputName] = tensors[outputName]
 	}
@@ -269,7 +269,6 @@ func getInputTensorsForNode(names []string, tensors Tensors) ([]tensor.Tensor, e
 func setOutputTensorsOfNode(
 	names []string, outputTensors []tensor.Tensor, tensors Tensors,
 ) error {
-
 	if len(names) != len(outputTensors) {
 		return fmt.Errorf(SetOutputTensorsError, len(names), len(outputTensors))
 	}

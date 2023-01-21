@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
 	"gorgonia.org/tensor"
 )
 
