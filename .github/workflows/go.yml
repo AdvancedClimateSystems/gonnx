@@ -10,6 +10,42 @@ on:
     branches: [ "develop" ]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+
+    - name: Install dependencies
+      run: make install
+      run: make install_lint
+
+    - name: Lint
+      run: make lint
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+
+    - name: Install dependencies
+      run: make install
+      run: make install_gotestsum
+    
+    - name: Setup ONNX test data
+      run: make test_data
+
+    - name: Tests
+      run: make test
 
   build:
     runs-on: ubuntu-latest
