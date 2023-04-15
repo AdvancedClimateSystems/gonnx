@@ -69,6 +69,8 @@ var ignoredTests = []string{
 	"test_gather_elements_1",                // Operator GatherElements is not implemented
 	"test_gather_elements_negative_indices", // Operator GatherElements is not implemented
 
+	"test_prelu_broadcast_expanded", // Unsupported operator CastLike
+	"test_prelu_example_expanded",   // Unsupported operator CastLike
 }
 
 type ONNXTestCase struct {
@@ -268,6 +270,8 @@ var expectedTests = []string{
 	"test_mul",
 	"test_mul_bcast",
 	"test_mul_example",
+	"test_prelu_broadcast",
+	"test_prelu_example",
 	"test_relu",
 	"test_reshape_extended_dims",
 	"test_reshape_negative_dim",
