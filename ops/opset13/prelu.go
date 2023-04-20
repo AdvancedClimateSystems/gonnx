@@ -16,12 +16,12 @@ func newPRelu() ops.Operator {
 	return &PRelu{}
 }
 
-// Init initializes the relu operator.
+// Init initializes the prelu operator.
 func (op *PRelu) Init(attributes []*onnx.AttributeProto) error {
 	return nil
 }
 
-// Apply applies the relu operator.
+// Apply applies the prelu operator.
 func (op *PRelu) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	x, slope := inputs[0], inputs[1]
 
