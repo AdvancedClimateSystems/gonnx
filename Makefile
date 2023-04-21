@@ -22,6 +22,7 @@ help:
 	$(call echotask,"lint","Runs the GOLANGCI linter.")
 	$(call echotask,"test","Runs the Go tests.")
 	$(call echotask,"test_data","Downloads data for the ONNX test suite.")
+	$(call echotask,"test_html","Run tests showing coverage in the browser.")
 	$(call echotask,"install","Install project dependencies.")
 	$(call echotask,"install_lint","Install the Go linter.")
 	$(call echotask,"install_gotestsum","Install the Go test runner.")
