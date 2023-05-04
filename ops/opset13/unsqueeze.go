@@ -82,7 +82,7 @@ func (u *Unsqueeze) String() string {
 // Creates a new array, which is `original` with ones added at the indices specified by `indices`
 // `indices` may not contain duplicates, the elements are assumed to be in the range 0 <= x < N
 // and should be sorted in increasing order.
-// Is done in a single pass through the new array with length: len(original) + len(indices)
+// Is done in a single pass through the new array with length: len(original) + len(indices).
 func insertOnes(original, indices []int) []int {
 	N := len(indices) + len(original)
 

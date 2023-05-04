@@ -20,9 +20,10 @@ func ResolveOperatorGetter(opsetID int64) (OpGetter, error) {
 		return GetOperator, nil
 	}
 
-	var opsets []int64
+	opsets := make([]int64, len(operatorGetters))
 	for version := range operatorGetters {
 		opsets = append(opsets, version)
 	}
+
 	return nil, fmt.Errorf("expected opset to be in %d, got operator set %d", opsets, opsetID)
 }

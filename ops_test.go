@@ -229,7 +229,6 @@ func readTestTensors(basePath, baseFile string, inputs []*onnx.ValueInfoProto) (
 	tensors := make(Tensors)
 
 	for i := 0; i < len(inputs); i++ {
-
 		filePath := fmt.Sprintf("%v/%v_%d.pb", basePath, baseFile, i)
 		bytesInput, err := ioutil.ReadFile(filePath)
 		if err != nil {

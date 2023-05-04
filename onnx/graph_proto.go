@@ -13,7 +13,7 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// InputNames returns the input names for a GraphProto
+// InputNames returns the input names for a GraphProto.
 func (g *GraphProto) InputNames() []string {
 	return getNamesFromValueProto(g.GetInput())
 }
@@ -51,6 +51,7 @@ func (g *GraphProto) Params() (map[string]tensor.Tensor, error) {
 
 		res[i.Name] = t
 	}
+
 	return res, nil
 }
 
@@ -62,10 +63,12 @@ type Shape []Dim
 
 // String prints a shape in a human-friendly matter.
 func (s Shape) String() string {
-	var dimSizes []int64
+	dimSizes := make([]int64, 0, len(s))
+
 	for _, dim := range s {
 		dimSizes = append(dimSizes, dim.Size)
 	}
+
 	return fmt.Sprintf("%d", dimSizes)
 }
 
@@ -95,6 +98,7 @@ func getShapesFromValueProto(protos []*ValueInfoProto) Shapes {
 	if protos == nil {
 		return map[string]Shape{}
 	}
+
 	shapes := make(map[string]Shape, len(protos))
 
 	for _, p := range protos {
@@ -119,6 +123,7 @@ func getShapesFromValueProto(protos []*ValueInfoProto) Shapes {
 		}
 
 		shape := make([]Dim, len(dims))
+
 		for i, dim := range dims {
 			param := dim.GetDimParam()
 			v := dim.GetDimValue()
@@ -130,6 +135,7 @@ func getShapesFromValueProto(protos []*ValueInfoProto) Shapes {
 
 			shape[i] = Dim{IsDynamic: isDynamic, Name: param, Size: v}
 		}
+
 		shapes[p.GetName()] = shape
 	}
 
@@ -146,7 +152,7 @@ func getNamesFromTensorProto(protos []*TensorProto) []string {
 	return res
 }
 
-// TensorFromProto returns a tensor.Tensor from an onnx.TensorProto
+// TensorFromProto returns a tensor.Tensor from an onnx.TensorProto.
 func TensorFromProto(tp *TensorProto) (tensor.Tensor, error) {
 	var values interface{}
 	var err error
@@ -297,11 +303,14 @@ func ReadFloat32ArrayFromBytes(data []byte) ([]float32, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, float32Size)
 
-	var err error
-	var values []float32
+	var (
+		err    error
+		values []float32
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != float32Size || err != nil {
 			break
@@ -323,11 +332,14 @@ func ReadFloat64ArrayFromBytes(data []byte) ([]float64, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, float64Size)
 
-	var err error
-	var values []float64
+	var (
+		err    error
+		values []float64
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != float64Size || err != nil {
 			break

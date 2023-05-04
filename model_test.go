@@ -169,7 +169,7 @@ func TestInputDimSizeInvalidInput(t *testing.T) {
 }
 
 // tensorsFixture creates Tensors with the given names shapes and backings. This is useful for
-// providing a model with inputs and checking it's outputs
+// providing a model with inputs and checking it's outputs.
 func tensorsFixture(names []string, shapes [][]int, backing [][]float32) Tensors {
 	res := make(Tensors, len(names))
 	for i, name := range names {
@@ -178,6 +178,7 @@ func tensorsFixture(names []string, shapes [][]int, backing [][]float32) Tensors
 			tensor.WithBacking(backing[i]),
 		)
 	}
+
 	return res
 }
 
@@ -186,6 +187,7 @@ func rangeFloat(size int) []float32 {
 	for i := 0; i < size; i++ {
 		res[i] = float32(i)
 	}
+
 	return res
 }
 
@@ -194,6 +196,7 @@ func rangeZeros(size int) []float32 {
 	for i := range res {
 		res[i] = 0.0
 	}
+
 	return res
 }
 

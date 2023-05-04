@@ -2,8 +2,8 @@ package gonnx
 
 import (
 	"archive/zip"
-	"fmt"
-	"io/ioutil"
+	"io"
+	"os"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -11,7 +11,7 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// Tensors is a map with tensors
+// Tensors is a map with tensors.
 type Tensors map[string]tensor.Tensor
 
 // Model defines a model that can be used for inference.
@@ -23,7 +23,7 @@ type Model struct {
 
 // NewModelFromFile creates a new model from a path to a file.
 func NewModelFromFile(path string) (*Model, error) {
-	bytesModel, err := ioutil.ReadFile(path)
+	bytesModel, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func NewModelFromZipFile(file *zip.File) (*Model, error) {
 		return nil, err
 	}
 
-	bytesModel, err := ioutil.ReadAll(fc)
+	bytesModel, err := io.ReadAll(fc)
 	if err != nil {
 		return nil, err
 	}
@@ -66,6 +66,7 @@ func NewModel(mp *onnx.ModelProto) (*Model, error) {
 	opsetImports := mp.GetOpsetImport()
 
 	var opsetID int64
+
 	for i := 0; i < len(opsetImports); i++ {
 		version := opsetImports[i].GetVersion()
 		if version > opsetID {
@@ -78,12 +79,11 @@ func NewModel(mp *onnx.ModelProto) (*Model, error) {
 		return nil, err
 	}
 
-	model := &Model{
+	return &Model{
 		mp:          mp,
 		parameters:  params,
 		GetOperator: GetOperator,
-	}
-	return model, nil
+	}, nil
 }
 
 // ModelProtoFromBytes creates an onnx.ModelProto based on a list of bytes.
@@ -92,6 +92,7 @@ func ModelProtoFromBytes(bytesModel []byte) (*onnx.ModelProto, error) {
 	if err := proto.Unmarshal(bytesModel, mp); err != nil {
 		return nil, err
 	}
+
 	return mp, nil
 }
 
@@ -108,16 +109,13 @@ func (m *Model) InputShapes() onnx.Shapes {
 // InputDimSize returns the size of the input dimension given an input tensor.
 func (m *Model) InputDimSize(input string, i int) (int, error) {
 	if !m.hasInput(input) {
-		return 0, fmt.Errorf("input %v does not exist", input)
+		return 0, ErrModel("input %v does not exist", input)
 	}
 
 	inputShape := m.mp.Graph.InputShapes()[input]
 
 	if i >= len(inputShape) {
-		err := fmt.Errorf(
-			"input %v only has %d dimensions, but index %d was required", input, len(inputShape), i,
-		)
-		return 0, err
+		return 0, ErrModel("input %v only has %d dimensions, but index %d was required", input, len(inputShape), i)
 	}
 
 	return int(inputShape[i].Size), nil
@@ -222,13 +220,13 @@ func (m *Model) validateShapes(inputTensors Tensors) error {
 
 		tensor, ok := inputTensors[name]
 		if !ok {
-			return fmt.Errorf("tensor: %v not found", name)
+			return ErrModel("tensor: %v not found", name)
 		}
 
 		shapeReceived := tensor.Shape()
 
 		if len(shapeReceived) != len(shapeExpected) {
-			return fmt.Errorf(InvalidShapeError, name, shapeExpected, shapeReceived)
+			return ErrInvalidShape("shape does not match for %v: expected %v but got %v", name, shapeExpected, shapeReceived)
 		}
 
 		for i, dim := range shapeExpected {
@@ -239,7 +237,7 @@ func (m *Model) validateShapes(inputTensors Tensors) error {
 			}
 
 			if dim.Size != int64(shapeReceived[i]) {
-				return fmt.Errorf(InvalidShapeError, name, shapeExpected, shapeReceived)
+				return ErrInvalidShape("shape does not match for %v: expected %v but got %v", name, shapeExpected, shapeReceived)
 			}
 		}
 	}
@@ -249,6 +247,7 @@ func (m *Model) validateShapes(inputTensors Tensors) error {
 
 func getInputTensorsForNode(names []string, tensors Tensors) ([]tensor.Tensor, error) {
 	var inputTensors []tensor.Tensor
+
 	for _, tensorName := range names {
 		// An empty name can happen in between optional inputs, like:
 		//   [<required_input>, <optional_input>, nil, <optional_input>]
@@ -259,7 +258,7 @@ func getInputTensorsForNode(names []string, tensors Tensors) ([]tensor.Tensor, e
 		} else if tensor, ok := tensors[tensorName]; ok {
 			inputTensors = append(inputTensors, tensor)
 		} else {
-			return nil, fmt.Errorf("no tensor yet for name %v", tensorName)
+			return nil, ErrModel("no tensor yet for name %v", tensorName)
 		}
 	}
 
@@ -270,7 +269,7 @@ func setOutputTensorsOfNode(
 	names []string, outputTensors []tensor.Tensor, tensors Tensors,
 ) error {
 	if len(names) != len(outputTensors) {
-		return fmt.Errorf(SetOutputTensorsError, len(names), len(outputTensors))
+		return ErrModel("could not set output tensor")
 	}
 
 	for i, tensor := range outputTensors {

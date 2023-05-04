@@ -192,7 +192,7 @@ func gather(out, data, indices tensor.Tensor, axis int) error {
 // Example:
 // > a = [-1, -2, -3]
 // > x = [1, 2, 3, 4, 5, 6, 7]
-// insertWithReplace(a, x, 3) -> [1, 2, 3, -1, -2, -3, 5, 6, 7]
+// insertWithReplace(a, x, 3) -> [1, 2, 3, -1, -2, -3, 5, 6, 7].
 func insertWithReplace(a, x []int, axis int) []int {
 	y := append([]int{}, x[:axis]...)
 	y = append(y, a...)
