@@ -3,8 +3,8 @@ package opset13
 import (
 	"fmt"
 
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
@@ -186,7 +186,6 @@ func (g *GRU) extractXt(X tensor.Tensor, t int) (tensor.Tensor, error) {
 func (g *GRU) gateCalculation(
 	Xt, H, W, R, Wb, Rb tensor.Tensor, activation ops.Activation,
 ) (tensor.Tensor, error) {
-
 	gemm := &Gemm{transA: false, transB: true, alpha: 1.0, beta: 1.0}
 	inputCalc, err := gemm.Apply([]tensor.Tensor{Xt, W, Wb})
 	if err != nil {
@@ -209,7 +208,6 @@ func (g *GRU) gateCalculation(
 func (g *GRU) htCalculation(
 	Xt, prevH, rt, W, R, Wb, Rb tensor.Tensor, activation ops.Activation,
 ) (tensor.Tensor, error) {
-
 	if !g.linearBeforeReset {
 		temp1, err := tensor.Mul(rt, prevH)
 		if err != nil {
@@ -291,8 +289,9 @@ func (g *GRU) getBiases(B tensor.Tensor) (Wbz, Wbr, Wbh, Rbz, Rbr, Rbh tensor.Te
 
 // extractWeights extracts 3 weight tensors from node W.
 // W contains all 3 weight tensors concatenated on top of each other in the following order:
-//    forward weights:   [Wz, Wr, Wh]
-//    recurrent weights: [Rz, Rr, Rh]
+//
+//	forward weights:   [Wz, Wr, Wh]
+//	recurrent weights: [Rz, Rr, Rh]
 //
 // W will have a shape of (num_directions, 3 * hidden_size, ...) and we extract the
 // by slicing over the '3 * hidden_size' dimension.
@@ -314,7 +313,9 @@ func (g *GRU) extractWeights(W tensor.Tensor) ([]tensor.Tensor, error) {
 
 // extractBiases extracts the 6 bias tensors from tensor B.
 // B contains all 6 bias tensors concatenated on top of each other in the following order:
-//       [Wbz, Wbr, Wbh, Rbz, Rbr, Rbh]
+//
+//	[Wbz, Wbr, Wbh, Rbz, Rbr, Rbh]
+//
 // B has a shape of (num_directions, 6 * hidden_size) and every individual bias tensor should have
 // shape (hidden_size). We extract the biases by slicing over the '6 * hidden_size' dimension.
 func (g *GRU) extractBiases(B tensor.Tensor) ([]tensor.Tensor, error) {

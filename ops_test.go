@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops/opset13"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops/opset13"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -69,6 +69,8 @@ var ignoredTests = []string{
 	"test_gather_elements_1",                // Operator GatherElements is not implemented
 	"test_gather_elements_negative_indices", // Operator GatherElements is not implemented
 
+	"test_prelu_broadcast_expanded", // Unsupported operator CastLike
+	"test_prelu_example_expanded",   // Unsupported operator CastLike
 }
 
 type ONNXTestCase struct {
@@ -227,6 +229,7 @@ func readTestTensors(basePath, baseFile string, inputs []*onnx.ValueInfoProto) (
 
 // With this we check if we truly run all tests we expected from the integration test.
 var expectedTests = []string{
+	"test_abs",
 	"test_add",
 	"test_add_bcast",
 	"test_cast_DOUBLE_to_FLOAT",
@@ -267,6 +270,8 @@ var expectedTests = []string{
 	"test_mul",
 	"test_mul_bcast",
 	"test_mul_example",
+	"test_prelu_broadcast",
+	"test_prelu_example",
 	"test_relu",
 	"test_reshape_extended_dims",
 	"test_reshape_negative_dim",

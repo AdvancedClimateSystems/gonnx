@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
@@ -68,7 +68,6 @@ func TestConstantInit(t *testing.T) {
 			assert.Equal(t, test.expected, constant.value)
 		}
 	}
-
 }
 
 func TestConstant(t *testing.T) {

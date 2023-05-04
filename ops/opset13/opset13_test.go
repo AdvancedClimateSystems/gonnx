@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 )
 
 func TestGetOperator(t *testing.T) {
@@ -14,6 +14,11 @@ func TestGetOperator(t *testing.T) {
 		expected ops.Operator
 		err      error
 	}{
+		{
+			"Abs",
+			newAbs(),
+			nil,
+		},
 		{
 			"Add",
 			newAdd(),
