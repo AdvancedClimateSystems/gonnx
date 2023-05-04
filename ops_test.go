@@ -54,14 +54,38 @@ var ignoredTests = []string{
 	"test_slice_neg",                 // ONNX expects nil output, but we throw an error.
 	"test_transpose_default",         // For transpose in opset 9.
 
-	"test_cast_FLOAT_to_STRING",   // Unsupported datatype STRING.
-	"test_cast_STRING_to_FLOAT",   // Unsupported datatype STRING.
-	"test_cast_DOUBLE_to_FLOAT16", // Unsupported datatype FLOAT16.
-	"test_cast_FLOAT_to_FLOAT16",  // Unsupported datatype FLOAT16.
-	"test_cast_FLOAT16_to_DOUBLE", // Unsupported datatype FLOAT16.
-	"test_cast_FLOAT16_to_FLOAT",  // Unsupported datatype FLOAT16.
-	"test_cast_BFLOAT16_to_FLOAT", // Unsupported datatype BFLOAT16.
-	"test_cast_FLOAT_to_BFLOAT16", // Unsupported datatype BFLOAT16.
+	"test_cast_FLOAT_to_STRING",                       // Unsupported datatype STRING.
+	"test_cast_STRING_to_FLOAT",                       // Unsupported datatype STRING.
+	"test_cast_DOUBLE_to_FLOAT16",                     // Unsupported datatype FLOAT16.
+	"test_cast_FLOAT_to_FLOAT16",                      // Unsupported datatype FLOAT16.
+	"test_cast_FLOAT16_to_DOUBLE",                     // Unsupported datatype FLOAT16.
+	"test_cast_FLOAT16_to_FLOAT",                      // Unsupported datatype FLOAT16.
+	"test_cast_BFLOAT16_to_FLOAT",                     // Unsupported datatype BFLOAT16.
+	"test_cast_FLOAT_to_BFLOAT16",                     // Unsupported datatype BFLOAT16.
+	"test_cast_FLOAT_to_FLOAT8E5M2",                   // Unsupported datatype.
+	"test_cast_FLOAT_to_FLOAT8E4M3FN",                 // Unsupported datatype.
+	"test_cast_FLOAT_to_FLOAT8E4M3FNUZ",               // Unsupported datatype FLOAT8E4M3FNUZ.
+	"test_cast_FLOAT_to_FLOAT8E5M2FNUZ",               // Unsupported datatype.
+	"test_cast_FLOAT16_to_FLOAT8E5M2",                 // Unsupported datatype.
+	"test_cast_FLOAT16_to_FLOAT8E4M3FN",               // Unsupported datatype.
+	"test_cast_FLOAT16_to_FLOAT8E4M3FNUZ",             // Unsupported datatype.
+	"test_cast_FLOAT16_to_FLOAT8E5M2FNUZ",             // Unsupported datatype.
+	"test_cast_FLOAT8E5M2_to_FLOAT",                   // Unsupported datatype.
+	"test_cast_FLOAT8E5M2_to_FLOAT16",                 // Unsupported datatype.
+	"test_cast_FLOAT8E4M3FN_to_FLOAT",                 // Unsupported datatype.
+	"test_cast_FLOAT8E4M3FN_to_FLOAT16",               // Unsupported datatype.
+	"test_cast_FLOAT8E4M3FNUZ_to_FLOAT",               // Unsupported datatype.
+	"test_cast_FLOAT8E4M3FNUZ_to_FLOAT16",             // Unsupported datatype.
+	"test_cast_FLOAT8E5M2FNUZ_to_FLOAT",               // Unsupported datatype.
+	"test_cast_FLOAT8E5M2FNUZ_to_FLOAT16",             // Unsupported datatype.
+	"test_cast_no_saturate_FLOAT_to_FLOAT8E5M2",       // Unsupported datatype FLOAT8E5M2.
+	"test_cast_no_saturate_FLOAT_to_FLOAT8E4M3FNUZ",   // Unsupported datatype.
+	"test_cast_no_saturate_FLOAT_to_FLOAT8E5M2FNUZ",   // Unsupported datatype.
+	"test_cast_no_saturate_FLOAT_to_FLOAT8E4M3FN",     // Unsupported datatype.
+	"test_cast_no_saturate_FLOAT16_to_FLOAT8E4M3FNUZ", // Unsupported datatype.
+	"test_cast_no_saturate_FLOAT16_to_FLOAT8E5M2FNUZ", // Unsupported datatype.
+	"test_cast_no_saturate_FLOAT16_to_FLOAT8E4M3FN",   // Unsupported datatype.
+	"test_cast_no_saturate_FLOAT16_to_FLOAT8E5M2",     // Unsupported datatype.
 
 	"test_unsqueeze_axis_3",                 // Tests an old version of Unsqueeze (<= 11)
 	"test_constantofshape_int_shape_zero",   // Empty tensors are not supported in gorgonia
@@ -69,8 +93,9 @@ var ignoredTests = []string{
 	"test_gather_elements_1",                // Operator GatherElements is not implemented
 	"test_gather_elements_negative_indices", // Operator GatherElements is not implemented
 
-	"test_prelu_broadcast_expanded", // Unsupported operator CastLike
-	"test_prelu_example_expanded",   // Unsupported operator CastLike
+	"test_prelu_broadcast_expanded",   // Unsupported operator CastLike
+	"test_prelu_example_expanded",     // Unsupported operator CastLike
+	"test_constant_pad_negative_axes", // Unsupported operator Pad
 }
 
 type ONNXTestCase struct {
