@@ -142,6 +142,7 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return []tensor.Tensor{Y, Yh}, nil
 }
 
@@ -266,6 +267,7 @@ func (g *GRU) getForwardWeights(W tensor.Tensor) (Wz, Wr, Wh tensor.Tensor, err 
 	if err != nil {
 		return nil, nil, nil, err
 	}
+
 	return n[0], n[1], n[2], nil
 }
 
@@ -275,6 +277,7 @@ func (g *GRU) getRecurrentWeights(R tensor.Tensor) (Rz, Rr, Rh tensor.Tensor, er
 	if err != nil {
 		return nil, nil, nil, err
 	}
+
 	return recurrentWeights[0], recurrentWeights[1], recurrentWeights[2], nil
 }
 
@@ -284,6 +287,7 @@ func (g *GRU) getBiases(B tensor.Tensor) (Wbz, Wbr, Wbh, Rbz, Rbr, Rbh tensor.Te
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
+
 	return biases[0], biases[1], biases[2], biases[3], biases[4], biases[5], nil
 }
 
@@ -308,6 +312,7 @@ func (g *GRU) extractWeights(W tensor.Tensor) ([]tensor.Tensor, error) {
 
 		weights[i] = w
 	}
+
 	return weights, nil
 }
 
@@ -331,6 +336,7 @@ func (g *GRU) extractBiases(B tensor.Tensor) ([]tensor.Tensor, error) {
 
 		biases[i] = w
 	}
+
 	return biases, nil
 }
 
