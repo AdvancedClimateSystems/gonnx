@@ -49,8 +49,28 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 		switch attr.GetName() {
 		case "auto_pad":
 			c.autoPad = AutoPadSetting(attr.GetS())
-		case "linear_before_reset":
-			g.linearBeforeReset = ops.Int64ToBool(attr.GetI())
+		case "dilations":
+			c.dilations, err := ops.AnyToIntSlice(attr.GetInts())
+			if err != nil {
+				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.dilations)
+			}
+		case "group":
+			c.group = attr.GetI()
+		case "kernel_shape":
+			c.kernelShape, err := ops.AnyToIntSlice(attr.GetInts())
+			if err != nil {
+				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.kernelShape)
+			}
+		case "pads":
+			c.pads, err := ops.AnyToIntSlice(attr.GetInts())
+			if err != nil {
+				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.pads)
+			}
+		case "strides":
+			c.strides, err := ops.AnyToIntSlice(attr.GetInts())
+			if err != nil {
+				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.strides)
+			}
 		default:
 			return fmt.Errorf(ops.UnsupportedAttrErrTemplate, g, attr.GetName())
 		}
@@ -61,6 +81,14 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 
 // Apply applies the conv operator.
 func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+	X := inputs[0]
+	W := inputs[1]
+
+	b := nil
+	if len(inputs) == 3 {
+		b = inputs[2]
+	}
+
 	in1, in2, err := ops.MultidirectionalBroadcast(inputs[0], inputs[1])
 	if err != nil {
 		return nil, err

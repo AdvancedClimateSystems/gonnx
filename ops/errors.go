@@ -8,6 +8,10 @@ const UnknownAttributeErrTemplate = "%v: unknown attribute: %v"
 // an attribute that is not supported yet.
 const UnsupportedAttrErrTemplate = "%v: %v attribute not supported yet"
 
+// InvalidAttrTemplate is used to format an error when a known attribute could not
+// be parsed/interpreted correctly.
+const InvalidAttrTemplate = "%v: attribute %v could not be parsed as %T"
+
 // InvalidAttrCountErrTemplate is used to format an error when an operator
 // got the wrong amount of attributes.
 const InvalidAttrCountErrTemplate = "%v: expected %v attributes, got %d"
