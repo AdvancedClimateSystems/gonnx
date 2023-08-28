@@ -82,9 +82,9 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 // Apply applies the conv operator.
 func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	X := inputs[0]
-	W := inputs[1]
+	kernel := inputs[1]
 
-	b := nil
+	bias := nil
 	if len(inputs) == 3 {
 		b = inputs[2]
 	}
@@ -121,8 +121,9 @@ func (c *Conv) GetMaxInputs() int {
 // for the corresponding input tensor.
 func (c *Conv) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{
-		{tensor.Uint32, tensor.Uint64, tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
-		{tensor.Uint32, tensor.Uint64, tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
+		{tensor.Float32, tensor.Float64},
+		{tensor.Float32, tensor.Float64},
+		{tensor.Float32, tensor.Float64},
 	}
 }
 
