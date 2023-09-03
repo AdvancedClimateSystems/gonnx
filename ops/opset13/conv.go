@@ -49,6 +49,9 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 		switch attr.GetName() {
 		case "auto_pad":
 			c.autoPad = AutoPadSetting(attr.GetS())
+                        if c.autoPad != "NOTSET" {
+                            return fmt.Errorf(ops.UnsupportedAttrErrTemplate, g, attr.GetName())
+                        }
 		case "dilations":
 			c.dilations, err := ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
@@ -56,6 +59,9 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 			}
 		case "group":
 			c.group = attr.GetI()
+                        if c.group != 1 {
+                            return fmt.Errorf(ops.UnsupportedAttrErrTemplate, c, attr.GetName())
+                        }
 		case "kernel_shape":
 			c.kernelShape, err := ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
@@ -72,7 +78,7 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.strides)
 			}
 		default:
-			return fmt.Errorf(ops.UnsupportedAttrErrTemplate, g, attr.GetName())
+			return fmt.Errorf(ops.UnsupportedAttrErrTemplate, c, attr.GetName())
 		}
 	}
 
