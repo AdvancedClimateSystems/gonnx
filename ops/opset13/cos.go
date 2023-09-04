@@ -35,7 +35,7 @@ func (c *Cos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	} else if inputs[0].Dtype() == tensor.Float64 {
 		out, err = inputs[0].Apply(cos[float64])
 	} else {
-		return nil, fmt.Errorf(ops.UnsupportedDtypeErrTemplate, inputs[0].Dtype(), s)
+		return nil, fmt.Errorf(ops.UnsupportedDtypeErrTemplate, inputs[0].Dtype(), c)
 	}
 
 	if err != nil {
@@ -47,7 +47,7 @@ func (c *Cos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
 func (c *Cos) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(s, inputs)
+	return ops.ValidateInputs(c, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
