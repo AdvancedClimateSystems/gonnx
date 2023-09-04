@@ -13,6 +13,7 @@ var operators13 = map[string]func() ops.Operator{
 	"Concat":          newConcat,
 	"Constant":        newConstant,
 	"ConstantOfShape": newConstantOfShape,
+	"Cosh":            newCosh,
 	"Div":             newDiv,
 	"Gather":          newGather,
 	"Gemm":            newGemm,

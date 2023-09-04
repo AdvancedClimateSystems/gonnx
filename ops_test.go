@@ -274,6 +274,8 @@ var expectedTests = []string{
 	"test_constant",
 	"test_constantofshape_float_ones",
 	"test_constantofshape_int_zeros",
+	"test_cosh",
+	"test_cosh_example",
 	"test_div",
 	"test_div_bcast",
 	"test_div_example",
