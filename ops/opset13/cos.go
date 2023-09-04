@@ -18,7 +18,7 @@ func newCos() ops.Operator {
 }
 
 // Init initializes the cos operator.
-func (s *Cos) Init(attributes []*onnx.AttributeProto) error {
+func (c *Cos) Init(attributes []*onnx.AttributeProto) error {
 	return nil
 }
 
@@ -27,7 +27,7 @@ type CosDType interface {
 }
 
 // Apply applies the sin operator.
-func (s *Cos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *Cos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var out tensor.Tensor
 	var err error
 	if inputs[0].Dtype() == tensor.Float32 {
@@ -46,28 +46,28 @@ func (s *Cos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (s *Cos) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *Cos) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ValidateInputs(s, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (s *Cos) GetMinInputs() int {
+func (c *Cos) GetMinInputs() int {
 	return 1
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (s *Cos) GetMaxInputs() int {
+func (c *Cos) GetMaxInputs() int {
 	return 1
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (s *Cos) GetInputTypeConstraints() [][]tensor.Dtype {
+func (c *Cos) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{{tensor.Float32, tensor.Float64}}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (s *Cos) String() string {
+func (c *Cos) String() string {
 	return "cos operator"
 }
 
