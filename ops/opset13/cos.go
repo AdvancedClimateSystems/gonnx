@@ -26,7 +26,7 @@ type CosDType interface {
 	float32 | float64
 }
 
-// Apply applies the sin operator.
+// Apply applies the cos operator.
 func (c *Cos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var out tensor.Tensor
 	var err error
