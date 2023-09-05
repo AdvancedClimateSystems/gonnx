@@ -255,6 +255,8 @@ func readTestTensors(basePath, baseFile string, inputs []*onnx.ValueInfoProto) (
 // With this we check if we truly run all tests we expected from the integration test.
 var expectedTests = []string{
 	"test_abs",
+	"test_acos",
+	"test_acos_example",
 	"test_add",
 	"test_add_bcast",
 	"test_cast_DOUBLE_to_FLOAT",
