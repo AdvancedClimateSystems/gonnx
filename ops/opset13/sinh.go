@@ -9,15 +9,15 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// Sinh represents the ONNX sin operator.
+// Sinh represents the ONNX sinh operator.
 type Sinh struct{}
 
-// newSin creates a new sin operator.
+// newSin creates a new sinh operator.
 func newSinh() ops.Operator {
 	return &Sinh{}
 }
 
-// Init initializes the sin operator.
+// Init initializes the sinh operator.
 func (s *Sinh) Init(attributes []*onnx.AttributeProto) error {
 	return nil
 }
@@ -26,7 +26,7 @@ type SinhDType interface {
 	float32 | float64
 }
 
-// Apply applies the sin operator.
+// Apply applies the sinh operator.
 func (s *Sinh) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var out tensor.Tensor
 	var err error
