@@ -24,6 +24,11 @@ func TestGetOperator(t *testing.T) {
 			newAdd(),
 			nil,
 		},
+                {
+                    "Atan",
+                    newAtan(),
+                    nil,
+                },
 		{
 			"Cast",
 			newCast(),
