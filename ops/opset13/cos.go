@@ -22,19 +22,17 @@ func (c *Cos) Init(attributes []*onnx.AttributeProto) error {
 	return nil
 }
 
-type CosDType interface {
-	float32 | float64
-}
-
 // Apply applies the cos operator.
 func (c *Cos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var out tensor.Tensor
 	var err error
-	if inputs[0].Dtype() == tensor.Float32 {
+
+	switch inputs[0].Dtype() {
+	case tensor.Float32:
 		out, err = inputs[0].Apply(cos[float32])
-	} else if inputs[0].Dtype() == tensor.Float64 {
+	case tensor.Float64:
 		out, err = inputs[0].Apply(cos[float64])
-	} else {
+	default:
 		return nil, fmt.Errorf(ops.UnsupportedDtypeErrTemplate, inputs[0].Dtype(), c)
 	}
 
@@ -71,6 +69,6 @@ func (c *Cos) String() string {
 	return "cos operator"
 }
 
-func cos[T CosDType](x T) T {
+func cos[T ops.FloatType](x T) T {
 	return T(math.Cos(float64(x)))
 }
