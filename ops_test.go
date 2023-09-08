@@ -319,6 +319,8 @@ var expectedTests = []string{
 	"test_sub",
 	"test_sub_bcast",
 	"test_sub_example",
+	"test_tan",
+	"test_tan_example",
 	"test_tanh",
 	"test_tanh_example",
 	"test_transpose_all_permutations_2",
