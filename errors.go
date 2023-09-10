@@ -11,9 +11,20 @@ var (
 	errModel           = errors.New("gonnx model error")
 )
 
-// TODO weird description.
-func ErrInvalidShape(format string, a ...any) error {
-	return fmt.Errorf("%w: %s", errInvalidShape, fmt.Sprintf(format, a...))
+type InvalidShapeError struct {
+	expected []int
+	actual   []int
+}
+
+func (i InvalidShapeError) Error() string {
+	return fmt.Sprintf("invalid shape error expected: %v actual %v. mehtod %s", i.expected, i.actual)
+}
+
+func ErrInvalidShape(expected, actual []int) error {
+	return InvalidShapeError{
+		expected: expected,
+		actual:   actual,
+	}
 }
 
 // ErrModel is used for when an error ocured during setup of running onnx models.

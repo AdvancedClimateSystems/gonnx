@@ -1,8 +1,6 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
@@ -21,14 +19,14 @@ func newCast() ops.Operator {
 // Init initializes the cast operator.
 func (c *Cast) Init(attributes []*onnx.AttributeProto) error {
 	if len(attributes) != 1 {
-		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, c, 1, len(attributes))
+		return ops.ErrInvalidAttributeCount(1, len(attributes), c)
 	}
 
 	attr := attributes[0]
 	if attr.GetName() == "to" {
 		c.to = int32(attr.GetI())
 	} else {
-		return fmt.Errorf(ops.UnknownAttributeErrTemplate, c, attr.GetName())
+		return ops.ErrInvalidAttribute(attr.GetName(), c)
 	}
 
 	return nil

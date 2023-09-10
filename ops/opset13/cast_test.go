@@ -64,7 +64,7 @@ func TestCast(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test.cast.Init([]*onnx.AttributeProto{{Name: "to", I: test.to}})
+		_ = test.cast.Init([]*onnx.AttributeProto{{Name: "to", I: test.to}})
 		inputs := []tensor.Tensor{ops.TensorWithBackingFixture(test.backing, test.shape...)}
 
 		res, err := test.cast.Apply(inputs)

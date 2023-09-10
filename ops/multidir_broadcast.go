@@ -1,8 +1,6 @@
 package ops
 
 import (
-	"fmt"
-
 	"gorgonia.org/tensor"
 )
 
@@ -11,12 +9,12 @@ import (
 func MultidirectionalBroadcast(A, B tensor.Tensor) (tensor.Tensor, tensor.Tensor, error) {
 	newA, newB, err := ReshapeTensorsForMultidirBroadcast(A, B)
 	if err != nil {
-		return nil, nil, fmt.Errorf(MultidirBroadcastErrTemplate, A.Shape(), B.Shape(), err)
+		return nil, nil, ErrMultidirBroadcast(A.Shape(), B.Shape(), err)
 	}
 
 	newA, newB, err = repeatTensorsForMutltidirBroadcast(newA, newB)
 	if err != nil {
-		return nil, nil, fmt.Errorf(MultidirBroadcastErrTemplate, A.Shape(), B.Shape(), err)
+		return nil, nil, ErrMultidirBroadcast(A.Shape(), B.Shape(), err)
 	}
 
 	return newA, newB, nil
@@ -38,12 +36,14 @@ func ReshapeTensorsForMultidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, tens
 		if err != nil {
 			return nil, nil, err
 		}
+
 		return A, newB, nil
 	case nDimsB > nDimsA:
 		newA, err := addExtraDimsToTensor(A, nDimsB-nDimsA)
 		if err != nil {
 			return nil, nil, err
 		}
+
 		return newA, B, nil
 	default:
 		return A, B, nil
@@ -55,9 +55,11 @@ func ReshapeTensorsForMultidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, tens
 // the dimension of the other. If both sizes are not 1, the tensors cannot be broadcasted to
 // each other. It is assumed that both tensors are reshaped accordingly first.
 // Example:
-//     shapeA=(1, 3, 4) and shapeB=(2, 3, 1) yields shapeNewA=(2, 3, 4) and shapeNewB=(2, 3, 4).
+//
+//	shapeA=(1, 3, 4) and shapeB=(2, 3, 1) yields shapeNewA=(2, 3, 4) and shapeNewB=(2, 3, 4).
 func repeatTensorsForMutltidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, tensor.Tensor, error) {
 	var err error
+
 	shapeA := A.Shape()
 	shapeB := B.Shape()
 	nDims := len(shapeA)
@@ -73,13 +75,15 @@ func repeatTensorsForMutltidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, tens
 				if err != nil {
 					return nil, nil, err
 				}
+
 			case sizeDimB == 1:
 				B, err = tensor.Repeat(B, axis, sizeDimA)
 				if err != nil {
 					return nil, nil, err
 				}
+
 			default:
-				return nil, nil, fmt.Errorf("incompatible dimensions")
+				return nil, nil, ErrIncompatibleDimension
 			}
 		}
 	}
@@ -92,14 +96,21 @@ func repeatTensorsForMutltidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, tens
 // The given tensor is cloned such that the tensor is not modified in place.
 // Example: if we add 2 extra dimensions to shape (2, 3) we get shape (1, 1, 2, 3).
 func addExtraDimsToTensor(t tensor.Tensor, nExtraDims int) (tensor.Tensor, error) {
-	t = t.Clone().(tensor.Tensor)
+	t, ok := t.Clone().(tensor.Tensor)
+	if !ok {
+		return nil, ErrTypeAssert("tensor.Tensor", t.Clone())
+	}
 
-	var newShape []int
+	newShape := []int{}
 	for i := 0; i < nExtraDims; i++ {
 		newShape = append(newShape, 1)
 	}
+
 	newShape = append(newShape, t.Shape()...)
 
-	err := t.Reshape(newShape...)
-	return t, err
+	if err := t.Reshape(newShape...); err != nil {
+		return nil, err
+	}
+
+	return t, nil
 }
