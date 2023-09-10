@@ -38,10 +38,12 @@ func ValidateInputs(op Operator, inputs []tensor.Tensor) ([]tensor.Tensor, error
 
 func checkNInputs(op Operator, inputs []tensor.Tensor) (int, error) {
 	nInputs := len(inputs)
+
 	var padLength int
 
 	min := op.GetMinInputs()
 	max := op.GetMaxInputs()
+
 	if min == max {
 		if nInputs != min {
 			return 0, fmt.Errorf(InvalidInputCountErrTemplate, op, min, nInputs)

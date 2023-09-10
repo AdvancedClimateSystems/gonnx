@@ -173,6 +173,8 @@ func TensorFromProto(tp *TensorProto) (tensor.Tensor, error) {
 		values, err = getInt64Data(tp)
 	case typeMap["DOUBLE"]:
 		values, err = getDoubleData(tp)
+	case typeMap["BOOL"]:
+		values = getBoolData(tp)
 	default:
 		// At this moment the datatype is either UNDEFINED or some datatype we currently
 		// do not support.
@@ -279,8 +281,17 @@ func getDoubleData(tp *TensorProto) ([]float64, error) {
 	return ReadFloat64ArrayFromBytes(tp.RawData)
 }
 
+func getBoolData(tp *TensorProto) []bool {
+	if len(tp.Int32Data) > 0 {
+		return Int32ArrayToBoolArray(tp.GetInt32Data())
+	}
+
+	return ReadBoolArrayFromBytes(tp.RawData)
+}
+
 const (
 	float32Size int = 4
+	boolSize    int = 1
 	uint8Size   int = 1
 	int8Size    int = 1
 	uint16Size  int = 2
@@ -342,6 +353,21 @@ func ReadFloat64ArrayFromBytes(data []byte) ([]float64, error) {
 	}
 
 	return values, nil
+}
+
+// ReadBoolArrayFromBytes reads data and parses it to an array of bool.
+func ReadBoolArrayFromBytes(data []byte) []bool {
+	values := make([]bool, len(data))
+
+	for i, b := range data {
+		if b > 0 {
+			values[i] = true
+		} else {
+			values[i] = false
+		}
+	}
+
+	return values
 }
 
 // ReadUint8ArrayFromBytes reads data and parses it to an array of uint8.
@@ -541,6 +567,16 @@ func ReadInt64ArrayFromBytes(data []byte) ([]int64, error) {
 	}
 
 	return values, nil
+}
+
+// Int32ArrayToBoolArray converts an int32 array to a bool array.
+func Int32ArrayToBoolArray(arr []int32) []bool {
+	newArr := make([]bool, len(arr))
+	for i, value := range arr {
+		newArr[i] = value == 1.0
+	}
+
+	return newArr
 }
 
 // Int32ArrayToInt8Array converts an int32 array to an int8 array.

@@ -12,6 +12,7 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops/opset13"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
+	"gorgonia.org/tensor"
 )
 
 // Currently we ignore some of tests provided by ONNX. This has to do with the
@@ -107,12 +108,14 @@ type ONNXTestCase struct {
 
 func TestOps(t *testing.T) {
 	var runnedTests []string
+
 	opNames := opset13.GetOpNames()
 	for _, opName := range opNames {
 		tests, err := getTestCasesForOp(opName)
 		assert.Nil(t, err)
 
 		for _, test := range tests {
+			fmt.Println(test.inputs)
 			t.Run(test.name, func(t *testing.T) {
 				outputs, err := test.model.Run(test.inputs)
 				assert.Nil(t, err)
@@ -120,13 +123,18 @@ func TestOps(t *testing.T) {
 				for outputName := range test.outputs {
 					expectedTensor := test.outputs[outputName]
 					actualTensor := outputs[outputName]
-					assert.InDeltaSlice(t, expectedTensor.Data(), actualTensor.Data(), 0.00001)
+					if expectedTensor.Dtype() == tensor.Bool {
+						assert.ElementsMatch(t, expectedTensor.Data(), actualTensor.Data())
+					} else {
+						assert.InDeltaSlice(t, expectedTensor.Data(), actualTensor.Data(), 0.00001)
+					}
 				}
 			})
 
 			runnedTests = append(runnedTests, test.name)
 		}
 	}
+
 	sort.Strings(expectedTests)
 	sort.Strings(runnedTests)
 	assert.Equal(t, expectedTests, runnedTests)
@@ -295,6 +303,9 @@ var expectedTests = []string{
 	"test_mul",
 	"test_mul_bcast",
 	"test_mul_example",
+	"test_not_2d",
+	"test_not_3d",
+	"test_not_4d",
 	"test_prelu_broadcast",
 	"test_prelu_example",
 	"test_relu",

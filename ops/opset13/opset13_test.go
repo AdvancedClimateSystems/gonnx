@@ -75,6 +75,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Not",
+			newNot(),
+			nil,
+		},
+		{
 			"Relu",
 			newRelu(),
 			nil,
