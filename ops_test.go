@@ -12,6 +12,7 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops/opset13"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
+	"gorgonia.org/tensor"
 )
 
 // Currently we ignore some of tests provided by ONNX. This has to do with the
@@ -42,18 +43,22 @@ var ignoredTests = []string{
 	"test_shape_start_negative_1",       // Opset15
 	"test_reshape_allowzero_reordered",  // Opset14
 
-	"test_constant_pad",              // Pad is not implemented yet.
-	"test_constant_pad_axes",         // Pad is not implemented yet.
-	"test_gemm_alpha",                // For gemm in opset 11.
-	"test_gemm_default_no_bias",      // For gemm in opset 11.
-	"test_gemm_default_scalar_bias",  // For gemm in opset 11.
-	"test_relu_expanded_ver18",       // CastLike operator not implemented yet.
-	"test_slice_start_out_of_bounds", // ONNX expects nil output, but we throw an error.
-	"test_slice_end_out_of_bounds",   // ONNX expects nil output, but we throw an error.
-	"test_slice_neg_steps",           // ONNX expects nil output, but we throw an error.
-	"test_slice_neg",                 // ONNX expects nil output, but we throw an error.
-	"test_transpose_default",         // For transpose in opset 9.
+	"test_constant_pad",                 // Pad is not implemented yet.
+	"test_constant_pad_axes",            // Pad is not implemented yet.
+	"test_gemm_alpha",                   // For gemm in opset 11.
+	"test_gemm_default_no_bias",         // For gemm in opset 11.
+	"test_gemm_default_scalar_bias",     // For gemm in opset 11.
+	"test_greater_equal_expanded",       // Or is not implemented yet.
+	"test_greater_equal_bcast_expanded", // Or is not implemented yet.
+	"test_relu_expanded_ver18",          // CastLike operator not implemented yet.
+	"test_slice_start_out_of_bounds",    // ONNX expects nil output, but we throw an error.
+	"test_slice_end_out_of_bounds",      // ONNX expects nil output, but we throw an error.
+	"test_slice_neg_steps",              // ONNX expects nil output, but we throw an error.
+	"test_slice_neg",                    // ONNX expects nil output, but we throw an error.
+	"test_transpose_default",            // For transpose in opset 9.
 
+	"test_equal_string",                               // Unsupported datatype String.
+	"test_equal_string_broadcast",                     // Unsupported datatype String.
 	"test_cast_FLOAT_to_STRING",                       // Unsupported datatype STRING.
 	"test_cast_STRING_to_FLOAT",                       // Unsupported datatype STRING.
 	"test_cast_DOUBLE_to_FLOAT16",                     // Unsupported datatype FLOAT16.
@@ -120,7 +125,12 @@ func TestOps(t *testing.T) {
 				for outputName := range test.outputs {
 					expectedTensor := test.outputs[outputName]
 					actualTensor := outputs[outputName]
-					assert.InDeltaSlice(t, expectedTensor.Data(), actualTensor.Data(), 0.00001)
+
+					if expectedTensor.Dtype() == tensor.Bool {
+						assert.ElementsMatch(t, expectedTensor.Data(), actualTensor.Data())
+					} else {
+						assert.InDeltaSlice(t, expectedTensor.Data(), actualTensor.Data(), 0.00001)
+					}
 				}
 			})
 
@@ -150,6 +160,7 @@ func getTestCasesForOp(opName string) ([]*ONNXTestCase, error) {
 		if shouldRunTest(testFolder, opFilter) {
 			testcase, err := getTestCase(fmt.Sprintf("./test_data/%v", testFolder))
 			if err != nil {
+				fmt.Println(testFolder)
 				return nil, err
 			}
 
@@ -277,6 +288,8 @@ var expectedTests = []string{
 	"test_div",
 	"test_div_bcast",
 	"test_div_example",
+	"test_equal",
+	"test_equal_bcast",
 	"test_gather_0",
 	"test_gather_1",
 	"test_gather_2d_indices",
@@ -289,6 +302,10 @@ var expectedTests = []string{
 	"test_gemm_default_zero_bias",
 	"test_gemm_beta",
 	"test_gemm_transposeB",
+	"test_greater",
+	"test_greater_bcast",
+	"test_greater_equal",
+	"test_greater_equal_bcast",
 	"test_matmul_4d",
 	"test_matmul_3d",
 	"test_matmul_2d",
