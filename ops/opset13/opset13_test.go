@@ -65,6 +65,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"LogSoftmax",
+			newLogSoftmax(),
+			nil,
+		},
+		{
 			"MatMul",
 			newMatMul(),
 			nil,
