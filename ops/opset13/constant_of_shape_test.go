@@ -2,7 +2,6 @@ package opset13
 
 import (
 	"encoding/binary"
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -19,6 +18,7 @@ func TensorProtoFromNumber(n interface{}) *onnx.TensorProto {
 		size := 1
 		rawData := make([]byte, size)
 		rawData[0] = uint8(x)
+
 		return &onnx.TensorProto{
 			DataType: onnx.TensorProto_DataType_value["INT8"],
 			Dims:     []int64{1},
@@ -29,6 +29,7 @@ func TensorProtoFromNumber(n interface{}) *onnx.TensorProto {
 		size := 2
 		rawData := make([]byte, size)
 		binary.LittleEndian.PutUint16(rawData, uint16(x))
+
 		return &onnx.TensorProto{
 			DataType: onnx.TensorProto_DataType_value["INT16"],
 			Dims:     []int64{1},
@@ -142,7 +143,7 @@ func TestIncorrectInput(t *testing.T) {
 
 func TestNegativeShapeNotAllowed(t *testing.T) {
 	op := &ConstantOfShape{}
-	op.Init([]*onnx.AttributeProto{})
+	_ = op.Init([]*onnx.AttributeProto{})
 
 	shape := []int64{1, -1}
 
@@ -158,7 +159,7 @@ func TestNegativeShapeNotAllowed(t *testing.T) {
 
 func TestEmptyTensorNotAllowed(t *testing.T) {
 	op := &ConstantOfShape{}
-	op.Init([]*onnx.AttributeProto{})
+	_ = op.Init([]*onnx.AttributeProto{})
 
 	shape := []int64{0}
 
@@ -174,7 +175,7 @@ func TestEmptyTensorNotAllowed(t *testing.T) {
 
 func TestScalarShapeInput(t *testing.T) {
 	op := &ConstantOfShape{}
-	op.Init([]*onnx.AttributeProto{})
+	_ = op.Init([]*onnx.AttributeProto{})
 
 	shape := []int64{6}
 	input := tensor.New(tensor.WithBacking(shape))
@@ -198,11 +199,11 @@ func TestInputValidationConstantOfShape(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("constant of shape operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(1, &ConstantOfShape{}),
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			fmt.Errorf("constant of shape operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &ConstantOfShape{}),
 		},
 	}
 

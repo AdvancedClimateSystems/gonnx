@@ -6,6 +6,14 @@ import (
 	"gorgonia.org/tensor"
 )
 
+const (
+	// MinCastInput is the minimimum amount of inputs the add operator expects.
+	MinCastInput = 1
+
+	// MaxCastInput is the maximum amount of inputs the add operator accepts.
+	MaxCastInput = 1
+)
+
 // Cast represents the ONNX cast operator.
 type Cast struct {
 	to int32 // DataType to cast to, as defined by TensorProto
@@ -49,12 +57,12 @@ func (c *Cast) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (c *Cast) GetMinInputs() int {
-	return 1
+	return MinCastInput
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (c *Cast) GetMaxInputs() int {
-	return 1
+	return MaxCastInput
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

@@ -120,14 +120,14 @@ func TestInputValidationAdd(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(&Add{}, 1),
+			ops.ErrInvalidInputCount(1, &Add{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			ops.ErrInvalidInputType(&Add{}, 0, "int"),
+			ops.ErrInvalidInputType(0, "int", &Add{}),
 		},
 	}
 

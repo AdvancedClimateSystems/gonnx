@@ -46,6 +46,7 @@ func TestConstantInit(t *testing.T) {
 			[]*onnx.AttributeProto{{Name: "sparse_value"}},
 			nil,
 			fmt.Errorf(ops.UnsupportedAttrErrTemplate, &Constant{}, "sparse_value"),
+                        ops.ErrUnsupportedAttribute("sparse_value", &Constant{})
 		},
 		{
 			[]*onnx.AttributeProto{{Name: "unknownAttribute"}},

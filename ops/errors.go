@@ -8,8 +8,16 @@ import (
 	"gorgonia.org/tensor"
 )
 
+type AttributeErrorKind string
+
+const (
+	AttributeErrorCount       AttributeErrorKind = "count"
+	AttributeErrorInvalid     AttributeErrorKind = "invalid"
+	AttributeErrorUnsupported AttributeErrorKind = "unsupported"
+)
+
 type AttributeError struct {
-	kind           string
+	kind           AttributeErrorKind
 	attributeCount int
 	expectedCount  int
 	attributeName  string
@@ -18,21 +26,27 @@ type AttributeError struct {
 
 func (t *AttributeError) Error() string {
 	switch t.kind {
-	case "count":
+	case AttributeErrorCount:
 		return fmt.Sprintf("operator %s attribute error: invalid count %d expected %d", t.operator.String(), t.attributeCount, t.expectedCount)
-	case "name":
+	case AttributeErrorInvalid:
 		return fmt.Sprintf("operator %s attribute error: invalid attribute %s", t.operator.String(), t.attributeName)
+	case AttributeErrorUnsupported:
+		return fmt.Sprintf("operator %s attribute error: unsupported attribute %s", t.operator.String(), t.attributeName)
+	default:
+		return fmt.Sprintf("operator %s unknown error attribute error kind %s", t.operator.String(), t.kind)
 	}
-
-	return fmt.Sprintf("attribute error")
 }
 
-func ErrInvalidAttribute(attributeName string, operator Operator) error {
-	return &AttributeError{attributeName: attributeName, kind: "count", operator: operator}
+func ErrInvalidAttribute(attributeName string, operator Operator) *AttributeError {
+	return &AttributeError{attributeName: attributeName, kind: "invalid", operator: operator}
 }
 
 func ErrInvalidAttributeCount(expected, actual int, operator Operator) error {
 	return &AttributeError{attributeCount: actual, expectedCount: expected, kind: "count", operator: operator}
+}
+
+func ErrUnsupportedAttribute(attributeName string, operator Operator) error {
+	return &AttributeError{attributeName: attributeName, kind: "unsupported", operator: operator}
 }
 
 type TypeAssertError struct {
@@ -68,18 +82,18 @@ const InvalidInputCountErrTemplate = "%v: expected %d input tensors, got %d"
 // the wrong amount of input tensors when optional inputs are present.
 const InvalidOptionalInputCountErrTemplate = "%v: expected %d-%d input tensors, got %d"
 
-type InvalidInputTypeError struct {
+type InvalidInputError struct {
 	inputNumber int
 	actualType  string
 	operator    Operator
 }
 
-func (i *InvalidInputTypeError) Error() string {
+func (i *InvalidInputError) Error() string {
 	return fmt.Sprintf("input %d for op %v does not allow dtype %v", i.inputNumber, i.operator, i.actualType)
 }
 
-func ErrInvalidInputType(operator Operator, inputNumber int, dType string) error {
-	return &InvalidInputTypeError{
+func ErrInvalidInputType(inputNumber int, dType string, operator Operator) error {
+	return &InvalidInputError{
 		operator:    operator,
 		inputNumber: inputNumber,
 		actualType:  dType,
@@ -100,7 +114,7 @@ func (i *InvalidInputCountError) Error() string {
 	return fmt.Sprintf(InvalidInputCountErrTemplate, i.operator, i.operator.GetMinInputs(), i.actualCount)
 }
 
-func ErrInvalidInputCount(operator Operator, actual int) error {
+func ErrInvalidInputCount(actual int, operator Operator) error {
 	return &InvalidInputCountError{
 		actualCount: actual,
 		operator:    operator,
@@ -141,6 +155,19 @@ func ErrUnidirBroadcast(shapeA, shapeB tensor.Shape) error {
 		shapeA:        shapeA,
 		shapeB:        shapeB,
 	}
+}
+
+type InvalidTensorError struct {
+	reason   string
+	operator Operator
+}
+
+func (i *InvalidTensorError) Error() string {
+	return fmt.Sprintf("%v invalid tensor found, reason: %s", i.operator.String(), i.reason)
+}
+
+func ErrInvalidTensor(reason string, operator Operator) error {
+	return &InvalidTensorError{reason: reason, operator: operator}
 }
 
 var ErrIncompatibleDimension = errors.New("incompatible dimensions")

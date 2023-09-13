@@ -1,11 +1,17 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	// MinConstanShapeOfInput is the minimimum amount of inputs the add operator expects.
+	MinConstanShapeOfInput = 1
+
+	// MaxConstanShapeOfInput is the maximum amount of inputs the add operator accepts.
+	MaxConstanShapeOfInput = 1
 )
 
 // ConstantOfShape represents the ONNX constant of shape operator.
@@ -21,9 +27,9 @@ func newConstantOfShape() ops.Operator {
 }
 
 // Init initializes the constant of shape operator.
-func (op *ConstantOfShape) Init(attributes []*onnx.AttributeProto) error {
+func (c *ConstantOfShape) Init(attributes []*onnx.AttributeProto) error {
 	if len(attributes) > 1 {
-		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, op, "0 or 1", len(attributes))
+		return ops.ErrInvalidAttributeCount(1, len(attributes), c)
 	}
 
 	if len(attributes) == 1 {
@@ -34,26 +40,22 @@ func (op *ConstantOfShape) Init(attributes []*onnx.AttributeProto) error {
 				return err
 			}
 
-			op.value = tensor.New(tensor.WithBacking(t.Data()))
-			if op.value.Len() != 1 {
-				return fmt.Errorf(
-					"Value input tensor should be a single element tensor, but was %v",
-					op.value,
-				)
+			c.value = tensor.New(tensor.WithBacking(t.Data()))
+			if c.value.Len() != 1 {
+				return ops.ErrInvalidTensor("expected tensor to have one element", c)
 			}
 		} else {
-			return fmt.Errorf(ops.UnknownAttributeErrTemplate, op, attr.GetName())
+			return ops.ErrInvalidAttribute(attr.GetName(), c)
 		}
 	} else {
-		// Default
-		op.value = tensor.New(tensor.FromScalar(float32(0.0)))
+		c.value = tensor.New(tensor.FromScalar(float32(0.0)))
 	}
 
 	return nil
 }
 
 // Apply applies the constant of shape operator.
-func (op *ConstantOfShape) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *ConstantOfShape) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	shape, err := ops.AnyToIntSlice(ops.IfScalarToSlice(inputs[0].Data()))
 	if err != nil {
 		return nil, err
@@ -62,42 +64,44 @@ func (op *ConstantOfShape) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error
 	// Empty dimensions in a tensor are not supported
 	for i := range shape {
 		if shape[i] <= 0 {
-			return nil, fmt.Errorf(
-				"Non positive dimensions are not allowed (must be > 0). Given: %v",
-				shape,
-			)
+			return nil, ops.ErrInvalidTensor("no empty dimensions are allowed", c)
 		}
 	}
-	t := tensor.New(tensor.WithShape(shape...), tensor.Of(op.value.Dtype()))
-	t, err = t.AddScalar(op.value, true)
+
+	t := tensor.New(tensor.WithShape(shape...), tensor.Of(c.value.Dtype()))
+
+	t, err = t.AddScalar(c.value, true)
+	if err != nil {
+		return nil, err
+	}
 
 	return []tensor.Tensor{t}, err
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (op *ConstantOfShape) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(op, inputs)
+func (c *ConstantOfShape) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+	return ops.ValidateInputs(c, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (op *ConstantOfShape) GetMinInputs() int {
-	return 1
+func (c *ConstantOfShape) GetMinInputs() int {
+	return MinConstanShapeOfInput
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (op *ConstantOfShape) GetMaxInputs() int {
-	return 1
+func (c *ConstantOfShape) GetMaxInputs() int {
+	return MaxConstanShapeOfInput
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (op *ConstantOfShape) GetInputTypeConstraints() [][]tensor.Dtype {
+func (c *ConstantOfShape) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{
 		{tensor.Int64},
 	}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (op *ConstantOfShape) String() string {
+func (c *ConstantOfShape) String() string {
 	return "constant of shape operator"
 }
