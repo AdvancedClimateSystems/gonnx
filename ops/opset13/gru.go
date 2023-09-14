@@ -8,6 +8,14 @@ import (
 	"gorgonia.org/tensor"
 )
 
+const (
+	// MinGRUInput is the minimimum amount of inputs the add operator expects.
+	MinGRUInput = 3
+
+	// MaxGRUInput is the maximum amount of inputs the add operator accepts.
+	MaxGRUInput = 6
+)
+
 // GRU represents the ONNX gru operator. It only supports a simple forward gru
 // operation with default activations.
 type GRU struct {
@@ -35,7 +43,7 @@ func (g *GRU) Init(attributes []*onnx.AttributeProto) error {
 		case "linear_before_reset":
 			g.linearBeforeReset = ops.Int64ToBool(attr.GetI())
 		default:
-			return fmt.Errorf(ops.UnsupportedAttrErrTemplate, g, attr.GetName())
+			return ops.ErrInvalidAttribute(attr.GetName(), g)
 		}
 	}
 

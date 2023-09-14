@@ -6,6 +6,14 @@ import (
 	"gorgonia.org/tensor"
 )
 
+const (
+	// MinDivInput is the minimimum amount of inputs the add operator expects.
+	MinDivInput = 2
+
+	// MaxDivInput is the maximum amount of inputs the add operator accepts.
+	MaxDivInput = 2
+)
+
 // Div represents the ONNX div operator.
 type Div struct{}
 
@@ -41,12 +49,12 @@ func (d *Div) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (d *Div) GetMinInputs() int {
-	return 2
+	return MinDivInput
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (d *Div) GetMaxInputs() int {
-	return 2
+	return MaxDivInput
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

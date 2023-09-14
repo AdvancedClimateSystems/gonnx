@@ -130,14 +130,14 @@ func TestInputValidationMul(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("mul operator: expected 2 input tensors, got 1"),
+			ops.ErrInvalidInputCount(1, &Mul{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			fmt.Errorf("mul operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Mul{}),
 		},
 	}
 

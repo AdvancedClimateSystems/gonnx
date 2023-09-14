@@ -47,7 +47,7 @@ func (op *PRelu) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	case tensor.Int64:
 		calcPRelu(y.Data().([]int64), x.Data().([]int64), slope.Data().([]int64))
 	default:
-		return nil, fmt.Errorf("%v: unsupported type %v", op, x.Dtype())
+		return nil, ops.ErrInvalidInputType(0, x.Dtype().String(), op)
 	}
 
 	return []tensor.Tensor{y}, nil

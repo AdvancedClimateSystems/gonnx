@@ -172,8 +172,11 @@ func ErrInvalidTensor(reason string, operator Operator) error {
 
 var ErrIncompatibleDimension = errors.New("incompatible dimensions")
 
-// UnknowOpTypeErrTemplate is used to format an error when the operator type is unknown.
-const UnknowOpTypeErrTemplate = "unknown operator type: %v"
+var UnknownOperatorTypeError = errors.New("unknown operator type")
+
+func ErrUnknownOperatorType(operatorType string) error {
+	return fmt.Errorf("%w: %s", UnknownOperatorTypeError, operatorType)
+}
 
 // MultidirBroadcastErrTemplate is used to format an error when two inputs cannot be
 // broadcasted together with Multidirectional broadcasting.

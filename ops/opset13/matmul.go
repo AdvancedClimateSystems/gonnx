@@ -8,6 +8,14 @@ import (
 	"gorgonia.org/tensor"
 )
 
+const (
+	// MinMatMulInput is the minimimum amount of inputs the add operator expects.
+	MinMatMulInput = 2
+
+	// MaxMatMulInput is the maximum amount of inputs the add operator accepts.
+	MaxMatMulInput = 2
+)
+
 // MatMul represents the ONNX matmul operator.
 type MatMul struct{}
 
@@ -29,6 +37,10 @@ func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	// If both are normal matrices, apply normal matrix multiplication.
 	if len(A.Shape()) == 2 && len(B.Shape()) == 2 {
 		out, err := tensor.MatMul(A, B)
+		if err != nil {
+			return nil, err
+		}
+
 		return []tensor.Tensor{out}, err
 	}
 
@@ -36,9 +48,13 @@ func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	prependedDimension := false
 	if len(A.Shape()) == 1 {
 		prependedDimension = true
-		A = A.Clone().(tensor.Tensor)
-		err := A.Reshape(1, A.Shape()[0])
-		if err != nil {
+
+		A, ok := A.Clone().(tensor.Tensor)
+		if !ok {
+			return nil, ops.ErrTypeAssert("tensor.Tensor", A)
+		}
+
+		if err := A.Reshape(1, A.Shape()[0]); err != nil {
 			return nil, err
 		}
 	}
@@ -47,9 +63,13 @@ func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	appendedDimension := false
 	if len(B.Shape()) == 1 {
 		appendedDimension = true
-		B = B.Clone().(tensor.Tensor)
-		err := B.Reshape(B.Shape()[0], 1)
-		if err != nil {
+
+		B, ok := B.Clone().(tensor.Tensor)
+		if !ok {
+			return nil, ops.ErrTypeAssert("tensor.Tensor", A)
+		}
+
+		if err := B.Reshape(B.Shape()[0], 1); err != nil {
 			return nil, err
 		}
 	}
@@ -71,8 +91,8 @@ func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		currentShape := out.Shape().Clone()
 		newShape := currentShape[:len(currentShape)-2]
 		newShape = append(newShape, currentShape[len(currentShape)-1])
-		err = out.Reshape(newShape...)
-		if err != nil {
+
+		if err := out.Reshape(newShape...); err != nil {
 			return nil, err
 		}
 	}
@@ -80,8 +100,8 @@ func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if appendedDimension {
 		currentShape := out.Shape().Clone()
 		newShape := currentShape[:len(currentShape)-1]
-		err = out.Reshape(newShape...)
-		if err != nil {
+
+		if err = out.Reshape(newShape...); err != nil {
 			return nil, err
 		}
 	}
@@ -96,12 +116,12 @@ func (m *MatMul) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (m *MatMul) GetMinInputs() int {
-	return 2
+	return MinMatMulInput
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (m *MatMul) GetMaxInputs() int {
-	return 2
+	return MaxMatMulInput
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

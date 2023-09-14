@@ -134,7 +134,7 @@ func TestInputValidationGemm(t *testing.T) {
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
 			nil,
-			fmt.Errorf("gemm operator: expected 2-3 input tensors, got 1"),
+			ops.ErrInvalidInputCount(1, &Gemm{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -144,7 +144,7 @@ func TestInputValidationGemm(t *testing.T) {
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 			},
 			nil,
-			fmt.Errorf("gemm operator: expected 2-3 input tensors, got 4"),
+			ops.ErrInvalidInputCount(4, &Gemm{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -152,7 +152,7 @@ func TestInputValidationGemm(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
 			nil,
-			fmt.Errorf("gemm operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Gemm{}),
 		},
 	}
 

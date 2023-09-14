@@ -6,6 +6,14 @@ import (
 	"gorgonia.org/tensor"
 )
 
+const (
+	// MinMulInput is the minimimum amount of inputs the mul operator expects.
+	MinMulInput = 2
+
+	// MaxMulInput is the maximum amount of inputs the mul operator accepts.
+	MaxMulInput = 2
+)
+
 // Mul represents the ONNX mul operator.
 type Mul struct{}
 
@@ -41,12 +49,12 @@ func (m *Mul) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (m *Mul) GetMinInputs() int {
-	return 2
+	return MinMulInput
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (m *Mul) GetMaxInputs() int {
-	return 2
+	return MaxMulInput
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

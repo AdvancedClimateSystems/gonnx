@@ -8,6 +8,14 @@ import (
 	"gorgonia.org/tensor"
 )
 
+const (
+	// MinGatherInput is the minimimum amount of inputs the add operator expects.
+	MinGatherInput = 2
+
+	// MaxGatherInput is the maximum amount of inputs the add operator accepts.
+	MaxGatherInput = 2
+)
+
 // Gather represents the ONNX gather operator.
 type Gather struct {
 	axis int // axis to gather on, default is 0
@@ -23,16 +31,19 @@ func (g *Gather) Init(attributes []*onnx.AttributeProto) error {
 	switch length := len(attributes); {
 	case length > 1:
 		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, g, "0 or 1", len(attributes))
+
 	case length == 1:
 		attr := attributes[0]
+
 		if attr.GetName() == "axis" {
 			g.axis = int(attr.GetI())
 		} else {
-			return fmt.Errorf(ops.UnknownAttributeErrTemplate, g, attr.GetName())
+			return ops.ErrInvalidAttribute(attr.GetName(), g)
 		}
 	default:
 		g.axis = 0
 	}
+
 	return nil
 }
 
@@ -85,12 +96,12 @@ func (g *Gather) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (g *Gather) GetMinInputs() int {
-	return 2
+	return MinGatherInput
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (g *Gather) GetMaxInputs() int {
-	return 2
+	return MaxGatherInput
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

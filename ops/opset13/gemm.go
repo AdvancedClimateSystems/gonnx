@@ -1,11 +1,17 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	// MinGemmInput is the minimimum amount of inputs the add operator expects.
+	MinGemmInput = 2
+
+	// MaxGemmInput is the maximum amount of inputs the add operator accepts.
+	MaxGemmInput = 3
 )
 
 // Gemm represents the ONNX gemm operator.
@@ -39,7 +45,7 @@ func (g *Gemm) Init(attributes []*onnx.AttributeProto) error {
 		case "transB":
 			g.transB = ops.Int64ToBool(attr.GetI())
 		default:
-			return fmt.Errorf(ops.UnknownAttributeErrTemplate, g, attr.GetName())
+			return ops.ErrInvalidAttribute(attr.GetName(), g)
 		}
 	}
 
@@ -107,12 +113,12 @@ func (g *Gemm) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (g *Gemm) GetMinInputs() int {
-	return 2
+	return MinGemmInput
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (g *Gemm) GetMaxInputs() int {
-	return 3
+	return MaxGemmInput
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
