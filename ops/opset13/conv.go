@@ -49,31 +49,31 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 		switch attr.GetName() {
 		case "auto_pad":
 			c.autoPad = AutoPadSetting(attr.GetS())
-                        if c.autoPad != "NOTSET" {
-                            return fmt.Errorf(ops.UnsupportedAttrErrTemplate, g, attr.GetName())
-                        }
+			if c.autoPad != "NOTSET" {
+				return fmt.Errorf(ops.UnsupportedAttrErrTemplate, g, attr.GetName())
+			}
 		case "dilations":
-			c.dilations, err := ops.AnyToIntSlice(attr.GetInts())
+			c.dilations, err = ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
 				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.dilations)
 			}
 		case "group":
 			c.group = attr.GetI()
-                        if c.group != 1 {
-                            return fmt.Errorf(ops.UnsupportedAttrErrTemplate, c, attr.GetName())
-                        }
+			if c.group != 1 {
+				return fmt.Errorf(ops.UnsupportedAttrErrTemplate, c, attr.GetName())
+			}
 		case "kernel_shape":
-			c.kernelShape, err := ops.AnyToIntSlice(attr.GetInts())
+			c.kernelShape, err = ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
 				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.kernelShape)
 			}
 		case "pads":
-			c.pads, err := ops.AnyToIntSlice(attr.GetInts())
+			c.pads, err = ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
 				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.pads)
 			}
 		case "strides":
-			c.strides, err := ops.AnyToIntSlice(attr.GetInts())
+			c.strides, err = ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
 				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.strides)
 			}
@@ -90,22 +90,18 @@ func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	X := inputs[0]
 	kernel := inputs[1]
 
-	bias := nil
+	var bias tensor.Tensor
 	if len(inputs) == 3 {
-		b = inputs[2]
+		bias = inputs[2]
 	}
 
-	in1, in2, err := ops.MultidirectionalBroadcast(inputs[0], inputs[1])
-	if err != nil {
-		return nil, err
+	// 2D Convolution where
+	if len(X.Shape()) == 4 {
+	} else {
+		return nil, fmt.Errorf("The convolution operator currently only supports 2D convolution, i.e. shape [N x C x H x W]")
 	}
 
-	out, err := tensor.Conv(in1, in2)
-	if err != nil {
-		return nil, err
-	}
-
-	return []tensor.Tensor{out}, nil
+	return []tensor.Tensor{}, nil
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
