@@ -53,7 +53,7 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 				return fmt.Errorf(ops.UnsupportedAttrErrTemplate, g, attr.GetName())
 			}
 		case "dilations":
-			c.dilations, err := ops.AnyToIntSlice(attr.GetInts())
+			c.dilations, err = ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
 				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.dilations)
 			}
@@ -63,17 +63,17 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 				return fmt.Errorf(ops.UnsupportedAttrErrTemplate, c, attr.GetName())
 			}
 		case "kernel_shape":
-			c.kernelShape, err := ops.AnyToIntSlice(attr.GetInts())
+			c.kernelShape, err = ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
 				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.kernelShape)
 			}
 		case "pads":
-			c.pads, err := ops.AnyToIntSlice(attr.GetInts())
+			c.pads, err = ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
 				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.pads)
 			}
 		case "strides":
-			c.strides, err := ops.AnyToIntSlice(attr.GetInts())
+			c.strides, err = ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
 				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.strides)
 			}
@@ -109,7 +109,13 @@ func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	kernel = c.getDilatedKernel(kernel)
 
-	return []tensor.Tensor{out}, nil
+	// 2D Convolution where
+	if len(X.Shape()) == 4 {
+	} else {
+		return nil, fmt.Errorf("The convolution operator currently only supports 2D convolution, i.e. shape [N x C x H x W]")
+	}
+
+	return []tensor.Tensor{}, nil
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
