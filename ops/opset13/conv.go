@@ -49,9 +49,9 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 		switch attr.GetName() {
 		case "auto_pad":
 			c.autoPad = AutoPadSetting(attr.GetS())
-                        if c.autoPad != "NOTSET" {
-                            return fmt.Errorf(ops.UnsupportedAttrErrTemplate, g, attr.GetName())
-                        }
+			if c.autoPad != "NOTSET" {
+				return fmt.Errorf(ops.UnsupportedAttrErrTemplate, g, attr.GetName())
+			}
 		case "dilations":
 			c.dilations, err := ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
@@ -59,9 +59,9 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 			}
 		case "group":
 			c.group = attr.GetI()
-                        if c.group != 1 {
-                            return fmt.Errorf(ops.UnsupportedAttrErrTemplate, c, attr.GetName())
-                        }
+			if c.group != 1 {
+				return fmt.Errorf(ops.UnsupportedAttrErrTemplate, c, attr.GetName())
+			}
 		case "kernel_shape":
 			c.kernelShape, err := ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
@@ -89,28 +89,32 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	X := inputs[0]
 	kernel := inputs[1]
-
-	bias := nil
+	var bias tensor.Tensor = nil
 	if len(inputs) == 3 {
-		b = inputs[2]
+		bias = inputs[2]
 	}
 
-	in1, in2, err := ops.MultidirectionalBroadcast(inputs[0], inputs[1])
-	if err != nil {
-		return nil, err
+	if len(c.dilations) == 0 {
+		c.setDefaultDilations(X)
+	}
+	if len(c.kernelShape) == 0 {
+		c.setKernelShape(kernel)
+	}
+	if len(c.pads) == 0 {
+		c.setDefaultPaddings(X)
+	}
+	if len(c.strides) == 0 {
+		c.setDefaultStrides(X)
 	}
 
-	out, err := tensor.Conv(in1, in2)
-	if err != nil {
-		return nil, err
-	}
+	kernel = c.getDilatedKernel(kernel)
 
 	return []tensor.Tensor{out}, nil
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
 func (c *Conv) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(a, inputs)
+	return ops.ValidateInputs(c, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
@@ -136,4 +140,68 @@ func (c *Conv) GetInputTypeConstraints() [][]tensor.Dtype {
 // String implements the stringer interface, and can be used to format errors or messages.
 func (c *Conv) String() string {
 	return "conv operator"
+}
+
+// setDefaultDilations sets the dilations attribute to the default. Can be called when no
+// dilations were set when initializing.
+func (c *Conv) setDefaultDilations(X tensor.Tensor) {
+	nDims := len(X.Shape()[2:])
+
+	dilations := make([]int, nDims)
+	for i := 0; i < nDims; i++ {
+		dilations[i] = 1
+	}
+
+	c.dilations = dilations
+}
+
+// setKernelShape infers the shape of the kernel when it was not given in the attributes.
+func (c *Conv) setKernelShape(kernel tensor.Tensor) {
+	c.kernelShape = kernel.Shape()[2:]
+}
+
+// setDefaultPaddings sets default paddings as attribute. Can be called when no paddings
+// were set during initialization.
+func (c *Conv) setDefaultPaddings(X tensor.Tensor) {
+	paddingLength := len(X.Shape()[2:]) * 2
+
+	pads := make([]int, paddingLength)
+	for i := 0; i < paddingLength; i++ {
+		pads[i] = 0
+	}
+
+	c.pads = pads
+}
+
+// setDefaultStrides sets default strides as attribute. Can be called when no strides
+// were set during initialization.
+func (c *Conv) setDefaultStrides(X tensor.Tensor) {
+	nDims := len(X.Shape()[2:])
+
+	strides := make([]int, nDims)
+	for i := 0; i < nDims; i++ {
+		strides[i] = 1
+	}
+
+	c.strides = strides
+}
+
+// getDilatedKernel creates a new kernel given the `dilations` attribute of this
+// conv operator. A dilated kernel basically means inserting zeros in between
+// the kernels, i.e. a 2D kernel like:
+//
+//	1 2
+//	3 4
+//
+// Dilated by one in both dimensions yields a new kernel of:
+//
+//	1 0 2
+//	0 0 0
+//	3 0 4
+//
+// This function updates the given kernel and dilates it by the given amount
+// for each dimensions separately. It returns a new tensor with the new kernel.
+func (c *Conv) getDilatedKernel(kernel tensor.Tensor) tensor.Tensor {
+	// TODO
+	return kernel
 }
