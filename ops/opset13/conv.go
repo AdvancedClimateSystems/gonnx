@@ -114,9 +114,11 @@ func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	}
 
 	// 2D Convolution where
-	if len(X.Shape()) == 4 {
+	if len(X.Shape()) == 3 {
+		c.applyConv1D(X, kernel, bias)
+	} else if len(X.Shape()) == 4 {
 	} else {
-		return nil, fmt.Errorf("The convolution operator currently only supports 2D convolution, i.e. shape [N x C x H x W]")
+		return nil, fmt.Errorf("The convolution operator currently only supports 1D or 2D convolution, i.e. shape [N x C x H (x W)]")
 	}
 
 	return []tensor.Tensor{}, nil
@@ -243,7 +245,7 @@ func (c *Conv) getDilatedKernel(kernel tensor.Tensor) (tensor.Tensor, error) {
 			return nil, err
 		}
 
-		newCoords := c.getNewKernelCoords(oldCoords, kernel.Shape(), newKernel.Shape())
+		newCoords := c.getNewCoordsAfterDilation(oldCoords, kernel.Shape())
 		newKernel.SetAt(value, newCoords...)
 	}
 
@@ -251,7 +253,10 @@ func (c *Conv) getDilatedKernel(kernel tensor.Tensor) (tensor.Tensor, error) {
 	return newKernel, nil
 }
 
-func (c *Conv) getNewKernelCoords(oldCoords, oldShape, newShape []int) []int {
+// getNewCoordsAfterDilation returns the new coordinates of a value given the old coordinates of that
+// value in the old kernel and its shape. The new coordinates can be used to store the value/weight
+// in the dilated kernel.
+func (c *Conv) getNewCoordsAfterDilation(oldCoords, oldShape []int) []int {
 	newCoords := make([]int, len(oldCoords))
 
 	nNonSpatialDims := 2
@@ -264,4 +269,34 @@ func (c *Conv) getNewKernelCoords(oldCoords, oldShape, newShape []int) []int {
 	}
 
 	return newCoords
+}
+
+// Applies 1D convolution to tensor X with the 'kernel' tensor.
+// X will have 3 dimensions: [N, C, H] where N is the batch size, C is the number
+// of channels and H is the number of dimensions on which to apply the convolutions.
+// The kernel will have shape [kernelDim], where 'kernelDim' is the size of the kernel
+// size of the kernel.
+func (c *Conv) applyConv1D(x, kernel, bias tensor.Tensor) (tensor.Tensor, error) {
+	dimH := x.Shape()[2]
+	kernelSize := c.kernelShape[0]
+	strideSize := c.strides[0]
+
+	outputDim := ((dimH - kernelSize + c.pads[0] + c.pads[1]) / strideSize) + 1
+	outputShape := []int{x.Shape()[0], kernel.Shape()[0], outputDim}
+	out := tensor.Tensor(tensor.New(tensor.WithShape(outputShape...)))
+	out.Zero()
+
+	if bias != nil {
+		err := bias.Reshape(1, bias.Shape()[0], 1)
+		if err != nil {
+			return nil, err
+		}
+
+		out, err = tensor.Add(out, bias)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return out, nil
 }
