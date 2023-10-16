@@ -45,12 +45,13 @@ func newConv() ops.Operator {
 
 // Init initializes the conv operator.
 func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
+	var err error
 	for _, attr := range attributes {
 		switch attr.GetName() {
 		case "auto_pad":
 			c.autoPad = AutoPadSetting(attr.GetS())
 			if c.autoPad != "NOTSET" {
-				return fmt.Errorf(ops.UnsupportedAttrErrTemplate, g, attr.GetName())
+				return fmt.Errorf(ops.UnsupportedAttrErrTemplate, c, attr.GetName())
 			}
 		case "dilations":
 			c.dilations, err = ops.AnyToIntSlice(attr.GetInts())
@@ -58,7 +59,7 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.dilations)
 			}
 		case "group":
-			c.group = attr.GetI()
+			c.group = int(attr.GetI())
 			if c.group != 1 {
 				return fmt.Errorf(ops.UnsupportedAttrErrTemplate, c, attr.GetName())
 			}
@@ -107,7 +108,10 @@ func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		c.setDefaultStrides(X)
 	}
 
-	kernel = c.getDilatedKernel(kernel)
+	kernel, err := c.getDilatedKernel(kernel)
+	if err != nil {
+		return nil, err
+	}
 
 	// 2D Convolution where
 	if len(X.Shape()) == 4 {
@@ -207,7 +211,57 @@ func (c *Conv) setDefaultStrides(X tensor.Tensor) {
 //
 // This function updates the given kernel and dilates it by the given amount
 // for each dimensions separately. It returns a new tensor with the new kernel.
-func (c *Conv) getDilatedKernel(kernel tensor.Tensor) tensor.Tensor {
-	// TODO
-	return kernel
+func (c *Conv) getDilatedKernel(kernel tensor.Tensor) (tensor.Tensor, error) {
+	oldKernelShape := kernel.Shape()
+	newKernelShape := make([]int, len(oldKernelShape))
+
+	// Add the non spatial dimensions of the kernel, i.e. the number of
+	// kernels (index 0) and the number of channels (index 1). These
+	// dimensions do not have to be dilated.
+	nNonSpatialDims := 2
+	for i := 0; i < nNonSpatialDims; i++ {
+		newKernelShape[i] = oldKernelShape[i]
+	}
+
+	// Add the dilated spatial dimensions of the kernel, i.e. in the case
+	// of 2D images these are the width and height dimensions.
+	for i, dilation := range c.dilations {
+		oldKernelDim := oldKernelShape[nNonSpatialDims+i]
+		newKernelShape[nNonSpatialDims+i] = oldKernelDim + (oldKernelDim-1)*(dilation-1)
+	}
+
+	newKernel := tensor.NewDense(kernel.Dtype(), newKernelShape)
+	newKernel.Zero()
+
+	// Now we fill the empty kernel with the original kernel values at the
+	// right positions.
+	iterator := kernel.Iterator()
+	for iterator.Reset(); !iterator.Done(); iterator.Next() {
+		oldCoords := iterator.Coord()
+		value, err := kernel.At(oldCoords...)
+		if err != nil {
+			return nil, err
+		}
+
+		newCoords := c.getNewKernelCoords(oldCoords, kernel.Shape(), newKernel.Shape())
+		newKernel.SetAt(value, newCoords...)
+	}
+
+	c.setKernelShape(newKernel)
+	return newKernel, nil
+}
+
+func (c *Conv) getNewKernelCoords(oldCoords, oldShape, newShape []int) []int {
+	newCoords := make([]int, len(oldCoords))
+
+	nNonSpatialDims := 2
+	for i := 0; i < nNonSpatialDims; i++ {
+		newCoords[i] = oldCoords[i]
+	}
+
+	for i, dilation := range c.dilations {
+		newCoords[nNonSpatialDims+i] = oldCoords[nNonSpatialDims+i] * dilation
+	}
+
+	return newCoords
 }
