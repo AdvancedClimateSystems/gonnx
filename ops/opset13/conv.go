@@ -88,7 +88,7 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 
 // Apply applies the conv operator.
 func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	X := inputs[0]
+	x := inputs[0]
 	kernel := inputs[1]
 	var bias tensor.Tensor = nil
 	if len(inputs) == 3 {
@@ -96,16 +96,16 @@ func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	}
 
 	if len(c.dilations) == 0 {
-		c.setDefaultDilations(X)
+		c.setDefaultDilations(x)
 	}
 	if len(c.kernelShape) == 0 {
 		c.setKernelShape(kernel)
 	}
 	if len(c.pads) == 0 {
-		c.setDefaultPaddings(X)
+		c.setDefaultPaddings(x)
 	}
 	if len(c.strides) == 0 {
-		c.setDefaultStrides(X)
+		c.setDefaultStrides(x)
 	}
 
 	kernel, err := c.getDilatedKernel(kernel)
@@ -113,15 +113,15 @@ func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	// 2D Convolution where
-	if len(X.Shape()) == 3 {
-		c.applyConv1D(X, kernel, bias)
-	} else if len(X.Shape()) == 4 {
+	var out tensor.Tensor
+	if len(x.Shape()) == 3 {
+		out, err = c.applyConv1D(x, kernel, bias)
+	} else if len(x.Shape()) == 4 {
 	} else {
 		return nil, fmt.Errorf("The convolution operator currently only supports 1D or 2D convolution, i.e. shape [N x C x H (x W)]")
 	}
 
-	return []tensor.Tensor{}, nil
+	return []tensor.Tensor{out}, nil
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
@@ -283,11 +283,16 @@ func (c *Conv) applyConv1D(x, kernel, bias tensor.Tensor) (tensor.Tensor, error)
 
 	outputDim := ((dimH - kernelSize + c.pads[0] + c.pads[1]) / strideSize) + 1
 	outputShape := []int{x.Shape()[0], kernel.Shape()[0], outputDim}
-	out := tensor.Tensor(tensor.New(tensor.WithShape(outputShape...)))
+	out := tensor.Tensor(tensor.NewDense(x.Dtype(), outputShape))
 	out.Zero()
 
 	if bias != nil {
 		err := bias.Reshape(1, bias.Shape()[0], 1)
+		if err != nil {
+			return nil, err
+		}
+
+		out, bias, err := ops.MultidirectionalBroadcast(out, bias)
 		if err != nil {
 			return nil, err
 		}
@@ -298,5 +303,65 @@ func (c *Conv) applyConv1D(x, kernel, bias tensor.Tensor) (tensor.Tensor, error)
 		}
 	}
 
+	paddedX, err := c.padInput(x)
+	if err != nil {
+		return nil, err
+	}
+
+	nBatches := x.Shape()[0]
+	nChannels := x.Shape()[1]
+	nKernels := kernel.Shape()[0]
+	for batchIdx := 0; batchIdx < nBatches; batchIdx++ {
+		for kernelIdx := 0; kernelIdx < nKernels; kernelIdx++ {
+			for channelIdx := 0; channelIdx < nChannels; channelIdx++ {
+				subKernel, err := getSubKernel(kernel, kernelIdx, channelIdx)
+				if err != nil {
+					return nil, err
+				}
+
+				// TODO extract image patch from paddedX
+				// TODO multiply kernel with image patch
+				// TODO update values in output tensor
+
+				val, err := out.At(batchIdx, kernelIdx, outputIdx)
+			}
+		}
+	}
+
 	return out, nil
+}
+
+func (c *Conv) padInput(x tensor.Tensor) (tensor.Tensor, error) {
+	nSpatialDims := len(x.Shape()[2:])
+	nNonSpatialDims := 2
+
+	var err error
+	for i := 0; i < nSpatialDims; i++ {
+		padsBeforeShape := x.Shape().Clone()
+		padsBeforeShape[nNonSpatialDims+i] = c.pads[i]
+		zerosBefore := tensor.Tensor(tensor.NewDense(x.Dtype(), padsBeforeShape))
+		zerosBefore.Zero()
+
+		padsAfterShape := x.Shape().Clone()
+		padsAfterShape[nNonSpatialDims+i] = c.pads[i+nSpatialDims]
+		zerosAfter := tensor.Tensor(tensor.NewDense(x.Dtype(), padsAfterShape))
+		zerosAfter.Zero()
+
+		x, err = tensor.Concat(nNonSpatialDims+i, zerosBefore, x, zerosAfter)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return x, nil
+}
+
+// getSubKernel returns a sub kernel of the given kernel. The main kernel is assumed to have
+// shape [M, C, H, ...] where M is the number of kernels, C is the number of channels, and the
+// rest are spatial dimensions. This method returns a subkernel of shape [1, 1, H, ...].
+func getSubKernel(kernel tensor.Tensor, kernelIdx, channelIdx int) (tensor.Tensor, error) {
+	return kernel.Slice(
+		ops.NewSlicer(kernelIdx, kernelIdx+1),
+		ops.NewSlicer(channelIdx, channelIdx+1),
+	)
 }
