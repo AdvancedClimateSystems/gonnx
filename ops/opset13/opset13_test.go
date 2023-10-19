@@ -45,6 +45,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Conv",
+			newConv(),
+			nil,
+		},
+		{
 			"Div",
 			newDiv(),
 			nil,

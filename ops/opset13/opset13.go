@@ -13,6 +13,7 @@ var operators13 = map[string]func() ops.Operator{
 	"Concat":          newConcat,
 	"Constant":        newConstant,
 	"ConstantOfShape": newConstantOfShape,
+	"Conv":            newConv,
 	"Div":             newDiv,
 	"Gather":          newGather,
 	"Gemm":            newGemm,
@@ -38,6 +39,7 @@ func GetOperator(opType string) (ops.Operator, error) {
 	if opInit, ok := operators13[opType]; ok {
 		return opInit(), nil
 	}
+
 	return nil, fmt.Errorf(ops.UnknowOpTypeErrTemplate, opType)
 }
 
@@ -47,5 +49,6 @@ func GetOpNames() []string {
 	for opName := range operators13 {
 		opList = append(opList, opName)
 	}
+
 	return opList
 }
