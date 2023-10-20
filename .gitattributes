@@ -1,1 +1,0 @@
-sample_models/onnx_models/mnist-8-opset13.onnx filter=lfs diff=lfs merge=lfs -text
