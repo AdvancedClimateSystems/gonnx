@@ -17,6 +17,8 @@ const (
 	Valid     AutoPadSetting = "VALID"
 )
 
+const nNonSpatialDims = 2
+
 // Conv represents the ONNX conv operator.
 type Conv struct {
 	// Type of padding to apply before doing the convolutions.
@@ -90,9 +92,9 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	x := inputs[0]
 	kernel := inputs[1]
-	var bias tensor.Tensor
 
-	if len(inputs) == 3 {
+	var bias tensor.Tensor
+	if len(inputs) == c.GetMaxInputs() {
 		bias = inputs[2]
 	}
 
@@ -122,16 +124,25 @@ func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	}
 
 	var out tensor.Tensor
-	if len(x.Shape()) == 3 {
-		out, err = c.applyConv1D(x, kernel, bias)
-	} else if len(x.Shape()) == 4 {
-		out, err = c.applyConv2D(x, kernel, bias)
-	} else {
+
+	switch len(x.Shape()) {
+	case 3:
+		out, err = c.applyConv1D(x, kernel)
+	case 4:
+		out, err = c.applyConv2D(x, kernel)
+	default:
 		return nil, fmt.Errorf("The convolution operator currently only supports 1D or 2D convolution, i.e. shape [N x C x H (x W)]")
 	}
 
 	if err != nil {
 		return nil, err
+	}
+
+	if bias != nil {
+		out, err = c.addBias(out, bias)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return []tensor.Tensor{out}, nil
@@ -169,8 +180,8 @@ func (c *Conv) String() string {
 
 // setDefaultDilations sets the dilations attribute to the default. Can be called when no
 // dilations were set when initializing.
-func (c *Conv) setDefaultDilations(X tensor.Tensor) {
-	nDims := len(X.Shape()[2:])
+func (c *Conv) setDefaultDilations(x tensor.Tensor) {
+	nDims := len(x.Shape()[2:])
 
 	dilations := make([]int, nDims)
 	for i := 0; i < nDims; i++ {
@@ -187,8 +198,8 @@ func (c *Conv) setKernelShape(kernel tensor.Tensor) {
 
 // setDefaultPaddings sets default paddings as attribute. Can be called when no paddings
 // were set during initialization.
-func (c *Conv) setDefaultPaddings(X tensor.Tensor) {
-	paddingLength := len(X.Shape()[2:]) * 2
+func (c *Conv) setDefaultPaddings(x tensor.Tensor) {
+	paddingLength := len(x.Shape()[2:]) * 2
 
 	pads := make([]int, paddingLength)
 	for i := 0; i < paddingLength; i++ {
@@ -200,8 +211,8 @@ func (c *Conv) setDefaultPaddings(X tensor.Tensor) {
 
 // setDefaultStrides sets default strides as attribute. Can be called when no strides
 // were set during initialization.
-func (c *Conv) setDefaultStrides(X tensor.Tensor) {
-	nDims := len(X.Shape()[2:])
+func (c *Conv) setDefaultStrides(x tensor.Tensor) {
+	nDims := len(x.Shape()[2:])
 
 	strides := make([]int, nDims)
 	for i := 0; i < nDims; i++ {
@@ -211,6 +222,8 @@ func (c *Conv) setDefaultStrides(X tensor.Tensor) {
 	c.strides = strides
 }
 
+// setPaddingWithAutoPad sets the padding attribute of the operator based on
+// the input tensor `x`, the shape of the kernel and the strides.
 func (c *Conv) setPaddingWithAutoPad(x tensor.Tensor) {
 	if c.autoPad == "NOTSET" {
 		return
@@ -218,7 +231,6 @@ func (c *Conv) setPaddingWithAutoPad(x tensor.Tensor) {
 
 	inputShape := x.Shape()
 	nDims := len(inputShape)
-	nNonSpatialDims := 2
 	nSpatialDims := nDims - nNonSpatialDims
 
 	c.pads = make([]int, nSpatialDims*2)
@@ -263,7 +275,6 @@ func (c *Conv) getDilatedKernel(kernel tensor.Tensor) (tensor.Tensor, error) {
 	// Add the non spatial dimensions of the kernel, i.e. the number of
 	// kernels (index 0) and the number of channels (index 1). These
 	// dimensions do not have to be dilated.
-	nNonSpatialDims := 2
 	for i := 0; i < nNonSpatialDims; i++ {
 		newKernelShape[i] = oldKernelShape[i]
 	}
@@ -281,28 +292,40 @@ func (c *Conv) getDilatedKernel(kernel tensor.Tensor) (tensor.Tensor, error) {
 	// Now we fill the empty kernel with the original kernel values at the
 	// right positions.
 	iterator := kernel.Iterator()
-	for iterator.Reset(); !iterator.Done(); iterator.Next() {
+	iterator.Reset()
+
+	for !iterator.Done() {
 		oldCoords := iterator.Coord()
+
 		value, err := kernel.At(oldCoords...)
 		if err != nil {
 			return nil, err
 		}
 
-		newCoords := c.getNewCoordsAfterDilation(oldCoords, kernel.Shape())
-		newKernel.SetAt(value, newCoords...)
+		newCoords := c.getNewCoordsAfterDilation(oldCoords)
+
+		err = newKernel.SetAt(value, newCoords...)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = iterator.Next()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	c.setKernelShape(newKernel)
+
 	return newKernel, nil
 }
 
 // getNewCoordsAfterDilation returns the new coordinates of a value given the old coordinates of that
 // value in the old kernel and its shape. The new coordinates can be used to store the value/weight
 // in the dilated kernel.
-func (c *Conv) getNewCoordsAfterDilation(oldCoords, oldShape []int) []int {
+func (c *Conv) getNewCoordsAfterDilation(oldCoords []int) []int {
 	newCoords := make([]int, len(oldCoords))
 
-	nNonSpatialDims := 2
 	for i := 0; i < nNonSpatialDims; i++ {
 		newCoords[i] = oldCoords[i]
 	}
@@ -319,32 +342,10 @@ func (c *Conv) getNewCoordsAfterDilation(oldCoords, oldShape []int) []int {
 // of channels and H is the number of dimensions on which to apply the convolutions.
 // The kernel will have shape [kernelDim], where 'kernelDim' is the size of the kernel
 // size of the kernel.
-func (c *Conv) applyConv1D(x, kernel, bias tensor.Tensor) (tensor.Tensor, error) {
-	dimH := x.Shape()[2]
-	kernelSize := c.kernelShape[0]
-	strideSize := c.strides[0]
-
-	outputDim := ((dimH - kernelSize + c.pads[0] + c.pads[1]) / strideSize) + 1
-	outputShape := []int{x.Shape()[0], kernel.Shape()[0], outputDim}
+func (c *Conv) applyConv1D(x, kernel tensor.Tensor) (tensor.Tensor, error) {
+	outputShape := c.getOutputShape(x, kernel)
 	out := tensor.Tensor(tensor.NewDense(x.Dtype(), outputShape))
 	out.Zero()
-
-	if bias != nil {
-		err := bias.Reshape(1, bias.Shape()[0], 1)
-		if err != nil {
-			return nil, err
-		}
-
-		out, bias, err = ops.MultidirectionalBroadcast(out, bias)
-		if err != nil {
-			return nil, err
-		}
-
-		out, err = tensor.Add(out, bias)
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	paddedX, err := c.padInput(x)
 	if err != nil {
@@ -353,6 +354,8 @@ func (c *Conv) applyConv1D(x, kernel, bias tensor.Tensor) (tensor.Tensor, error)
 
 	nBatches := x.Shape()[0]
 	nKernels := kernel.Shape()[0]
+	strideSize := c.strides[0]
+	outputHDim := outputShape[nNonSpatialDims]
 
 	for batchIdx := 0; batchIdx < nBatches; batchIdx++ {
 		for kernelIdx := 0; kernelIdx < nKernels; kernelIdx++ {
@@ -361,8 +364,13 @@ func (c *Conv) applyConv1D(x, kernel, bias tensor.Tensor) (tensor.Tensor, error)
 				return nil, err
 			}
 
-			for i := 0; i < paddedX.Shape()[2]; i += strideSize {
-				subImage, err := c.getSubImage(paddedX, batchIdx, i)
+			for h := 0; h < paddedX.Shape()[2]; h += strideSize {
+				dimHOutputIdx := h / strideSize
+				if dimHOutputIdx > outputHDim {
+					continue
+				}
+
+				subImage, err := c.getSubImage(paddedX, batchIdx, h)
 				if err != nil {
 					return nil, err
 				}
@@ -377,9 +385,7 @@ func (c *Conv) applyConv1D(x, kernel, bias tensor.Tensor) (tensor.Tensor, error)
 					return nil, err
 				}
 
-				dimOutputIdx := i / strideSize
-
-				err = out.SetAt(convValue.ScalarValue(), batchIdx, kernelIdx, dimOutputIdx)
+				err = out.SetAt(convValue.ScalarValue(), batchIdx, kernelIdx, dimHOutputIdx)
 				if err != nil {
 					return nil, err
 				}
@@ -394,20 +400,13 @@ func (c *Conv) applyConv1D(x, kernel, bias tensor.Tensor) (tensor.Tensor, error)
 // X will have 4 dimensions: [N, C, H, W] where N is the batch size, C is the number
 // of channels, H and W are the height and width dimensions on which to apply the convolutions.
 // The kernel will have shape [M, C, H, W].
-func (c *Conv) applyConv2D(x, kernel, bias tensor.Tensor) (tensor.Tensor, error) {
-	dimH := x.Shape()[2]
-	dimW := x.Shape()[3]
-
-	kernelHSize := c.kernelShape[0]
-	kernelWSize := c.kernelShape[1]
-	strideHSize := c.strides[0]
-	strideWSize := c.strides[1]
-
-	outputHDim := ((dimH - kernelHSize + c.pads[0] + c.pads[2]) / strideHSize) + 1
-	outputWDim := ((dimW - kernelWSize + c.pads[1] + c.pads[3]) / strideWSize) + 1
-	outputShape := []int{x.Shape()[0], kernel.Shape()[0], outputHDim, outputWDim}
+func (c *Conv) applyConv2D(x, kernel tensor.Tensor) (tensor.Tensor, error) {
+	outputShape := c.getOutputShape(x, kernel)
 	out := tensor.Tensor(tensor.NewDense(x.Dtype(), outputShape))
 	out.Zero()
+
+	outputHDim := outputShape[nNonSpatialDims]
+	outputWDim := outputShape[nNonSpatialDims+1]
 
 	paddedX, err := c.padInput(x)
 	if err != nil {
@@ -424,14 +423,16 @@ func (c *Conv) applyConv2D(x, kernel, bias tensor.Tensor) (tensor.Tensor, error)
 				return nil, err
 			}
 
-			for h := 0; h < paddedX.Shape()[2]; h += strideHSize {
-				dimHOutputIdx := h / strideHSize
+			// Loop over all 2D subImages of the input image and compute the convolution
+			// for that subImage. Store the result at the right place in the output tensor.
+			for h := 0; h < paddedX.Shape()[2]; h += c.strides[0] {
+				dimHOutputIdx := h / c.strides[0]
 				if dimHOutputIdx >= outputHDim {
 					continue
 				}
 
-				for w := 0; w < paddedX.Shape()[2]; w += strideWSize {
-					dimWOutputIdx := w / strideWSize
+				for w := 0; w < paddedX.Shape()[2]; w += c.strides[1] {
+					dimWOutputIdx := w / c.strides[1]
 					if dimWOutputIdx >= outputWDim {
 						continue
 					}
@@ -441,10 +442,7 @@ func (c *Conv) applyConv2D(x, kernel, bias tensor.Tensor) (tensor.Tensor, error)
 						return nil, err
 					}
 
-					copiedSubKernel := subKernel.Materialize()
-					copiedSubImage := subImage.Materialize()
-
-					convResult, err := tensor.Mul(copiedSubImage, copiedSubKernel)
+					convResult, err := tensor.Mul(subImage.Materialize(), subKernel.Materialize())
 					if err != nil {
 						return nil, err
 					}
@@ -463,31 +461,41 @@ func (c *Conv) applyConv2D(x, kernel, bias tensor.Tensor) (tensor.Tensor, error)
 		}
 	}
 
-	if bias != nil {
-		err := bias.Reshape(1, bias.Shape()[0], 1, 1)
-		if err != nil {
-			return nil, err
-		}
-
-		out, bias, err = ops.MultidirectionalBroadcast(out, bias)
-		if err != nil {
-			return nil, err
-		}
-
-		out, err = tensor.Add(out, bias)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return out, nil
 }
 
+// getOutputShape calculates the shape of the output tensor resulting from
+// the convolution operation between `x` and `kernel`.
+// `x` has shape [N, C, H, W, ...] and `kernel` has shape [M, C, H, W, ...].
+// The output shape will be [N, M, newH, newW, ...], where values like `newH`
+// are calculated based on the input shape, kernel size, padding and strides.
+func (c *Conv) getOutputShape(x, kernel tensor.Tensor) tensor.Shape {
+	outputShape := make([]int, len(x.Shape()))
+
+	outputShape[0] = x.Shape()[0]
+	outputShape[1] = kernel.Shape()[0]
+
+	nSpatialDims := len(x.Shape()) - nNonSpatialDims
+	for i := 0; i < nSpatialDims; i++ {
+		inputDim := x.Shape()[nNonSpatialDims+i]
+		kernelDim := c.kernelShape[i]
+		outputShape[nNonSpatialDims+i] = ((inputDim - kernelDim + c.pads[i] + c.pads[i+nSpatialDims]) / c.strides[i]) + 1
+	}
+
+	return outputShape
+}
+
+// padInput pads the input with zeros according to the `pads` attribute.
+// The pad attribute specifies how many zeros should be added before and
+// after the values in that specific dimension.
+// Please note that according to ONNX specs, the `pads` attributes is an
+// array with pads as [x1_begin, x2_begin, ..., x1_after, x2_after].
+// This method achieves padding by concatting tensors with zero values
+// before and after each spatial dimension of the input tensor `x`.
 func (c *Conv) padInput(x tensor.Tensor) (tensor.Tensor, error) {
 	var err error
 
-	nSpatialDims := len(x.Shape()[2:])
-	nNonSpatialDims := 2
+	nSpatialDims := len(x.Shape()[nNonSpatialDims:])
 
 	for i := 0; i < nSpatialDims; i++ {
 		if c.pads[i] != 0 {
@@ -513,7 +521,6 @@ func (c *Conv) padInput(x tensor.Tensor) (tensor.Tensor, error) {
 				return nil, err
 			}
 		}
-
 	}
 
 	return x, nil
@@ -539,4 +546,28 @@ func (c *Conv) getSubImage(x tensor.Tensor, batchIdx int, startSpatialCoords ...
 	}
 
 	return x.Slice(slices...)
+}
+
+// addBias adds a bias to the output of the convolution. It reshapes the
+// bias such that it can be broadcasted, and then is added to the output
+// tensor.
+func (c *Conv) addBias(out, bias tensor.Tensor) (tensor.Tensor, error) {
+	biasShape := make([]int, len(out.Shape()))
+	for i := 0; i < len(out.Shape()); i++ {
+		biasShape[i] = 1
+	}
+
+	biasShape[1] = bias.Shape()[0]
+
+	err := bias.Reshape(biasShape...)
+	if err != nil {
+		return nil, err
+	}
+
+	out, bias, err = ops.MultidirectionalBroadcast(out, bias)
+	if err != nil {
+		return nil, err
+	}
+
+	return tensor.Add(out, bias)
 }
