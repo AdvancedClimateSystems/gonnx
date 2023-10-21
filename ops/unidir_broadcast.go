@@ -8,7 +8,6 @@ import (
 
 // UnidirectionalBroadcast tries to broadcast tensor B to tensor A according to the ONNX standards.
 func UnidirectionalBroadcast(A, B tensor.Tensor) (tensor.Tensor, tensor.Tensor, error) {
-
 	reshapedB, err := reshapeTensorsForUnidirBroadcast(A, B)
 	if err != nil {
 		return nil, nil, fmt.Errorf(UnidirBroadcastErrTemplate, A.Shape(), B.Shape())

@@ -62,6 +62,7 @@ func padInputs(inputs []tensor.Tensor, length int) []tensor.Tensor {
 	for len(inputs) < length {
 		inputs = append(inputs, nil)
 	}
+
 	return inputs
 }
 

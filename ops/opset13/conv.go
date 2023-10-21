@@ -17,6 +17,10 @@ const (
 	Valid     AutoPadSetting = "VALID"
 )
 
+// The number of non spatial dimensions inputs and kernels will always have.
+// For input tensors, the first dimension will be the batch size.
+// For kernel tensors, the first dimension will be the number of kernels.
+// For all tensors, the second dimension will be the number of channels.
 const nNonSpatialDims = 2
 
 // Conv represents the ONNX conv operator.
@@ -359,18 +363,25 @@ func (c *Conv) applyConv1D(x, kernel tensor.Tensor) (tensor.Tensor, error) {
 
 	for batchIdx := 0; batchIdx < nBatches; batchIdx++ {
 		for kernelIdx := 0; kernelIdx < nKernels; kernelIdx++ {
-			subKernel, err := kernel.Slice(ops.NewSlicer(kernelIdx, kernelIdx+1))
+			subKernelView, err := kernel.Slice(ops.NewSlicer(kernelIdx, kernelIdx+1))
 			if err != nil {
 				return nil, err
 			}
 
+			subKernel := subKernelView.Materialize()
+
 			for h := 0; h < paddedX.Shape()[2]; h += strideSize {
 				dimHOutputIdx := h / strideSize
-				if dimHOutputIdx > outputHDim {
+				if dimHOutputIdx >= outputHDim {
 					continue
 				}
 
 				subImage, err := c.getSubImage(paddedX, batchIdx, h)
+				if err != nil {
+					return nil, err
+				}
+
+				subImage, subKernel, err = ops.UnidirectionalBroadcast(subImage, subKernel)
 				if err != nil {
 					return nil, err
 				}
@@ -418,10 +429,12 @@ func (c *Conv) applyConv2D(x, kernel tensor.Tensor) (tensor.Tensor, error) {
 
 	for batchIdx := 0; batchIdx < nBatches; batchIdx++ {
 		for kernelIdx := 0; kernelIdx < nKernels; kernelIdx++ {
-			subKernel, err := kernel.Slice(ops.NewSlicer(kernelIdx, kernelIdx+1))
+			subKernelView, err := kernel.Slice(ops.NewSlicer(kernelIdx, kernelIdx+1))
 			if err != nil {
 				return nil, err
 			}
+
+			subKernel := subKernelView.Materialize()
 
 			// Loop over all 2D subImages of the input image and compute the convolution
 			// for that subImage. Store the result at the right place in the output tensor.
@@ -442,7 +455,12 @@ func (c *Conv) applyConv2D(x, kernel tensor.Tensor) (tensor.Tensor, error) {
 						return nil, err
 					}
 
-					convResult, err := tensor.Mul(subImage.Materialize(), subKernel.Materialize())
+					subImage, subKernel, err = ops.UnidirectionalBroadcast(subImage, subKernel)
+					if err != nil {
+						return nil, err
+					}
+
+					convResult, err := tensor.Mul(subImage, subKernel)
 					if err != nil {
 						return nil, err
 					}
@@ -529,7 +547,7 @@ func (c *Conv) padInput(x tensor.Tensor) (tensor.Tensor, error) {
 // getSubImage returns a the subimage for a specific example in the batch, based on the
 // kernel shape and the given start coordinates. The resulting sub image will be of
 // shape [1, C, kernelShape[0], kernelShape[1], ...].
-func (c *Conv) getSubImage(x tensor.Tensor, batchIdx int, startSpatialCoords ...int) (tensor.View, error) {
+func (c *Conv) getSubImage(x tensor.Tensor, batchIdx int, startSpatialCoords ...int) (tensor.Tensor, error) {
 	if len(startSpatialCoords) != len(c.kernelShape) {
 		return nil, fmt.Errorf("expected the coordinates to have the same number of dimensions as the kernel")
 	}
@@ -545,7 +563,12 @@ func (c *Conv) getSubImage(x tensor.Tensor, batchIdx int, startSpatialCoords ...
 		slices = append(slices, ops.NewSlicer(dimStartIdx, dimStartIdx+dimKernelSize))
 	}
 
-	return x.Slice(slices...)
+	subImage, err := x.Slice(slices...)
+	if err != nil {
+		return nil, err
+	}
+
+	return subImage.Materialize(), nil
 }
 
 // addBias adds a bias to the output of the convolution. It reshapes the
@@ -564,7 +587,7 @@ func (c *Conv) addBias(out, bias tensor.Tensor) (tensor.Tensor, error) {
 		return nil, err
 	}
 
-	out, bias, err = ops.MultidirectionalBroadcast(out, bias)
+	out, bias, err = ops.UnidirectionalBroadcast(out, bias)
 	if err != nil {
 		return nil, err
 	}
