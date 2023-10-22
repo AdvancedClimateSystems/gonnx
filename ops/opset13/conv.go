@@ -96,11 +96,7 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	x := inputs[0]
 	kernel := inputs[1]
-
-	var bias tensor.Tensor
-	if len(inputs) == c.GetMaxInputs() {
-		bias = inputs[2]
-	}
+	bias := inputs[2]
 
 	if len(c.dilations) == 0 {
 		c.setDefaultDilations(x)

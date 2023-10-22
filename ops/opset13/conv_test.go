@@ -234,10 +234,11 @@ func TestConv(t *testing.T) {
 		inputs := []tensor.Tensor{
 			ops.TensorWithBackingFixture(test.backings[0], test.shapes[0]...),
 			ops.TensorWithBackingFixture(test.backings[1], test.shapes[1]...),
+			nil,
 		}
 
 		if len(test.backings) == 3 {
-			inputs = append(inputs, ops.TensorWithBackingFixture(test.backings[2], test.shapes[2]...))
+			inputs[2] = ops.TensorWithBackingFixture(test.backings[2], test.shapes[2]...)
 		}
 
 		res, err := test.conv.Apply(inputs)
