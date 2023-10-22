@@ -1,11 +1,13 @@
 package gonnx
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/advancedclimatesystems/gonnx/ops/opset13"
 )
+
+var ErrInvalidOperator = errors.New("invalid operator getter")
 
 // OpGetter is a function that gets an operator based on a string.
 type OpGetter func(string) (ops.Operator, error)
@@ -16,14 +18,15 @@ var operatorGetters = map[int64]OpGetter{
 
 // ResolveOperatorGetter resolves the getter for operators based on the opset version.
 func ResolveOperatorGetter(opsetID int64) (OpGetter, error) {
-	if GetOperator, ok := operatorGetters[opsetID]; ok {
-		return GetOperator, nil
+	if getOperator, ok := operatorGetters[opsetID]; ok {
+		return getOperator, nil
 	}
 
-	opsets := make([]int64, len(operatorGetters))
+	opsets := make([]int64, 0, len(operatorGetters))
 	for version := range operatorGetters {
+		// TODO what does this do again?
 		opsets = append(opsets, version)
 	}
 
-	return nil, fmt.Errorf("expected opset to be in %d, got operator set %d", opsets, opsetID)
+	return nil, ErrInvalidOperator
 }

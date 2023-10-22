@@ -124,13 +124,13 @@ func TestInputValidationAbs(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(&Abs{}, 0),
+			ops.ErrInvalidInputCount(0, &Abs{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(&Abs{}, 0, "int"),
+			ops.ErrInvalidInputType(0, "int", &Abs{}),
 		},
 	}
 

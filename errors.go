@@ -3,24 +3,22 @@ package gonnx
 import (
 	"errors"
 	"fmt"
+
+	"github.com/advancedclimatesystems/gonnx/onnx"
 )
 
-var (
-	errInvalidShape    = errors.New("input shape does not match")
-	errSetOutputTensor = errors.New("could not set output tensor")
-	errModel           = errors.New("gonnx model error")
-)
+var errModel = errors.New("gonnx model error")
 
 type InvalidShapeError struct {
-	expected []int
+	expected onnx.Shape
 	actual   []int
 }
 
 func (i InvalidShapeError) Error() string {
-	return fmt.Sprintf("invalid shape error expected: %v actual %v. mehtod %s", i.expected, i.actual)
+	return fmt.Sprintf("invalid shape error expected: %v actual %v", i.expected, i.actual)
 }
 
-func ErrInvalidShape(expected, actual []int) error {
+func ErrInvalidShape(expected onnx.Shape, actual []int) error {
 	return InvalidShapeError{
 		expected: expected,
 		actual:   actual,

@@ -6,6 +6,7 @@ package onnx
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -71,6 +72,8 @@ func (s Shape) String() string {
 
 	return fmt.Sprintf("%d", dimSizes)
 }
+
+var ErrInvalidType = errors.New("invalid type")
 
 // Dim is a dimension.
 type Dim struct {
@@ -154,10 +157,13 @@ func getNamesFromTensorProto(protos []*TensorProto) []string {
 
 // TensorFromProto returns a tensor.Tensor from an onnx.TensorProto.
 func TensorFromProto(tp *TensorProto) (tensor.Tensor, error) {
-	var values interface{}
-	var err error
+	var (
+		values interface{}
+		err    error
+	)
 
 	typeMap := TensorProto_DataType_value
+
 	switch tp.DataType {
 	case typeMap["FLOAT"]:
 		values, err = getFloatData(tp)
@@ -194,7 +200,7 @@ func TensorFromProto(tp *TensorProto) (tensor.Tensor, error) {
 		case len(tp.Uint64Data) > 0:
 			values, err = getUint64Data(tp)
 		default:
-			return nil, fmt.Errorf("unsupported datatype for Tensor: %v", tp.DataType)
+			return nil, ErrInvalidType
 		}
 	}
 
@@ -361,16 +367,20 @@ func ReadUint8ArrayFromBytes(data []byte) ([]uint8, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, uint8Size)
 
-	var err error
-	var values []uint8
+	var (
+		err    error
+		values []uint8
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != uint8Size || err != nil {
 			break
 		}
-		values = append(values, uint8(element[0]))
+
+		values = append(values, element[0])
 	}
 
 	if err != io.EOF {
@@ -385,11 +395,14 @@ func ReadInt8ArrayFromBytes(data []byte) ([]int8, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, int8Size)
 
-	var err error
-	var values []int8
+	var (
+		err    error
+		values []int8
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != int8Size || err != nil {
 			break
@@ -410,11 +423,14 @@ func ReadUint16ArrayFromBytes(data []byte) ([]uint16, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, uint16Size)
 
-	var err error
-	var values []uint16
+	var (
+		err    error
+		values []uint16
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != uint16Size || err != nil {
 			break
@@ -435,11 +451,14 @@ func ReadInt16ArrayFromBytes(data []byte) ([]int16, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, uint16Size)
 
-	var err error
-	var values []int16
+	var (
+		err    error
+		values []int16
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != int16Size || err != nil {
 			break
@@ -460,11 +479,14 @@ func ReadUint32ArrayFromBytes(data []byte) ([]uint32, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, int32Size)
 
-	var err error
-	var values []uint32
+	var (
+		err    error
+		values []uint32
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != uint32Size || err != nil {
 			break
@@ -485,11 +507,14 @@ func ReadInt32ArrayFromBytes(data []byte) ([]int32, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, int32Size)
 
-	var err error
-	var values []int32
+	var (
+		err    error
+		values []int32
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != int32Size || err != nil {
 			break
@@ -510,11 +535,14 @@ func ReadUint64ArrayFromBytes(data []byte) ([]uint64, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, int32Size)
 
-	var err error
-	var values []uint64
+	var (
+		err    error
+		values []uint64
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != uint64Size || err != nil {
 			break
@@ -535,11 +563,14 @@ func ReadInt64ArrayFromBytes(data []byte) ([]int64, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, int64Size)
 
-	var err error
-	var values []int64
+	var (
+		err    error
+		values []int64
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != int64Size || err != nil {
 			break

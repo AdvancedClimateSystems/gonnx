@@ -42,13 +42,13 @@ func checkNInputs(op Operator, inputs []tensor.Tensor) (int, error) {
 
 	if min == max {
 		if nInputs != min {
-			return 0, ErrInvalidInputCount(op, nInputs)
+			return 0, ErrInvalidInputCount(nInputs, op)
 		}
 
 		padLength = min
 	} else {
 		if nInputs < min || nInputs > max {
-			return 0, ErrInvalidOptionalInputCount(op, nInputs)
+			return 0, ErrInvalidOptionalInputCount(nInputs, op)
 		}
 
 		padLength = max
@@ -78,7 +78,7 @@ func checkInputTypes(op Operator, inputs []tensor.Tensor) error {
 		typeConstraint := newTypeConstraint(typeConstraints[i])
 
 		if _, ok := typeConstraint[input.Dtype()]; !ok {
-			return ErrInvalidInputType(op, i, input.Dtype().Name())
+			return ErrInvalidInputType(i, input.Dtype().Name(), op)
 		}
 	}
 

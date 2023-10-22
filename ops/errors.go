@@ -121,7 +121,7 @@ func ErrInvalidInputCount(actual int, operator Operator) error {
 	}
 }
 
-func ErrInvalidOptionalInputCount(operator Operator, actual int) error {
+func ErrInvalidOptionalInputCount(actual int, operator Operator) error {
 	return &InvalidInputCountError{
 		hasOptionalInputs: true,
 		actualCount:       actual,

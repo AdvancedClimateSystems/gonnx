@@ -1,7 +1,7 @@
 package ops
 
 import (
-	"fmt"
+	"errors"
 
 	"gorgonia.org/tensor"
 )
@@ -80,6 +80,11 @@ func OffsetTensorIfNegative(t tensor.Tensor, offset int) error {
 	return nil
 }
 
+var (
+	ErrCast         = errors.New("cast error")
+	ErrInvalidShape = errors.New("invalid shape error")
+)
+
 // AnyToIntSlice casts the data of a node to an int list. This will only
 // be done if the data is of some sort of int type.
 func AnyToIntSlice(value interface{}) ([]int, error) {
@@ -111,7 +116,7 @@ func AnyToIntSlice(value interface{}) ([]int, error) {
 
 		return res, nil
 	default:
-		return nil, fmt.Errorf("could not cast %v to int list", data)
+		return nil, ErrCast
 	}
 }
 
@@ -133,7 +138,7 @@ func GetValueAsTensorType(value float64, dtype tensor.Dtype) (interface{}, error
 	case tensor.Float64:
 		return value, nil
 	default:
-		return nil, fmt.Errorf("unknown type %v, cannot cast constant to this type", dtype)
+		return nil, ErrCast
 	}
 }
 
@@ -217,7 +222,7 @@ func NElements(shp ...int) int {
 // PairwiseAssign essentially does pairwise t1 = t2 in place!.
 func PairwiseAssign(t1, t2 tensor.Tensor) (err error) {
 	if !t1.Shape().Eq(t2.Shape()) {
-		return fmt.Errorf("Shapes of tensors must be equal, were %v and %v", t1.Shape(), t2.Shape())
+		return
 	}
 
 	it := t1.Iterator()

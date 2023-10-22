@@ -1,8 +1,6 @@
 package ops
 
 import (
-	"fmt"
-
 	"gorgonia.org/tensor"
 )
 
@@ -10,12 +8,12 @@ import (
 func UnidirectionalBroadcast(A, B tensor.Tensor) (tensor.Tensor, tensor.Tensor, error) {
 	reshapedB, err := reshapeTensorsForUnidirBroadcast(A, B)
 	if err != nil {
-		return nil, nil, fmt.Errorf(UnidirBroadcastErrTemplate, A.Shape(), B.Shape())
+		return nil, nil, ErrUnidirBroadcast(A.Shape(), B.Shape())
 	}
 
 	newB, err := repeatTensorsForUnidirBroadcast(A, reshapedB)
 	if err != nil {
-		return nil, nil, fmt.Errorf(UnidirBroadcastErrTemplate, A.Shape(), B.Shape())
+		return nil, nil, ErrUnidirBroadcast(A.Shape(), B.Shape())
 	}
 
 	return A, newB, nil
@@ -34,7 +32,7 @@ func reshapeTensorsForUnidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, error)
 	case nDimsA == nDimsB:
 		return B, nil
 	default:
-		return nil, fmt.Errorf("tensor B may not have more dimensions than tensor A")
+		return nil, ErrUnidirBroadcast(A.Shape(), B.Shape())
 	}
 }
 
@@ -44,6 +42,7 @@ func reshapeTensorsForUnidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, error)
 // Example: shapeA=(2, 3, 4) and shapeB=(1, 3, 4) yields shapeNewB=(2, 3, 4).
 func repeatTensorsForUnidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, error) {
 	var err error
+
 	shapeA := A.Shape()
 	shapeB := B.Shape()
 
@@ -54,7 +53,7 @@ func repeatTensorsForUnidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, error) 
 
 		if sizeDimA != sizeDimB {
 			if sizeDimB != 1 {
-				return nil, fmt.Errorf("incompatible dimensions")
+				return nil, ErrUnidirBroadcast(shapeA, shapeB)
 			}
 
 			B, err = tensor.Repeat(B, axis, sizeDimA)

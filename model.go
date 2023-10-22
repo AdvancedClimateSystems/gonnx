@@ -226,7 +226,7 @@ func (m *Model) validateShapes(inputTensors Tensors) error {
 		shapeReceived := tensor.Shape()
 
 		if len(shapeReceived) != len(shapeExpected) {
-			return ErrInvalidShape("shape does not match for %v: expected %v but got %v", name, shapeExpected, shapeReceived)
+			return ErrInvalidShape(shapeExpected, shapeReceived)
 		}
 
 		for i, dim := range shapeExpected {
@@ -237,7 +237,7 @@ func (m *Model) validateShapes(inputTensors Tensors) error {
 			}
 
 			if dim.Size != int64(shapeReceived[i]) {
-				return ErrInvalidShape("shape does not match for %v: expected %v but got %v", name, shapeExpected, shapeReceived)
+				return ErrInvalidShape(shapeExpected, shapeReceived)
 			}
 		}
 	}
