@@ -546,7 +546,7 @@ func (c *Conv) padInput(x tensor.Tensor) (tensor.Tensor, error) {
 
 // getSubImage returns a the subimage for a specific example in the batch, based on the
 // kernel shape and the given start coordinates. The resulting sub image will be of
-// shape [1, C, kernelShape[0], kernelShape[1], ...].
+// shape [C, kernelShape[0], kernelShape[1], ...].
 func (c *Conv) getSubImage(x tensor.Tensor, batchIdx int, startSpatialCoords ...int) (tensor.Tensor, error) {
 	if len(startSpatialCoords) != len(c.kernelShape) {
 		return nil, fmt.Errorf("expected the coordinates to have the same number of dimensions as the kernel")

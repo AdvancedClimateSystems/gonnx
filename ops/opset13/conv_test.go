@@ -425,6 +425,256 @@ func TestGetDilatedKernel(t *testing.T) {
 	}
 }
 
+func TestGetOutputShape(t *testing.T) {
+	tests := []struct {
+		conv          *Conv
+		xShape        []int
+		xBacking      []float32
+		kernelShape   []int
+		kernelBacking []float32
+		expected      tensor.Shape
+	}{
+		{
+			&Conv{
+				kernelShape: []int{3},
+				pads:        []int{0, 0},
+				strides:     []int{1},
+			},
+			[]int{1, 1, 6},
+			[]float32{0, 1, 2, 3, 4, 5},
+			[]int{1, 1, 3},
+			[]float32{1, 1, 1},
+			[]int{1, 1, 4},
+		},
+		{
+			&Conv{
+				kernelShape: []int{3},
+				pads:        []int{1, 2},
+				strides:     []int{2},
+			},
+			[]int{1, 1, 6},
+			[]float32{0, 1, 2, 3, 4, 5},
+			[]int{1, 1, 3},
+			[]float32{1, 1, 1},
+			[]int{1, 1, 4},
+		},
+		{
+			&Conv{
+				kernelShape: []int{2, 2},
+				pads:        []int{1, 2, 1, 2},
+				strides:     []int{2, 1},
+			},
+			[]int{1, 1, 4, 4},
+			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+			[]int{1, 1, 2, 2},
+			[]float32{1, 1, 1, 1},
+			[]int{1, 1, 3, 7},
+		},
+		{
+			&Conv{
+				kernelShape: []int{2, 2},
+				pads:        []int{0, 0, 0, 0},
+				strides:     []int{1, 1},
+			},
+			[]int{1, 1, 4, 4},
+			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+			[]int{1, 1, 2, 2},
+			[]float32{1, 1, 1, 1},
+			[]int{1, 1, 3, 3},
+		},
+	}
+
+	for _, test := range tests {
+		outputShape := test.conv.getOutputShape(
+			ops.TensorWithBackingFixture(test.xBacking, test.xShape...),
+			ops.TensorWithBackingFixture(test.kernelBacking, test.kernelShape...),
+		)
+
+		assert.Equal(t, test.expected, outputShape)
+	}
+}
+
+func TestPadInput(t *testing.T) {
+	tests := []struct {
+		conv            *Conv
+		xShape          []int
+		xBacking        []float32
+		expectedShape   tensor.Shape
+		expectedBacking []float32
+	}{
+		{
+			&Conv{
+				pads: []int{0, 0},
+			},
+			[]int{1, 1, 6},
+			[]float32{0, 1, 2, 3, 4, 5},
+			[]int{1, 1, 6},
+			[]float32{0, 1, 2, 3, 4, 5},
+		},
+		{
+			&Conv{
+				pads: []int{1, 2},
+			},
+			[]int{1, 1, 6},
+			[]float32{0, 1, 2, 3, 4, 5},
+			[]int{1, 1, 9},
+			[]float32{0, 0, 1, 2, 3, 4, 5, 0, 0},
+		},
+		{
+			&Conv{
+				pads: []int{1, 1, 1, 1},
+			},
+			[]int{1, 1, 2, 2},
+			[]float32{1, 2, 3, 4},
+			[]int{1, 1, 4, 4},
+			[]float32{0, 0, 0, 0, 0, 1, 2, 0, 0, 3, 4, 0, 0, 0, 0, 0},
+		},
+		{
+			&Conv{
+				pads: []int{1, 0, 2, 0},
+			},
+			[]int{1, 1, 2, 2},
+			[]float32{1, 2, 3, 4},
+			[]int{1, 1, 5, 2},
+			[]float32{0, 0, 1, 2, 3, 4, 0, 0, 0, 0},
+		},
+	}
+
+	for _, test := range tests {
+		paddedX, err := test.conv.padInput(
+			ops.TensorWithBackingFixture(test.xBacking, test.xShape...),
+		)
+
+		assert.Nil(t, err)
+		assert.Equal(t, test.expectedShape, paddedX.Shape())
+		assert.Equal(t, test.expectedBacking, paddedX.Data())
+	}
+}
+
+func TestGetSubImage(t *testing.T) {
+	tests := []struct {
+		conv               *Conv
+		xShape             []int
+		xBacking           []float32
+		batchIdx           int
+		startSpatialCoords []int
+		expectedShape      tensor.Shape
+		expectedBacking    []float32
+	}{
+		{
+			&Conv{kernelShape: []int{2}},
+			[]int{1, 1, 3},
+			[]float32{0, 1, 2},
+			0,
+			[]int{0},
+			[]int{1, 2},
+			[]float32{0, 1},
+		},
+		{
+			&Conv{kernelShape: []int{2}},
+			[]int{1, 2, 3},
+			[]float32{0, 1, 2, 3, 4, 5},
+			0,
+			[]int{0},
+			[]int{2, 2},
+			[]float32{0, 1, 3, 4},
+		},
+		{
+			&Conv{kernelShape: []int{2, 2}},
+			[]int{1, 1, 3, 3},
+			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8},
+			0,
+			[]int{0, 0},
+			[]int{1, 2, 2},
+			[]float32{0, 1, 3, 4},
+		},
+		{
+			&Conv{kernelShape: []int{2, 2}},
+			[]int{1, 1, 3, 3},
+			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8},
+			0,
+			[]int{1, 1},
+			[]int{1, 2, 2},
+			[]float32{4, 5, 7, 8},
+		},
+		{
+			&Conv{kernelShape: []int{2}},
+			[]int{2, 1, 3},
+			[]float32{0, 1, 2, 3, 4, 5},
+			1,
+			[]int{1},
+			[]int{1, 2},
+			[]float32{4, 5},
+		},
+	}
+
+	for _, test := range tests {
+		subImage, err := test.conv.getSubImage(
+			ops.TensorWithBackingFixture(test.xBacking, test.xShape...),
+			test.batchIdx,
+			test.startSpatialCoords...,
+		)
+
+		assert.Nil(t, err)
+		assert.Equal(t, test.expectedShape, subImage.Shape())
+		assert.Equal(t, test.expectedBacking, subImage.Data())
+	}
+}
+
+func TestAddBias(t *testing.T) {
+	tests := []struct {
+		conv        *Conv
+		outShape    []int
+		outBacking  []float32
+		biasShape   []int
+		biasBacking []float32
+		expected    []float32
+	}{
+		{
+			&Conv{},
+			[]int{1, 1, 3},
+			[]float32{0, 1, 2},
+			[]int{1},
+			[]float32{0.5},
+			[]float32{0.5, 1.5, 2.5},
+		},
+		{
+			&Conv{},
+			[]int{1, 1, 3, 3},
+			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8},
+			[]int{1},
+			[]float32{0.5},
+			[]float32{0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5},
+		},
+		{
+			&Conv{},
+			[]int{1, 2, 2, 2},
+			[]float32{0, 1, 2, 3, 4, 5, 6, 7},
+			[]int{2},
+			[]float32{-1, 1},
+			[]float32{-1, 0, 1, 2, 5, 6, 7, 8},
+		},
+		{
+			&Conv{},
+			[]int{2, 2, 2, 2},
+			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+			[]int{2},
+			[]float32{-1, 1},
+			[]float32{-1, 0, 1, 2, 5, 6, 7, 8, 7, 8, 9, 10, 13, 14, 15, 16},
+		},
+	}
+
+	for _, test := range tests {
+		out, err := test.conv.addBias(
+			ops.TensorWithBackingFixture(test.outBacking, test.outShape...),
+			ops.TensorWithBackingFixture(test.biasBacking, test.biasShape...),
+		)
+
+		assert.Nil(t, err)
+		assert.Equal(t, test.expected, out.Data())
+	}
+}
+
 func Conv2DOnnxAttributeProtoFixture() []*onnx.AttributeProto {
 	return []*onnx.AttributeProto{
 		{Name: "auto_pad", S: []byte("VALID")},
