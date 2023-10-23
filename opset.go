@@ -22,11 +22,5 @@ func ResolveOperatorGetter(opsetID int64) (OpGetter, error) {
 		return getOperator, nil
 	}
 
-	opsets := make([]int64, 0, len(operatorGetters))
-	for version := range operatorGetters {
-		// TODO what does this do again?
-		opsets = append(opsets, version)
-	}
-
 	return nil, ErrInvalidOperator
 }

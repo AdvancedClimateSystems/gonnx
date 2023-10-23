@@ -25,7 +25,7 @@ func newMatMul() ops.Operator {
 }
 
 // Init initializes the matmul operator.
-func (m *MatMul) Init(attributes []*onnx.AttributeProto) error {
+func (m *MatMul) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
@@ -152,7 +152,10 @@ func (m *MatMul) broadcastTensors(A, B tensor.Tensor) (tensor.Tensor, tensor.Ten
 	// want to broadcast those. All leading dimensions we do want to broadcast.
 	shapeA := A.Shape()
 	shapeB := B.Shape()
-	for axis := len(shapeA) - 3; axis >= 0; axis-- {
+
+	nMatrixDims := 3
+
+	for axis := len(shapeA) - nMatrixDims; axis >= 0; axis-- {
 		sizeDimA := shapeA[axis]
 		sizeDimB := shapeB[axis]
 
@@ -183,6 +186,7 @@ func (m *MatMul) broadcastTensors(A, B tensor.Tensor) (tensor.Tensor, tensor.Ten
 func (m *MatMul) batchedMatMul(A, B tensor.Tensor) (tensor.Tensor, error) {
 	shapeA := A.Shape()
 	shapeB := B.Shape()
+
 	outerShape := append([]int{}, shapeA[:len(shapeA)-2]...)
 
 	// This will be the shape of the output tensor.
@@ -197,7 +201,9 @@ func (m *MatMul) batchedMatMul(A, B tensor.Tensor) (tensor.Tensor, error) {
 	}
 
 	var err error
+
 	var matrixA, matrixB, matrixOut tensor.Tensor
+
 	for {
 		matrixA, err = A.Slice(slices...)
 		if err != nil {
@@ -244,6 +250,7 @@ func incrementSlices(slices []tensor.Slice, shape []int) bool {
 			slices[i] = ops.NewSlicer(0) // Else we start again for this dimension.
 		} else {
 			slices[i] = ops.NewSlicer(dimSliceStart + 1)
+
 			return true
 		}
 	}
