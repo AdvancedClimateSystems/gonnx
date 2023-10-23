@@ -86,7 +86,7 @@ func convertBacking[B Number](backing []B, dataType int32) (any, error) {
 		return createNewBacking[B, uint32](backing), nil
 	case onnx.TensorProto_UINT64:
 		return createNewBacking[B, uint64](backing), nil
-	case onnx.TensorProto_BFLOAT16, onnx.TensorProto_BOOL, onnx.TensorProto_COMPLEX64, onnx.TensorProto_FLOAT16, onnx.TensorProto_UNDEFINED, onnx.TensorProto_STRING:
+	case onnx.TensorProto_BFLOAT16, onnx.TensorProto_BOOL, onnx.TensorProto_COMPLEX64, onnx.TensorProto_COMPLEX128, onnx.TensorProto_FLOAT16, onnx.TensorProto_UNDEFINED, onnx.TensorProto_STRING:
 		return nil, ErrConversionNotSupported(dataType)
 	default:
 		return nil, ErrConversionNotSupported(dataType)

@@ -73,6 +73,7 @@ func TestMultidirectionalBroadcast(t *testing.T) {
 		newA, newB, err := MultidirectionalBroadcast(A, B)
 
 		assert.Equal(t, test.err, err)
+
 		if err == nil {
 			assert.Equal(t, test.expectedShape, newA.Shape())
 			assert.Equal(t, test.expectedShape, newB.Shape())
