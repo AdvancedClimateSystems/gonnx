@@ -96,6 +96,7 @@ func TestGemm(t *testing.T) {
 		} else {
 			inputs = append(inputs, nil)
 		}
+
 		res, err := test.gemm.Apply(inputs)
 		assert.Nil(t, err)
 
@@ -161,6 +162,7 @@ func TestInputValidationGemm(t *testing.T) {
 		validated, err := gemm.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			if test.expected != nil {
 				assert.Equal(t, test.expected, validated)

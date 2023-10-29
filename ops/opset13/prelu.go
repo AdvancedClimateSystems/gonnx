@@ -8,6 +8,11 @@ import (
 	"gorgonia.org/tensor"
 )
 
+const (
+	PReluMinInputs = 2
+	PReluMaxInputs = 2
+)
+
 // PRelu represents the ONNX prelu operator.
 type PRelu struct{}
 
@@ -17,15 +22,16 @@ func newPRelu() ops.Operator {
 }
 
 // Init initializes the prelu operator.
-func (op *PRelu) Init(attributes []*onnx.AttributeProto) error {
+func (op *PRelu) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
 // Apply applies the prelu operator.
 func (op *PRelu) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+	var err error
+
 	x, slope := inputs[0], inputs[1]
 
-	var err error
 	x, slope, err = ops.UnidirectionalBroadcast(x, slope)
 	if err != nil {
 		return nil, err
@@ -70,12 +76,12 @@ func (op *PRelu) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (op *PRelu) GetMinInputs() int {
-	return 2
+	return PReluMinInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (op *PRelu) GetMaxInputs() int {
-	return 2
+	return PReluMaxInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
@@ -97,6 +103,7 @@ func calcPRelu[T float32 | float64 | uint32 | uint64 | int32 | int64](result []T
 		if v < 0 {
 			v = slope[i] * v
 		}
+
 		result[i] = v
 	}
 }

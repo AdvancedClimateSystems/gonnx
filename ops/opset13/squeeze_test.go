@@ -175,6 +175,7 @@ func TestInputValidationSqueeze(t *testing.T) {
 		validated, err := squeeze.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			if test.expected != nil {
 				assert.Equal(t, test.expected, validated)

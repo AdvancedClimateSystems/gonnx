@@ -321,8 +321,10 @@ func (g *GRU) getBiases(B tensor.Tensor) (Wbz, Wbr, Wbh, Rbz, Rbr, Rbh tensor.Te
 // W will have a shape of (num_directions, 3 * hidden_size, ...) and we extract the
 // by slicing over the '3 * hidden_size' dimension.
 func (g *GRU) extractWeights(W tensor.Tensor) ([]tensor.Tensor, error) {
+	const nWeightMatrices = 3
+
 	dirSlice := ops.NewSlicer(0)
-	weights := make([]tensor.Tensor, 3)
+	weights := make([]tensor.Tensor, nWeightMatrices)
 
 	for i := 0; i < 3; i++ {
 		slice := ops.NewSlicer(i*g.hiddenSize, (i+1)*g.hiddenSize)

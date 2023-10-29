@@ -55,6 +55,7 @@ func (g *Gemm) Init(attributes []*onnx.AttributeProto) error {
 // Apply applies the gemm operator on the given graph.
 func (g *Gemm) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var err error
+
 	a := inputs[0]
 	b := inputs[1]
 	c := inputs[2]

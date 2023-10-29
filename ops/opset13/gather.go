@@ -54,6 +54,7 @@ func (g *Gather) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	indices := tensor.New(tensor.WithBacking(indicesData), tensor.WithShape(inputs[1].Shape()...))
 
 	data := inputs[0]
@@ -61,6 +62,7 @@ func (g *Gather) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	// Make sure axis is in the correct range (according to the size of the data tensor)
 	rank := len(data.Shape())
 	dataAxis := g.axis
+
 	if dataAxis < -rank || dataAxis > rank-1 {
 		return nil, fmt.Errorf(ops.AxisOutOfRangeErrTemplate, rank, rank, dataAxis)
 	}
@@ -75,7 +77,11 @@ func (g *Gather) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if !ops.AllInRange(indicesData, -axisDimSize, axisDimSize-1) {
 		return nil, fmt.Errorf(ops.AxesNotAllInRangeErrTemplate, axisDimSize, axisDimSize)
 	}
-	ops.OffsetTensorIfNegative(indices, axisDimSize)
+
+	err = ops.OffsetTensorIfNegative(indices, axisDimSize)
+	if err != nil {
+		return nil, err
+	}
 
 	// Make the shape of the output tensor
 	os := insertWithReplace(indices.Shape(), data.Shape(), dataAxis)
@@ -86,6 +92,7 @@ func (g *Gather) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return []tensor.Tensor{output}, nil
 }
 
@@ -163,13 +170,20 @@ func (g *Gather) String() string {
 // slicing to extract the blocks that we need to assign, and then pairwise assign them.
 func gather(out, data, indices tensor.Tensor, axis int) error {
 	it := indices.Iterator()
-	for it.Reset(); !it.Done(); it.Next() {
+	it.Reset()
+
+	for !it.Done() {
 		coords := it.Coord()
+
 		at, err := indices.At(coords...)
 		if err != nil {
 			return err
 		}
-		k := at.(int)
+
+		k, ok := at.(int)
+		if !ok {
+			return fmt.Errorf("could not cast to int")
+		}
 
 		// Slice that selects `k` on the given axis.
 		// Equivalent to: data[:, ... , :, k, :, ..., :], where `k` is on the index `axis`
@@ -186,9 +200,15 @@ func gather(out, data, indices tensor.Tensor, axis int) error {
 		for i, s := range coords {
 			oslices[i+axis] = ops.NewSlicer(s)
 		}
+
 		outputSlice, _ := out.Slice(oslices...)
 
 		err = ops.PairwiseAssign(outputSlice, dataSlice)
+		if err != nil {
+			return err
+		}
+
+		_, err = it.Next()
 		if err != nil {
 			return err
 		}
@@ -207,6 +227,7 @@ func gather(out, data, indices tensor.Tensor, axis int) error {
 func insertWithReplace(a, x []int, axis int) []int {
 	y := append([]int{}, x[:axis]...)
 	y = append(y, a...)
+
 	if axis+1 < len(x) {
 		y = append(y, x[axis+1:]...)
 	}

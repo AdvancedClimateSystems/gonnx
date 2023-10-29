@@ -104,6 +104,7 @@ func TestConvertTensorDtype(t *testing.T) {
 		out, err := ConvertTensorDtype(test.tensorIn, test.newType)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err != nil {
 			continue
 		}

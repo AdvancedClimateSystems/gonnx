@@ -215,6 +215,7 @@ func TestInputValidationGRU(t *testing.T) {
 		validated, err := gru.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			if test.expected != nil {
 				assert.Equal(t, test.expected, validated)

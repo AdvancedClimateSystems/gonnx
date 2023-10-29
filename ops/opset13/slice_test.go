@@ -140,6 +140,7 @@ func TestConstructSlices(t *testing.T) {
 		)
 
 		assert.Equal(t, test.nSlices, len(slices))
+
 		for i := 0; i < test.nSlices; i++ {
 			if test.expectedSlices[i] == nil {
 				assert.Nil(t, slices[i])
@@ -217,6 +218,7 @@ func TestInputValidationSlice(t *testing.T) {
 		validated, err := slice.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			if test.expected != nil {
 				assert.Equal(t, test.expected, validated)

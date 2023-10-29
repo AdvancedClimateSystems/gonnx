@@ -20,21 +20,23 @@ func TestUnsqueezeInit(t *testing.T) {
 
 func TestAxesOutRangeError(t *testing.T) {
 	op := &Unsqueeze{}
-	op.Init(nil)
+	err := op.Init(nil)
+	assert.Nil(t, err)
 
 	axes := []int64{4}
 	data := ops.Arange(9, 1) // 3 x 3 tensor
 
 	dataIn := ops.TensorWithBackingFixture(data, 3, 3)
 	axesIn := ops.TensorWithBackingFixture(axes, len(axes))
-	_, err := op.Apply([]tensor.Tensor{dataIn, axesIn})
+	_, err = op.Apply([]tensor.Tensor{dataIn, axesIn})
 	expected := fmt.Errorf(ops.AxesNotAllInRangeErrTemplate, 3, 3)
 	assert.Equal(t, err, expected)
 }
 
 func TestDuplicateEntriesAfterOffsetNotAllowed(t *testing.T) {
 	op := &Unsqueeze{}
-	op.Init(nil)
+	err := op.Init(nil)
+	assert.Nil(t, err)
 
 	// -1 will be offset to 3 (since outputrank = 4)
 	axes := []int64{3, -1}
@@ -42,20 +44,21 @@ func TestDuplicateEntriesAfterOffsetNotAllowed(t *testing.T) {
 
 	dataIn := ops.TensorWithBackingFixture(data, 3, 3)
 	axesIn := ops.TensorWithBackingFixture(axes, len(axes))
-	_, err := op.Apply([]tensor.Tensor{dataIn, axesIn})
+	_, err = op.Apply([]tensor.Tensor{dataIn, axesIn})
 	assert.EqualError(t, err, "Axes cannot have duplicate entries after offset, axes: [3 3]")
 }
 
 func TestDuplicateEntriesNotAllowed(t *testing.T) {
 	op := &Unsqueeze{}
-	op.Init(nil)
+	err := op.Init(nil)
+	assert.Nil(t, err)
 
 	axes := []int64{0, 0}
 	data := ops.Arange(9, 1) // 3 x 3 tensor
 
 	dataIn := ops.TensorWithBackingFixture(data, 3, 3)
 	axesIn := ops.TensorWithBackingFixture(axes, len(axes))
-	_, err := op.Apply([]tensor.Tensor{dataIn, axesIn})
+	_, err = op.Apply([]tensor.Tensor{dataIn, axesIn})
 	assert.EqualError(t, err, "Axes cannot have duplicate entries after offset, axes: [0 0]")
 }
 
@@ -108,7 +111,8 @@ func TestUnsqueeze(t *testing.T) {
 	}
 	for _, test := range tests {
 		op := &Unsqueeze{}
-		op.Init(nil)
+		err := op.Init(nil)
+		assert.Nil(t, err)
 
 		axes := test.axes
 		data := test.data
@@ -168,6 +172,7 @@ func TestInputValidationUnsqueeze(t *testing.T) {
 		validated, err := unsqueeze.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

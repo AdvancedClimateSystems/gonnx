@@ -8,6 +8,11 @@ import (
 	"gorgonia.org/tensor"
 )
 
+const (
+	ScalerExpectedAttributes = 2
+	ScalerInputs             = 1
+)
+
 // Scaler represents the ONNX-ml scaler operator.
 type Scaler struct {
 	offset tensor.Tensor
@@ -21,7 +26,7 @@ func newScaler() ops.Operator {
 
 // Init initializes the scaler operator.
 func (s *Scaler) Init(attributes []*onnx.AttributeProto) error {
-	if len(attributes) != 2 {
+	if len(attributes) != ScalerExpectedAttributes {
 		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, s, 2, len(attributes))
 	}
 
@@ -73,12 +78,12 @@ func (s *Scaler) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (s *Scaler) GetMinInputs() int {
-	return 1
+	return ScalerInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (s *Scaler) GetMaxInputs() int {
-	return 1
+	return ScalerInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
