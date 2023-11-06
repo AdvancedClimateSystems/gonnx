@@ -33,7 +33,7 @@ func (s *Squeeze) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	dimsToSqueeze := getDimsToSqueezeFromShape(currentShape)
 
 	if !ops.AllInRange(dimsToSqueeze, -nDims, nDims-1) {
-		return nil, ops.ErrNotAllAxisInRange(nDims, nDims)
+		return nil, ops.ErrNotAllAxesInRange(nDims, nDims)
 	}
 
 	// negative entries should be offset by the rank of the output tensor

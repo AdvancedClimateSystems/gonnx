@@ -1,8 +1,6 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
@@ -23,16 +21,14 @@ type Gather struct {
 
 // newGather creates a new gather operator.
 func newGather() ops.Operator {
-	return &Gather{}
+	return &Gather{
+		axis: 0,
+	}
 }
 
 // Init initializes the gather operator.
 func (g *Gather) Init(attributes []*onnx.AttributeProto) error {
-	switch length := len(attributes); {
-	case length > 1:
-		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, g, "0 or 1", len(attributes))
-
-	case length == 1:
+	if len(attributes) == 1 {
 		attr := attributes[0]
 
 		if attr.GetName() == "axis" {
@@ -40,8 +36,8 @@ func (g *Gather) Init(attributes []*onnx.AttributeProto) error {
 		} else {
 			return ops.ErrInvalidAttribute(attr.GetName(), g)
 		}
-	default:
-		g.axis = 0
+	} else if len(attributes) > 1 {
+		return ops.ErrInvalidAttributeCount(1, len(attributes), g)
 	}
 
 	return nil
@@ -64,7 +60,7 @@ func (g *Gather) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	dataAxis := g.axis
 
 	if dataAxis < -rank || dataAxis > rank-1 {
-		return nil, fmt.Errorf(ops.AxisOutOfRangeErrTemplate, rank, rank, dataAxis)
+		return nil, ops.ErrAxisOutOfRange(rank, rank, dataAxis)
 	}
 	// Offset axis if a negative index is given.
 	if dataAxis < 0 {
@@ -75,7 +71,7 @@ func (g *Gather) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	// dimension which is selected by `axis`)
 	axisDimSize := data.Shape()[dataAxis]
 	if !ops.AllInRange(indicesData, -axisDimSize, axisDimSize-1) {
-		return nil, fmt.Errorf(ops.AxesNotAllInRangeErrTemplate, axisDimSize, axisDimSize)
+		return nil, ops.ErrNotAllAxesInRange(axisDimSize, axisDimSize)
 	}
 
 	err = ops.OffsetTensorIfNegative(indices, axisDimSize)
@@ -182,7 +178,7 @@ func gather(out, data, indices tensor.Tensor, axis int) error {
 
 		k, ok := at.(int)
 		if !ok {
-			return fmt.Errorf("could not cast to int")
+			return ops.ErrTypeAssert("int", at)
 		}
 
 		// Slice that selects `k` on the given axis.

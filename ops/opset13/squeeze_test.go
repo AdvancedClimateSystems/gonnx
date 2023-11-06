@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -149,7 +148,7 @@ func TestInputValidationSqueeze(t *testing.T) {
 		{
 			[]tensor.Tensor{},
 			nil,
-			fmt.Errorf("squeeze operator: expected 1-2 input tensors, got 0"),
+			ops.ErrInvalidOptionalInputCount(0, &Squeeze{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -158,7 +157,7 @@ func TestInputValidationSqueeze(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
 			nil,
-			fmt.Errorf("squeeze operator: expected 1-2 input tensors, got 3"),
+			ops.ErrInvalidOptionalInputCount(3, &Squeeze{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -166,7 +165,7 @@ func TestInputValidationSqueeze(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
 			nil,
-			fmt.Errorf("squeeze operator: input 1 does not allow type int"),
+			ops.ErrInvalidInputType(1, "int", &Squeeze{}),
 		},
 	}
 

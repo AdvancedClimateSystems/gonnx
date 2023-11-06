@@ -1,8 +1,6 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
@@ -51,7 +49,7 @@ func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 		A, ok := A.Clone().(tensor.Tensor)
 		if !ok {
-			return nil, ops.ErrTypeAssert("tensor.Tensor", A)
+			return nil, ops.ErrTypeAssert("tensor.Tensor", A.Clone())
 		}
 
 		if err := A.Reshape(1, A.Shape()[0]); err != nil {
@@ -66,7 +64,7 @@ func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 		B, ok := B.Clone().(tensor.Tensor)
 		if !ok {
-			return nil, ops.ErrTypeAssert("tensor.Tensor", A)
+			return nil, ops.ErrTypeAssert("tensor.Tensor", B.Clone())
 		}
 
 		if err := B.Reshape(B.Shape()[0], 1); err != nil {
@@ -172,7 +170,7 @@ func (m *MatMul) broadcastTensors(A, B tensor.Tensor) (tensor.Tensor, tensor.Ten
 					return nil, nil, err
 				}
 			default:
-				return nil, nil, fmt.Errorf("incompatible dimensions")
+				return nil, nil, ops.ErrIncompatibleDimensions()
 			}
 		}
 	}

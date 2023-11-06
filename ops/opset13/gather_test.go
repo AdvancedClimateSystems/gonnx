@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -277,14 +276,14 @@ func TestInputValidationGather(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			fmt.Errorf("gather operator: expected 2 input tensors, got 1"),
+			ops.ErrInvalidInputCount(1, &Gather{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{3, 4}, 2),
 			},
-			fmt.Errorf("gather operator: input 1 does not allow type float32"),
+			ops.ErrInvalidInputType(1, "float32", &Gather{}),
 		},
 	}
 

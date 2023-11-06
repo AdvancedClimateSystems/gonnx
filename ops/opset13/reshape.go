@@ -1,8 +1,6 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
@@ -42,7 +40,7 @@ func (r *Reshape) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	out, ok := t.Clone().(tensor.Tensor)
 	if !ok {
-		return nil, fmt.Errorf("could not cast to tensor")
+		return nil, ops.ErrTypeAssert("tensor.Tensor", t.Clone())
 	}
 
 	err = out.Reshape(newShape...)
@@ -80,7 +78,7 @@ func processShape(newShape, currentShape []int) error {
 	for i := 0; i < len(newShape); i++ {
 		if newShape[i] == 0 {
 			if i >= len(currentShape) {
-				return fmt.Errorf("could not infer dim size")
+				return ops.ErrDimension("could not infer dim size")
 			}
 
 			newShape[i] = currentShape[i]
@@ -101,7 +99,7 @@ func processShape(newShape, currentShape []int) error {
 				}
 
 				if newShape[j] == -1 {
-					return fmt.Errorf("at most one -1 dim size is allowed")
+					return ops.ErrDimension("at most one -1 dim size is allowed")
 				}
 
 				remainingSize /= newShape[j]

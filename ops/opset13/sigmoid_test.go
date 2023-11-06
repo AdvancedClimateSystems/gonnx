@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -79,11 +78,11 @@ func TestInputValidationSigmoid(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("sigmoid operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &Sigmoid{}),
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			fmt.Errorf("sigmoid operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Sigmoid{}),
 		},
 	}
 

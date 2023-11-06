@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -29,7 +28,7 @@ func TestAxesOutRangeError(t *testing.T) {
 	dataIn := ops.TensorWithBackingFixture(data, 3, 3)
 	axesIn := ops.TensorWithBackingFixture(axes, len(axes))
 	_, err = op.Apply([]tensor.Tensor{dataIn, axesIn})
-	expected := fmt.Errorf(ops.AxesNotAllInRangeErrTemplate, 3, 3)
+	expected := ops.ErrNotAllAxesInRange(3, 3)
 	assert.Equal(t, err, expected)
 }
 
@@ -149,21 +148,21 @@ func TestInputValidationUnsqueeze(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			fmt.Errorf("unsqueeze operator: expected 2 input tensors, got 1"),
+			ops.ErrInvalidInputCount(2, &Unsqueeze{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{3, 4}, 2),
 			},
-			fmt.Errorf("unsqueeze operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Unsqueeze{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int32{3, 4}, 2),
 			},
-			fmt.Errorf("unsqueeze operator: input 1 does not allow type int32"),
+			ops.ErrInvalidInputType(1, "int32", &Unsqueeze{}),
 		},
 	}
 

@@ -66,7 +66,7 @@ func TestAddFail(t *testing.T) {
 
 	add := &Add{}
 	_, err := add.Apply(inputs)
-	assert.Equal(t, err, ops.ErrMultidirBroadcast(inputs[0].Shape(), inputs[1].Shape(), ops.ErrIncompatibleDimension))
+	assert.Equal(t, err, ops.ErrMultidirBroadcast(inputs[0].Shape(), inputs[1].Shape(), ops.ErrIncompatibleDimensions()))
 }
 
 func TestInputValidationAdd(t *testing.T) {

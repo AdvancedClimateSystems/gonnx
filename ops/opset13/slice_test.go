@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -200,7 +199,7 @@ func TestInputValidationSlice(t *testing.T) {
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
 			nil,
-			fmt.Errorf("slice operator: expected 3-5 input tensors, got 1"),
+			ops.ErrInvalidOptionalInputCount(1, &Slice{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -209,7 +208,7 @@ func TestInputValidationSlice(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
 			nil,
-			fmt.Errorf("slice operator: input 1 does not allow type int"),
+			ops.ErrInvalidInputType(1, "int", &Slice{}),
 		},
 	}
 

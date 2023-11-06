@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -37,7 +36,7 @@ func (u *Unsqueeze) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	outputRank := len(dataShape) + len(axes)
 
 	if !ops.AllInRange(axes, -outputRank, outputRank-1) {
-		return nil, fmt.Errorf(ops.AxesNotAllInRangeErrTemplate, outputRank, outputRank)
+		return nil, ops.ErrNotAllAxesInRange(outputRank, outputRank)
 	}
 
 	// negative entries should be offset by the rank of the output tensor
@@ -47,14 +46,14 @@ func (u *Unsqueeze) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	sort.Ints(axes)
 
 	if ops.HasDuplicates(axes) {
-		return nil, fmt.Errorf("Axes cannot have duplicate entries after offset, axes: %v", axes)
+		return nil, ops.ErrInvalidInput("axes cannot have duplicate entries after offset", u)
 	}
 
 	newShape := insertOnes(dataShape, axes)
 
 	out, ok := inputs[0].Clone().(tensor.Tensor)
 	if !ok {
-		return nil, fmt.Errorf("could not copy the input tensor")
+		return nil, ops.ErrTypeAssert("tensor.Tensor", inputs[0].Clone())
 	}
 
 	err = out.Reshape(newShape...)

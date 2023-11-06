@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -104,14 +103,14 @@ func TestInputValidationSub(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("sub operator: expected 2 input tensors, got 1"),
+			ops.ErrInvalidInputCount(1, &Sub{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			fmt.Errorf("sub operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Sub{}),
 		},
 	}
 

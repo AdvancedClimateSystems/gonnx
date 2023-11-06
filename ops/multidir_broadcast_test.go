@@ -1,7 +1,6 @@
 package ops
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,22 +46,12 @@ func TestMultidirectionalBroadcast(t *testing.T) {
 		{
 			[][]int{{1, 4, 5}, {2, 1, 1, 3}},
 			nil,
-			fmt.Errorf(
-				MultidirBroadcastErrTemplate,
-				[]int{1, 4, 5},
-				[]int{2, 1, 1, 3},
-				"incompatible dimensions",
-			),
+			ErrMultidirBroadcast([]int{1, 4, 5}, []int{2, 1, 1, 3}, ErrIncompatibleDimensions()),
 		},
 		{
 			[][]int{{5}, {2, 3, 4}},
 			nil,
-			fmt.Errorf(
-				MultidirBroadcastErrTemplate,
-				[]int{5},
-				[]int{2, 3, 4},
-				"incompatible dimensions",
-			),
+			ErrMultidirBroadcast([]int{5}, []int{2, 3, 4}, ErrIncompatibleDimensions()),
 		},
 	}
 

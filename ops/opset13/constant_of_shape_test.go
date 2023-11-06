@@ -86,6 +86,7 @@ func TestConstantOfShape(t *testing.T) {
 			// Make the input tensor
 			tp := TensorProtoFromNumber(test.input)
 			assert.NotNil(t, tp)
+
 			attr := []*onnx.AttributeProto{{Name: "value", T: tp}}
 
 			// Create operator

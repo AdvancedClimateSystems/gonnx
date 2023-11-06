@@ -1,8 +1,6 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
@@ -27,7 +25,7 @@ func newScaler() ops.Operator {
 // Init initializes the scaler operator.
 func (s *Scaler) Init(attributes []*onnx.AttributeProto) error {
 	if len(attributes) != ScalerExpectedAttributes {
-		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, s, 2, len(attributes))
+		return ops.ErrInvalidAttributeCount(ScalerExpectedAttributes, len(attributes), s)
 	}
 
 	for _, attr := range attributes {
@@ -39,7 +37,7 @@ func (s *Scaler) Init(attributes []*onnx.AttributeProto) error {
 			floats := attr.GetFloats()
 			s.scale = tensor.New(tensor.WithShape(len(floats)), tensor.WithBacking(floats))
 		default:
-			return fmt.Errorf(ops.UnknownAttributeErrTemplate, s, attr.GetName())
+			return ops.ErrInvalidAttribute(attr.GetName(), s)
 		}
 	}
 

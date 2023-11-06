@@ -1,8 +1,6 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
@@ -58,7 +56,7 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	B := inputs[3]
 
 	if inputs[4] != nil {
-		return nil, fmt.Errorf("%v: sequence lens not yet supported as input", g)
+		return nil, ops.ErrUnsupportedInput("sequence lens", g)
 	}
 
 	initialH := inputs[5]
@@ -91,7 +89,7 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		var ok bool
 		prevH, ok = initialH.Clone().(tensor.Tensor)
 		if !ok {
-			return nil, fmt.Errorf("could not clone the initial hidden state tensor")
+			return nil, ops.ErrTypeAssert("tensor.Tensor", initialH.Clone())
 		}
 	}
 
@@ -153,7 +151,7 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	Yh, ok := prevH.Clone().(tensor.Tensor)
 	if !ok {
-		return nil, fmt.Errorf("could not clone the hidden tensor")
+		return nil, ops.ErrTypeAssert("tensor.Tensor", prevH.Clone())
 	}
 
 	// Reshape the output so it adds the num_directions as specified by onnx.

@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -25,7 +24,7 @@ func TestGemmInitFail(t *testing.T) {
 	gemm := &Gemm{}
 	err := gemm.Init([]*onnx.AttributeProto{{Name: "unknownAttribute"}})
 
-	expected := fmt.Errorf(ops.UnknownAttributeErrTemplate, gemm, "unknownAttribute")
+	expected := ops.ErrInvalidAttribute("unknownAttribute", gemm)
 	assert.Equal(t, expected, err)
 }
 

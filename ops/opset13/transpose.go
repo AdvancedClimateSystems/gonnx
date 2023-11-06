@@ -1,8 +1,6 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
@@ -23,13 +21,13 @@ func newTranspose() ops.Operator {
 // Init initializes the transpose operator.
 func (t *Transpose) Init(attributes []*onnx.AttributeProto) error {
 	if len(attributes) != 1 {
-		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, t, 1, len(attributes))
+		return ops.ErrInvalidAttributeCount(1, len(attributes), t)
 	}
 
 	attr := attributes[0]
 
 	if attr.GetName() != "perm" {
-		return fmt.Errorf(ops.UnknownAttributeErrTemplate, t, attr.GetName())
+		return ops.ErrInvalidAttribute(attr.GetName(), t)
 	}
 
 	attrPerm := attr.GetInts()

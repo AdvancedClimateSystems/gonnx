@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -23,7 +22,7 @@ func TestScalerInitFailWrongAttribute(t *testing.T) {
 	scaler := &Scaler{}
 	err := scaler.Init([]*onnx.AttributeProto{{Name: "unknownAttribute"}, {Name: "Another"}})
 
-	expected := fmt.Errorf(ops.UnknownAttributeErrTemplate, scaler, "unknownAttribute")
+	expected := ops.ErrInvalidAttribute("Another", scaler)
 	assert.Equal(t, expected, err)
 }
 
@@ -31,7 +30,7 @@ func TestScalerInitFailAttrCount(t *testing.T) {
 	scaler := &Scaler{}
 	err := scaler.Init([]*onnx.AttributeProto{})
 
-	expected := fmt.Errorf(ops.InvalidAttrCountErrTemplate, scaler, 2, 0)
+	expected := ops.ErrInvalidAttributeCount(0, 2, scaler)
 	assert.Equal(t, expected, err)
 }
 
@@ -109,11 +108,11 @@ func TestInputValidationScaler(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("scaler operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &Scaler{}),
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			fmt.Errorf("scaler operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Scaler{}),
 		},
 	}
 
