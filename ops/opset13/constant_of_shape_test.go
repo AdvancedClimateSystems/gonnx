@@ -137,7 +137,7 @@ func TestIncorrectInput(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(
 		t,
-		"Value input tensor should be a single element tensor, but was [1  2  3]",
+		"constant of shape operator invalid tensor found, reason: expected tensor to have one element",
 		err.Error(),
 	)
 }
@@ -154,7 +154,7 @@ func TestNegativeShapeNotAllowed(t *testing.T) {
 
 	assert.Equal(
 		t,
-		"Non positive dimensions are not allowed (must be > 0). Given: [1 -1]",
+		"constant of shape operator invalid tensor found, reason: empty dimensions are not allowed",
 		err.Error())
 }
 
@@ -170,7 +170,7 @@ func TestEmptyTensorNotAllowed(t *testing.T) {
 
 	assert.Equal(
 		t,
-		"Non positive dimensions are not allowed (must be > 0). Given: [0]",
+		"constant of shape operator invalid tensor found, reason: empty dimensions are not allowed",
 		err.Error())
 }
 
@@ -200,7 +200,7 @@ func TestInputValidationConstantOfShape(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(1, &ConstantOfShape{}),
+			ops.ErrInvalidInputCount(0, &ConstantOfShape{}),
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},

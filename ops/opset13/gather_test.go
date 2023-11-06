@@ -31,13 +31,13 @@ func TestGatherInitDefault(t *testing.T) {
 func TestGatherInitTooManyAttrs(t *testing.T) {
 	op := Gather{}
 	err := op.Init([]*onnx.AttributeProto{{Name: "axis"}, {Name: "default"}})
-	assert.EqualError(t, err, "gather operator: expected 0 or 1 attributes, got 2")
+	assert.EqualError(t, err, "operator gather operator attribute error: invalid count 2 expected 1")
 }
 
 func TestGatherInitInvalidAttrName(t *testing.T) {
 	op := Gather{}
 	err := op.Init([]*onnx.AttributeProto{{Name: "axes"}}) // should be axis
-	assert.EqualError(t, err, "gather operator: unknown attribute: axes")
+	assert.EqualError(t, err, "operator gather operator attribute error: invalid attribute axes")
 }
 
 func TestGather(t *testing.T) {
@@ -241,7 +241,7 @@ func TestGatherAxesIndexOutOfRange(t *testing.T) {
 
 	_, err = op.Apply([]tensor.Tensor{dataIn, indicesIn})
 	assert.Error(t, err)
-	assert.EqualError(t, err, "axis argument must be in the range -1 <= x < 1, was 1")
+	assert.EqualError(t, err, "axis out of range: axis argument must be in the range -1 <= x < 1, was 1")
 }
 
 func TestGatherIndexOutOfRange(t *testing.T) {
@@ -252,7 +252,7 @@ func TestGatherIndexOutOfRange(t *testing.T) {
 
 	_, err := op.Apply([]tensor.Tensor{dataIn, indicesIn})
 	assert.Error(t, err)
-	assert.EqualError(t, err, "all indices entries must be in the range -1 <= x < 1")
+	assert.EqualError(t, err, "axis out of range: all indices entries must be in the range -1 <= x < 1")
 }
 
 func TestInputValidationGather(t *testing.T) {

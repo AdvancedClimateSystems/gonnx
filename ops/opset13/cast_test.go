@@ -98,7 +98,7 @@ func TestInputValidationCast(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]bool{true, false}, 2),
 			},
-			ops.ErrInvalidInputType(1, "bool", &Cast{}),
+			ops.ErrInvalidInputType(0, "bool", &Cast{}),
 		},
 	}
 

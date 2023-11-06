@@ -64,7 +64,7 @@ func (c *ConstantOfShape) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 	// Empty dimensions in a tensor are not supported
 	for i := range shape {
 		if shape[i] <= 0 {
-			return nil, ops.ErrInvalidTensor("no empty dimensions are allowed", c)
+			return nil, ops.ErrInvalidTensor("empty dimensions are not allowed", c)
 		}
 	}
 

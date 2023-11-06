@@ -134,7 +134,7 @@ func TestInputValidationGemm(t *testing.T) {
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
 			nil,
-			ops.ErrInvalidInputCount(1, &Gemm{}),
+			ops.ErrInvalidOptionalInputCount(1, &Gemm{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -144,7 +144,7 @@ func TestInputValidationGemm(t *testing.T) {
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 			},
 			nil,
-			ops.ErrInvalidInputCount(4, &Gemm{}),
+			ops.ErrInvalidOptionalInputCount(4, &Gemm{}),
 		},
 		{
 			[]tensor.Tensor{
