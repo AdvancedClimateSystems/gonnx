@@ -75,7 +75,7 @@ func TestValidateInputs(t *testing.T) {
 			},
 			PaddedInputsFixture(1, 0),
 			0,
-			ErrInvalidInputCount(2, &MockOp{}),
+			ErrInvalidInputCount(1, &MockOp{}),
 		},
 		{
 			&MockOp{

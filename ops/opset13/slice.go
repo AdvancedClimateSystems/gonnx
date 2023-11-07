@@ -6,6 +6,14 @@ import (
 	"gorgonia.org/tensor"
 )
 
+const (
+	// MinSliceInput is the minimimum amount of inputs the slice operator expects.
+	MinSliceInput = 3
+
+	// MaxSliceInput is the maximum amount of inputs the slice operator accepts.
+	MaxSliceInput = 5
+)
+
 // Slice represents the ONNX slice operator.
 type Slice struct{}
 
@@ -15,13 +23,14 @@ func newSlice() ops.Operator {
 }
 
 // Init initializes the slice operator.
-func (s *Slice) Init(attributes []*onnx.AttributeProto) error {
+func (s *Slice) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
 // Apply applies the slice operator.
 func (s *Slice) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	data := inputs[0]
+
 	starts, err := ops.AnyToIntSlice(ops.IfScalarToSlice(inputs[1].Data()))
 	if err != nil {
 		return nil, err
@@ -65,12 +74,12 @@ func (s *Slice) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) 
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (s *Slice) GetMinInputs() int {
-	return 3
+	return MinSliceInput
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (s *Slice) GetMaxInputs() int {
-	return 5
+	return MaxSliceInput
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
@@ -102,6 +111,7 @@ func (s *Slice) constructSlices(starts, ends, steps, axes []int, nTotalSlices in
 		if ax < 0 {
 			ax = nTotalSlices + ax
 		}
+
 		slices[ax] = ops.NewSlicer(starts[i], ends[i], steps[i])
 	}
 
@@ -114,6 +124,7 @@ func (s *Slice) getDefaultAxes(nSlices int) []int {
 	for i := 0; i < nSlices; i++ {
 		axes[i] = i
 	}
+
 	return axes
 }
 
@@ -123,5 +134,6 @@ func (s *Slice) getDefaultSteps(nSlices int) []int {
 	for i := 0; i < nSlices; i++ {
 		steps[i] = 1
 	}
+
 	return steps
 }

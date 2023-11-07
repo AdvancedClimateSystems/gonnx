@@ -23,7 +23,7 @@ func newDiv() ops.Operator {
 }
 
 // Init initializes the div operator.
-func (d *Div) Init(attributes []*onnx.AttributeProto) error {
+func (d *Div) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 

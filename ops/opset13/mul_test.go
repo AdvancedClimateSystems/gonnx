@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -70,12 +69,7 @@ func TestMulFail(t *testing.T) {
 	assert.Equal(
 		t,
 		err,
-		fmt.Errorf(
-			ops.MultidirBroadcastErrTemplate,
-			[]int{2, 2},
-			[]int{3},
-			"incompatible dimensions",
-		),
+		ops.ErrMultidirBroadcast([]int{2, 2}, []int{3}, ops.ErrIncompatibleDimensions()),
 	)
 }
 
@@ -146,6 +140,7 @@ func TestInputValidationMul(t *testing.T) {
 		validated, err := mul.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

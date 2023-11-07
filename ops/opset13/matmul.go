@@ -1,8 +1,6 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
@@ -25,7 +23,7 @@ func newMatMul() ops.Operator {
 }
 
 // Init initializes the matmul operator.
-func (m *MatMul) Init(attributes []*onnx.AttributeProto) error {
+func (m *MatMul) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
@@ -51,7 +49,7 @@ func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 		A, ok := A.Clone().(tensor.Tensor)
 		if !ok {
-			return nil, ops.ErrTypeAssert("tensor.Tensor", A)
+			return nil, ops.ErrTypeAssert("tensor.Tensor", A.Clone())
 		}
 
 		if err := A.Reshape(1, A.Shape()[0]); err != nil {
@@ -66,7 +64,7 @@ func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 		B, ok := B.Clone().(tensor.Tensor)
 		if !ok {
-			return nil, ops.ErrTypeAssert("tensor.Tensor", A)
+			return nil, ops.ErrTypeAssert("tensor.Tensor", B.Clone())
 		}
 
 		if err := B.Reshape(B.Shape()[0], 1); err != nil {
@@ -152,7 +150,10 @@ func (m *MatMul) broadcastTensors(A, B tensor.Tensor) (tensor.Tensor, tensor.Ten
 	// want to broadcast those. All leading dimensions we do want to broadcast.
 	shapeA := A.Shape()
 	shapeB := B.Shape()
-	for axis := len(shapeA) - 3; axis >= 0; axis-- {
+
+	nMatrixDims := 3
+
+	for axis := len(shapeA) - nMatrixDims; axis >= 0; axis-- {
 		sizeDimA := shapeA[axis]
 		sizeDimB := shapeB[axis]
 
@@ -169,7 +170,7 @@ func (m *MatMul) broadcastTensors(A, B tensor.Tensor) (tensor.Tensor, tensor.Ten
 					return nil, nil, err
 				}
 			default:
-				return nil, nil, fmt.Errorf("incompatible dimensions")
+				return nil, nil, ops.ErrIncompatibleDimensions()
 			}
 		}
 	}
@@ -183,6 +184,7 @@ func (m *MatMul) broadcastTensors(A, B tensor.Tensor) (tensor.Tensor, tensor.Ten
 func (m *MatMul) batchedMatMul(A, B tensor.Tensor) (tensor.Tensor, error) {
 	shapeA := A.Shape()
 	shapeB := B.Shape()
+
 	outerShape := append([]int{}, shapeA[:len(shapeA)-2]...)
 
 	// This will be the shape of the output tensor.
@@ -197,7 +199,9 @@ func (m *MatMul) batchedMatMul(A, B tensor.Tensor) (tensor.Tensor, error) {
 	}
 
 	var err error
+
 	var matrixA, matrixB, matrixOut tensor.Tensor
+
 	for {
 		matrixA, err = A.Slice(slices...)
 		if err != nil {
@@ -244,6 +248,7 @@ func incrementSlices(slices []tensor.Slice, shape []int) bool {
 			slices[i] = ops.NewSlicer(0) // Else we start again for this dimension.
 		} else {
 			slices[i] = ops.NewSlicer(dimSliceStart + 1)
+
 			return true
 		}
 	}

@@ -1,12 +1,12 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
 )
+
+const TransposeInputs = 1
 
 // Transpose represents the ONNX transpose operator.
 type Transpose struct {
@@ -21,19 +21,20 @@ func newTranspose() ops.Operator {
 // Init initializes the transpose operator.
 func (t *Transpose) Init(attributes []*onnx.AttributeProto) error {
 	if len(attributes) != 1 {
-		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, t, 1, len(attributes))
+		return ops.ErrInvalidAttributeCount(1, len(attributes), t)
 	}
 
 	attr := attributes[0]
 
 	if attr.GetName() != "perm" {
-		return fmt.Errorf(ops.UnknownAttributeErrTemplate, t, attr.GetName())
+		return ops.ErrInvalidAttribute(attr.GetName(), t)
 	}
 
 	attrPerm := attr.GetInts()
 	for _, val := range attrPerm {
 		t.perm = append(t.perm, int(val))
 	}
+
 	return nil
 }
 
@@ -54,12 +55,12 @@ func (t *Transpose) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, err
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (t *Transpose) GetMinInputs() int {
-	return 1
+	return TransposeInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (t *Transpose) GetMaxInputs() int {
-	return 1
+	return TransposeInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

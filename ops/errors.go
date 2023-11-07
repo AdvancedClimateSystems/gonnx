@@ -62,18 +62,6 @@ func ErrTypeAssert(expected string, actual any) error {
 	return &TypeAssertError{expectedType: expected, actualType: actual}
 }
 
-// UnknownAttributeErrTemplate is used to format an error
-// when an operator finds an unknown attribute during its initialization.
-const UnknownAttributeErrTemplate = "%v: unknown attribute: %v"
-
-// UnsupportedAttrErrTemplate is used to format an error when an operator receives
-// an attribute that is not supported yet.
-const UnsupportedAttrErrTemplate = "%v: %v attribute not supported yet"
-
-// InvalidAttrCountErrTemplate is used to format an error when an operator
-// got the wrong amount of attributes.
-const InvalidAttrCountErrTemplate = "%v: expected %v attributes, got %d"
-
 // InvalidInputCountErrTemplate is used to format an error when an operator got
 // the wrong amount of input tensors.
 const InvalidInputCountErrTemplate = "%v: expected %d input tensors, got %d"
@@ -82,50 +70,98 @@ const InvalidInputCountErrTemplate = "%v: expected %d input tensors, got %d"
 // the wrong amount of input tensors when optional inputs are present.
 const InvalidOptionalInputCountErrTemplate = "%v: expected %d-%d input tensors, got %d"
 
-type InvalidInputError struct {
+// UnsupportedInputErrTemplate is used to format an error when an operator got
+// the wrong amount of input tensors when optional inputs are present.
+const UnsupportedInputErrTemplate = "unsupported input for %v: %v"
+
+// InvalidInputErrTemplate is used to format an error when an operator got
+// an invalid input tensor as input.
+const InvalidInputErrTemplate = "invalid input tensor for %v: %v"
+
+type InputErrorKind string
+
+const (
+	InputErrorType        InputErrorKind = "type"
+	InputErrorCount       InputErrorKind = "count"
+	InputErrorUnsupported InputErrorKind = "unsupported"
+	InputErrorInvalid     InputErrorKind = "invalid"
+)
+
+type InputError struct {
+	kind     InputErrorKind
+	operator Operator
+	reason   string
+
+	// Attributes for input type error.
 	inputNumber int
 	actualType  string
-	operator    Operator
+
+	// Attributes for input count error.
+	hasOptionalInputs bool
+	actualCount       int
+
+	// Attributes for unsupported input error.
+	inputName string
 }
 
-func (i *InvalidInputError) Error() string {
-	return fmt.Sprintf("input %d for op %v does not allow dtype %v", i.inputNumber, i.operator, i.actualType)
+func (i *InputError) Error() string {
+	switch i.kind {
+	case InputErrorType:
+		return fmt.Sprintf("input %d for op %v does not allow dtype %v", i.inputNumber, i.operator, i.actualType)
+	case InputErrorCount:
+		if i.hasOptionalInputs {
+			return fmt.Sprintf(InvalidOptionalInputCountErrTemplate, i.operator, i.operator.GetMinInputs(), i.operator.GetMaxInputs(), i.actualCount)
+		}
+
+		return fmt.Sprintf(InvalidInputCountErrTemplate, i.operator, i.operator.GetMinInputs(), i.actualCount)
+	case InputErrorUnsupported:
+		return fmt.Sprintf(UnsupportedInputErrTemplate, i.operator, i.inputName)
+	case InputErrorInvalid:
+		return fmt.Sprintf(InvalidInputErrTemplate, i.operator, i.reason)
+	default:
+		return fmt.Sprintf("operator %s unknown error input error kind %s", i.operator.String(), i.kind)
+	}
 }
 
 func ErrInvalidInputType(inputNumber int, dType string, operator Operator) error {
-	return &InvalidInputError{
+	return &InputError{
+		kind:        InputErrorType,
 		operator:    operator,
 		inputNumber: inputNumber,
 		actualType:  dType,
 	}
 }
 
-type InvalidInputCountError struct {
-	hasOptionalInputs bool
-	actualCount       int
-	operator          Operator
-}
-
-func (i *InvalidInputCountError) Error() string {
-	if i.hasOptionalInputs {
-		return fmt.Sprintf(InvalidOptionalInputCountErrTemplate, i.operator, i.operator.GetMinInputs(), i.operator.GetMaxInputs(), i.actualCount)
-	}
-
-	return fmt.Sprintf(InvalidInputCountErrTemplate, i.operator, i.operator.GetMinInputs(), i.actualCount)
-}
-
 func ErrInvalidInputCount(actual int, operator Operator) error {
-	return &InvalidInputCountError{
+	return &InputError{
+		kind:        InputErrorCount,
 		actualCount: actual,
 		operator:    operator,
 	}
 }
 
 func ErrInvalidOptionalInputCount(actual int, operator Operator) error {
-	return &InvalidInputCountError{
+	return &InputError{
+		kind:              InputErrorCount,
 		hasOptionalInputs: true,
 		actualCount:       actual,
 		operator:          operator,
+	}
+}
+
+func ErrUnsupportedInput(inputName string, operator Operator) error {
+	return &InputError{
+		kind:      InputErrorUnsupported,
+		inputName: inputName,
+		operator:  operator,
+	}
+}
+
+func ErrInvalidInput(reason string, operator Operator) error {
+	return &InputError{
+		kind:     InputErrorInvalid,
+		reason:   reason,
+		operator: operator,
 	}
 }
 
@@ -170,36 +206,48 @@ func ErrInvalidTensor(reason string, operator Operator) error {
 	return &InvalidTensorError{reason: reason, operator: operator}
 }
 
-var ErrIncompatibleDimension = errors.New("incompatible dimensions")
-
-var UnknownOperatorTypeError = errors.New("unknown operator type")
+var ErrUnsupportedOperator = errors.New("unsupported operator")
 
 func ErrUnknownOperatorType(operatorType string) error {
-	return fmt.Errorf("%w: %s", UnknownOperatorTypeError, operatorType)
+	return fmt.Errorf("%w: %s", ErrUnsupportedOperator, operatorType)
 }
-
-// MultidirBroadcastErrTemplate is used to format an error when two inputs cannot be
-// broadcasted together with Multidirectional broadcasting.
-const MultidirBroadcastErrTemplate = "could not multidir broadcast inputs with shape %d and %d: %v"
-
-// UnidirBroadcastErrTemplate is used to format an error when two inputs cannot be
-// broadcasted together with Unidirectional broadcasting.
-const UnidirBroadcastErrTemplate = "could not unidir broadcast inputs with shape %d and %d"
-
-// AxisOutOfRangeErrTemplate is used to format an error when an given axis is out of range
-// given a certain rank.
-const AxisOutOfRangeErrTemplate = "axis argument must be in the range -%d <= x < %d, was %d"
-
-// AxesNotAllInRangeErrTemplate is used to format an error when not all indices
-// are within a given range.
-const AxesNotAllInRangeErrTemplate = "all indices entries must be in the range -%d <= x < %d"
 
 var ErrAxisNotInRange = errors.New("axis out of range")
 
-func ErrNotAllAxisInRange(min, max int) error {
+func ErrNotAllAxesInRange(min, max int) error {
 	return fmt.Errorf("%w: all indices entries must be in the range -%d <= x < %d", ErrAxisNotInRange, min, max)
 }
 
 func ErrAxisOutOfRange(min, max, actual int) error {
 	return fmt.Errorf("%w: axis argument must be in the range -%d <= x < %d, was %d", ErrAxisNotInRange, min, max, actual)
+}
+
+var ErrUnsupportedOpsetVersion = errors.New("unsupported opset version")
+
+type DimensionErrorKind string
+
+const (
+	DimensionErrorIncompatible DimensionErrorKind = "incompatible"
+)
+
+type DimensionError struct {
+	kind   DimensionErrorKind
+	reason string
+}
+
+func (d *DimensionError) Error() string {
+	switch d.kind {
+	case DimensionErrorIncompatible:
+		return fmt.Sprintf("dimensions error: incompatible dimensions")
+	default:
+		return fmt.Sprintf("dimension error: %s", d.reason)
+	}
+}
+
+func ErrIncompatibleDimensions() error {
+	return &DimensionError{kind: DimensionErrorIncompatible, reason: ""}
+}
+
+func ErrDimension(reason string) error {
+	return &DimensionError{reason: reason}
 }

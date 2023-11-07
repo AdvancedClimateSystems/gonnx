@@ -1,13 +1,9 @@
 package gonnx
 
 import (
-	"errors"
-
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/advancedclimatesystems/gonnx/ops/opset13"
 )
-
-var ErrInvalidOperator = errors.New("invalid operator getter")
 
 // OpGetter is a function that gets an operator based on a string.
 type OpGetter func(string) (ops.Operator, error)
@@ -22,11 +18,5 @@ func ResolveOperatorGetter(opsetID int64) (OpGetter, error) {
 		return getOperator, nil
 	}
 
-	opsets := make([]int64, 0, len(operatorGetters))
-	for version := range operatorGetters {
-		// TODO what does this do again?
-		opsets = append(opsets, version)
-	}
-
-	return nil, ErrInvalidOperator
+	return nil, ops.ErrUnsupportedOpsetVersion
 }

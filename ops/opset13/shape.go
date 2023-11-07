@@ -6,6 +6,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
+const NShapeInputs = 1
+
 // Shape represents the ONNX shape operator.
 type Shape struct{}
 
@@ -15,7 +17,7 @@ func newShape() ops.Operator {
 }
 
 // Init initializes the shape operator.
-func (s *Shape) Init(attributes []*onnx.AttributeProto) error {
+func (s *Shape) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
@@ -24,11 +26,13 @@ func (s *Shape) Init(attributes []*onnx.AttributeProto) error {
 func (s *Shape) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	nodeShape := inputs[0].Shape()
 	shape := make([]int64, len(nodeShape))
+
 	for i, dimSize := range nodeShape {
 		shape[i] = int64(dimSize)
 	}
 
 	out := tensor.New(tensor.WithShape(len(nodeShape)), tensor.WithBacking(shape))
+
 	return []tensor.Tensor{out}, nil
 }
 
@@ -39,12 +43,12 @@ func (s *Shape) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) 
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (s *Shape) GetMinInputs() int {
-	return 1
+	return NShapeInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (s *Shape) GetMaxInputs() int {
-	return 1
+	return NShapeInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

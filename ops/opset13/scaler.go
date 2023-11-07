@@ -1,11 +1,14 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	ScalerExpectedAttributes = 2
+	ScalerInputs             = 1
 )
 
 // Scaler represents the ONNX-ml scaler operator.
@@ -21,8 +24,8 @@ func newScaler() ops.Operator {
 
 // Init initializes the scaler operator.
 func (s *Scaler) Init(attributes []*onnx.AttributeProto) error {
-	if len(attributes) != 2 {
-		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, s, 2, len(attributes))
+	if len(attributes) != ScalerExpectedAttributes {
+		return ops.ErrInvalidAttributeCount(ScalerExpectedAttributes, len(attributes), s)
 	}
 
 	for _, attr := range attributes {
@@ -34,7 +37,7 @@ func (s *Scaler) Init(attributes []*onnx.AttributeProto) error {
 			floats := attr.GetFloats()
 			s.scale = tensor.New(tensor.WithShape(len(floats)), tensor.WithBacking(floats))
 		default:
-			return fmt.Errorf(ops.UnknownAttributeErrTemplate, s, attr.GetName())
+			return ops.ErrInvalidAttribute(attr.GetName(), s)
 		}
 	}
 
@@ -73,12 +76,12 @@ func (s *Scaler) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (s *Scaler) GetMinInputs() int {
-	return 1
+	return ScalerInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (s *Scaler) GetMaxInputs() int {
-	return 1
+	return ScalerInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

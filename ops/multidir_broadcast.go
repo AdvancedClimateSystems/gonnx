@@ -83,7 +83,7 @@ func repeatTensorsForMutltidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, tens
 				}
 
 			default:
-				return nil, nil, ErrIncompatibleDimension
+				return nil, nil, ErrIncompatibleDimensions()
 			}
 		}
 	}

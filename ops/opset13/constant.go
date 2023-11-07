@@ -35,7 +35,7 @@ func (c *Constant) Init(attributes []*onnx.AttributeProto) error {
 
 	switch attr.GetName() {
 	case "sparse_value", "value_string", "value_strings":
-		return ops.ErrInvalidAttribute(attr.GetName(), c)
+		return ops.ErrUnsupportedAttribute(attr.GetName(), c)
 	case "value":
 		t, err := onnx.TensorFromProto(attr.GetT())
 		if err != nil {
@@ -54,7 +54,7 @@ func (c *Constant) Init(attributes []*onnx.AttributeProto) error {
 		ints := attr.GetInts()
 		c.value = tensor.New(tensor.WithShape(len(ints)), tensor.WithBacking(ints))
 	default:
-		return ops.ErrInvalidAttribute(attr.GetName(), c)
+		return ops.ErrUnsupportedAttribute(attr.GetName(), c)
 	}
 
 	return nil

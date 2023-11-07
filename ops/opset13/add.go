@@ -8,10 +8,10 @@ import (
 
 const (
 	// MinAddInput is the minimimum amount of inputs the add operator expects.
-	MinAddInput = 1
+	MinAddInput = 2
 
 	// MaxAddInput is the maximum amount of inputs the add operator accepts.
-	MaxAddInput = 1
+	MaxAddInput = 2
 )
 
 // Add represents the ONNX add operator.

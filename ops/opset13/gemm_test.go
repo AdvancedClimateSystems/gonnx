@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -25,7 +24,7 @@ func TestGemmInitFail(t *testing.T) {
 	gemm := &Gemm{}
 	err := gemm.Init([]*onnx.AttributeProto{{Name: "unknownAttribute"}})
 
-	expected := fmt.Errorf(ops.UnknownAttributeErrTemplate, gemm, "unknownAttribute")
+	expected := ops.ErrInvalidAttribute("unknownAttribute", gemm)
 	assert.Equal(t, expected, err)
 }
 
@@ -96,6 +95,7 @@ func TestGemm(t *testing.T) {
 		} else {
 			inputs = append(inputs, nil)
 		}
+
 		res, err := test.gemm.Apply(inputs)
 		assert.Nil(t, err)
 
@@ -134,7 +134,7 @@ func TestInputValidationGemm(t *testing.T) {
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
 			nil,
-			ops.ErrInvalidInputCount(1, &Gemm{}),
+			ops.ErrInvalidOptionalInputCount(1, &Gemm{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -144,7 +144,7 @@ func TestInputValidationGemm(t *testing.T) {
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 			},
 			nil,
-			ops.ErrInvalidInputCount(4, &Gemm{}),
+			ops.ErrInvalidOptionalInputCount(4, &Gemm{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -161,6 +161,7 @@ func TestInputValidationGemm(t *testing.T) {
 		validated, err := gemm.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			if test.expected != nil {
 				assert.Equal(t, test.expected, validated)

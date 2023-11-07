@@ -42,7 +42,7 @@ func GetOperator(operatorType string) (ops.Operator, error) {
 
 // GetOpNames returns a list with operator names for opset 13.
 func GetOpNames() []string {
-	var opList []string
+	opList := make([]string, 0, len(operators13))
 
 	for opName := range operators13 {
 		opList = append(opList, opName)

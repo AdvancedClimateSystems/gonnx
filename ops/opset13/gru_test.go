@@ -137,7 +137,7 @@ func TestInputValidationGRU(t *testing.T) {
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]float32{1, 2}, 2)},
 			nil,
-			ops.ErrInvalidInputCount(1, &GRU{}),
+			ops.ErrInvalidOptionalInputCount(1, &GRU{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -206,7 +206,7 @@ func TestInputValidationGRU(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
 			nil,
-			ops.ErrInvalidInputType(4, "int", &GRU{}),
+			ops.ErrInvalidInputType(5, "int", &GRU{}),
 		},
 	}
 
@@ -215,6 +215,7 @@ func TestInputValidationGRU(t *testing.T) {
 		validated, err := gru.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			if test.expected != nil {
 				assert.Equal(t, test.expected, validated)
