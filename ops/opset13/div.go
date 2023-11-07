@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	// MinDivInput is the minimimum amount of inputs the add operator expects.
+	// MinDivInput is the minimimum amount of inputs the div operator expects.
 	MinDivInput = 2
 
-	// MaxDivInput is the maximum amount of inputs the add operator accepts.
+	// MaxDivInput is the maximum amount of inputs the div operator accepts.
 	MaxDivInput = 2
 )
 

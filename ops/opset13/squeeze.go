@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	SqueezeMinInput = 2
+	SqueezeMinInput = 1
 	SqueezeMaxInput = 2
 )
 

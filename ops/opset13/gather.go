@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	// MinGatherInput is the minimimum amount of inputs the add operator expects.
+	// MinGatherInput is the minimimum amount of inputs the gather operator expects.
 	MinGatherInput = 2
 
-	// MaxGatherInput is the maximum amount of inputs the add operator accepts.
+	// MaxGatherInput is the maximum amount of inputs the gather operator accepts.
 	MaxGatherInput = 2
 )
 

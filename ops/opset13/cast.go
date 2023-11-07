@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	// MinCastInput is the minimimum amount of inputs the add operator expects.
+	// MinCastInput is the minimimum amount of inputs the cast operator expects.
 	MinCastInput = 1
 
-	// MaxCastInput is the maximum amount of inputs the add operator accepts.
+	// MaxCastInput is the maximum amount of inputs the cast operator accepts.
 	MaxCastInput = 1
 )
 

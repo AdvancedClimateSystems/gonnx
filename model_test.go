@@ -37,7 +37,7 @@ func TestModel(t *testing.T) {
 				[][]float32{rangeFloat(16)},
 			),
 			nil,
-			ErrModel("input %v only has %d dimensions, but index %d was required", "data_input", 3, 0),
+			ErrInvalidShape([]onnx.Dim{{IsDynamic: true, Name: "batch_size", Size: 0}, {IsDynamic: false, Name: "", Size: 3}}, []int{2, 4, 2}),
 		},
 		{
 			"./sample_models/onnx_models/mlp.onnx",
@@ -47,7 +47,7 @@ func TestModel(t *testing.T) {
 				[][]float32{rangeFloat(6)},
 			),
 			nil,
-			ErrModel("input %v does not exist", "tensor_data"),
+			ErrModel("tensor: %v not found", "data_input"),
 		},
 		{
 			"./sample_models/onnx_models/gru.onnx",

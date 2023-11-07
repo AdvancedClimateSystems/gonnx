@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	// MinGRUInput is the minimimum amount of inputs the add operator expects.
+	// MinGRUInput is the minimimum amount of inputs the gru operator expects.
 	MinGRUInput = 3
 
-	// MaxGRUInput is the maximum amount of inputs the add operator accepts.
+	// MaxGRUInput is the maximum amount of inputs the gru operator accepts.
 	MaxGRUInput = 6
 )
 

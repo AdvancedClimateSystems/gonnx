@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	// MinGemmInput is the minimimum amount of inputs the add operator expects.
+	// MinGemmInput is the minimimum amount of inputs the gemm operator expects.
 	MinGemmInput = 2
 
-	// MaxGemmInput is the maximum amount of inputs the add operator accepts.
+	// MaxGemmInput is the maximum amount of inputs the gemm operator accepts.
 	MaxGemmInput = 3
 )
 

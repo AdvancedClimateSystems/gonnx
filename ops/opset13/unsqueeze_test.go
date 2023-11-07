@@ -44,7 +44,7 @@ func TestDuplicateEntriesAfterOffsetNotAllowed(t *testing.T) {
 	dataIn := ops.TensorWithBackingFixture(data, 3, 3)
 	axesIn := ops.TensorWithBackingFixture(axes, len(axes))
 	_, err = op.Apply([]tensor.Tensor{dataIn, axesIn})
-	assert.EqualError(t, err, "Axes cannot have duplicate entries after offset, axes: [3 3]")
+	assert.EqualError(t, err, "invalid input tensor for unsqueeze operator: axes cannot have duplicate entries after offset")
 }
 
 func TestDuplicateEntriesNotAllowed(t *testing.T) {
@@ -58,7 +58,7 @@ func TestDuplicateEntriesNotAllowed(t *testing.T) {
 	dataIn := ops.TensorWithBackingFixture(data, 3, 3)
 	axesIn := ops.TensorWithBackingFixture(axes, len(axes))
 	_, err = op.Apply([]tensor.Tensor{dataIn, axesIn})
-	assert.EqualError(t, err, "Axes cannot have duplicate entries after offset, axes: [0 0]")
+	assert.EqualError(t, err, "invalid input tensor for unsqueeze operator: axes cannot have duplicate entries after offset")
 }
 
 func TestUnsqueeze(t *testing.T) {
@@ -148,7 +148,7 @@ func TestInputValidationUnsqueeze(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			ops.ErrInvalidInputCount(2, &Unsqueeze{}),
+			ops.ErrInvalidInputCount(1, &Unsqueeze{}),
 		},
 		{
 			[]tensor.Tensor{

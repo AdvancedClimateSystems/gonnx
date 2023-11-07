@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	// MinConstanShapeOfInput is the minimimum amount of inputs the add operator expects.
+	// MinConstanShapeOfInput is the minimimum amount of inputs the constant of shape operator expects.
 	MinConstanShapeOfInput = 1
 
-	// MaxConstanShapeOfInput is the maximum amount of inputs the add operator accepts.
+	// MaxConstanShapeOfInput is the maximum amount of inputs the constant of shape operator accepts.
 	MaxConstanShapeOfInput = 1
 )
 
