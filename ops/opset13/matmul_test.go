@@ -83,7 +83,7 @@ func TestMatMul(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for i, test := range tests {
 		matmul := &MatMul{}
 		inputs := []tensor.Tensor{
 			ops.TensorWithBackingFixture(test.backings[0], test.shapes[0]...),
@@ -92,7 +92,7 @@ func TestMatMul(t *testing.T) {
 
 		res, err := matmul.Apply(inputs)
 		assert.Nil(t, err)
-		assert.Equal(t, test.expected, res[0].Data())
+		assert.Equal(t, test.expected, res[0].Data(), "test number %d", i)
 		assert.Equal(t, test.expectedShape, res[0].Shape())
 	}
 }
