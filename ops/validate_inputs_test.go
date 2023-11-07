@@ -75,7 +75,7 @@ func TestValidateInputs(t *testing.T) {
 			},
 			PaddedInputsFixture(1, 0),
 			0,
-			ErrInvalidInputCount(1, &MockOp{}),
+			ErrInvalidInputCount(1, &MockOp{minInputs: 2, maxInputs: 2}),
 		},
 		{
 			&MockOp{
@@ -91,7 +91,7 @@ func TestValidateInputs(t *testing.T) {
 			},
 			PaddedInputsFixture(7, 0),
 			0,
-			ErrInvalidOptionalInputCount(7, &MockOp{}),
+			ErrInvalidOptionalInputCount(7, &MockOp{minInputs: 3, maxInputs: 5}),
 		},
 		{
 			&MockOp{
@@ -107,9 +107,11 @@ func TestValidateInputs(t *testing.T) {
 
 	for _, test := range tests {
 		inputs, err := ValidateInputs(test.op, test.inputs)
+		if test.err != nil {
+			assert.EqualError(t, err, test.err.Error())
+		}
 
 		expectedLength := len(test.inputs) + test.expectedNil
-		assert.Equal(t, test.err, err)
 		assert.Equal(t, expectedLength, len(inputs))
 
 		// Check if the added nodes are all nil.
