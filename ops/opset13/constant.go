@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	// MinConstInput is the minimimum amount of inputs the add operator expects.
+	// MinConstInput is the minimimum amount of inputs the constant operator expects.
 	MinConstInput = 1
 
-	// MaxConstInput is the maximum amount of inputs the add operator accepts.
+	// MaxConstInput is the maximum amount of inputs the constant operator accepts.
 	MaxConstInput = 1
 )
 

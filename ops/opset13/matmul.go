@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	// MinMatMulInput is the minimimum amount of inputs the add operator expects.
+	// MinMatMulInput is the minimimum amount of inputs the matmul operator expects.
 	MinMatMulInput = 2
 
-	// MaxMatMulInput is the maximum amount of inputs the add operator accepts.
+	// MaxMatMulInput is the maximum amount of inputs the matmul operator accepts.
 	MaxMatMulInput = 2
 )
 
@@ -29,6 +29,8 @@ func (m *MatMul) Init(_ []*onnx.AttributeProto) error {
 
 // Apply applies the matmul operator.
 func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+	var ok bool
+
 	A := inputs[0]
 	B := inputs[1]
 
@@ -47,7 +49,7 @@ func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if len(A.Shape()) == 1 {
 		prependedDimension = true
 
-		A, ok := A.Clone().(tensor.Tensor)
+		A, ok = A.Clone().(tensor.Tensor)
 		if !ok {
 			return nil, ops.ErrTypeAssert("tensor.Tensor", A.Clone())
 		}
@@ -62,7 +64,7 @@ func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if len(B.Shape()) == 1 {
 		appendedDimension = true
 
-		B, ok := B.Clone().(tensor.Tensor)
+		B, ok = B.Clone().(tensor.Tensor)
 		if !ok {
 			return nil, ops.ErrTypeAssert("tensor.Tensor", B.Clone())
 		}

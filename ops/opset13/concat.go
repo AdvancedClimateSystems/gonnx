@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	// MinConcatInput is the minimimum amount of inputs the add operator expects.
+	// MinConcatInput is the minimimum amount of inputs the concat operator expects.
 	MinConcatInput = 1
 )
 
