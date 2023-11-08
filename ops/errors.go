@@ -91,9 +91,6 @@ const (
 // are within a given range.
 const AxesNotAllInRangeErrTemplate = "all indices entries must be in the range -%d <= x < %d"
 
-// UnsupportedDTypeError is used when the DType of a tensor is not supported.
-const UnsupportedDtypeErrTemplate = "dtype %v is not supported for operator %v"
-
 type InputError struct {
 	kind     InputErrorKind
 	operator Operator
