@@ -1,8 +1,6 @@
 package gonnx
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/advancedclimatesystems/gonnx/ops/opset13"
 )
@@ -16,13 +14,9 @@ var operatorGetters = map[int64]OpGetter{
 
 // ResolveOperatorGetter resolves the getter for operators based on the opset version.
 func ResolveOperatorGetter(opsetID int64) (OpGetter, error) {
-	if GetOperator, ok := operatorGetters[opsetID]; ok {
-		return GetOperator, nil
+	if getOperator, ok := operatorGetters[opsetID]; ok {
+		return getOperator, nil
 	}
 
-	var opsets []int64
-	for version := range operatorGetters {
-		opsets = append(opsets, version)
-	}
-	return nil, fmt.Errorf("expected opset to be in %d, got operator set %d", opsets, opsetID)
+	return nil, ops.ErrUnsupportedOpsetVersion
 }

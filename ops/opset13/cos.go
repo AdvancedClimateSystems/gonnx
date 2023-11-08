@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -33,7 +32,7 @@ func (c *Cos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	case tensor.Float64:
 		out, err = inputs[0].Apply(cos[float64])
 	default:
-		return nil, fmt.Errorf(ops.UnsupportedDtypeErrTemplate, inputs[0].Dtype(), c)
+		return nil, ops.ErrInvalidInputType(0, inputs[0].Dtype().String(), c)
 	}
 
 	if err != nil {
