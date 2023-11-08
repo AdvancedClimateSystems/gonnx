@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	SqueezeMinInput = 1
-	SqueezeMaxInput = 2
+	MinSqueezeInputs = 1
+	MaxSqueezeInputs = 2
 )
 
 // Squeeze represents the ONNX squeeze operator.
@@ -51,7 +51,7 @@ func (s *Squeeze) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	out, ok := inputs[0].Clone().(tensor.Tensor)
 	if !ok {
-		return nil, nil
+		return nil, ops.ErrTypeAssert("tensor.Tensor", inputs[0].Clone())
 	}
 
 	err = out.Reshape(newShape...)
@@ -66,12 +66,12 @@ func (s *Squeeze) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (s *Squeeze) GetMinInputs() int {
-	return SqueezeMinInput
+	return MinSqueezeInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (s *Squeeze) GetMaxInputs() int {
-	return SqueezeMaxInput
+	return MaxSqueezeInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

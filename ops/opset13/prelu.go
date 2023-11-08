@@ -114,12 +114,12 @@ func calcPRelu[T float32 | float64 | uint32 | uint64 | int32 | int64](result any
 
 	convertedInput, ok = input.([]T)
 	if !ok {
-		return ops.ErrTypeAssert("numeric list", result)
+		return ops.ErrTypeAssert("numeric list", input)
 	}
 
 	convertedSlope, ok = slope.([]T)
 	if !ok {
-		return ops.ErrTypeAssert("numeric list", result)
+		return ops.ErrTypeAssert("numeric list", slope)
 	}
 
 	for i, v := range convertedInput {

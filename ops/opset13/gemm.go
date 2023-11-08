@@ -7,11 +7,8 @@ import (
 )
 
 const (
-	// MinGemmInput is the minimimum amount of inputs the gemm operator expects.
-	MinGemmInput = 2
-
-	// MaxGemmInput is the maximum amount of inputs the gemm operator accepts.
-	MaxGemmInput = 3
+	MinGemmInputs = 2
+	MaxGemmInputs = 3
 )
 
 // Gemm represents the ONNX gemm operator.
@@ -114,12 +111,12 @@ func (g *Gemm) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (g *Gemm) GetMinInputs() int {
-	return MinGemmInput
+	return MinGemmInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (g *Gemm) GetMaxInputs() int {
-	return MaxGemmInput
+	return MaxGemmInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

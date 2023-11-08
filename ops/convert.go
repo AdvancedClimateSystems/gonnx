@@ -1,22 +1,9 @@
 package ops
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"gorgonia.org/tensor"
 )
-
-var ErrConversion = errors.New("unable to convert")
-
-func ErrConversionInvalidType(dType tensor.Dtype, newType int32) error {
-	return fmt.Errorf("%w: type %v, to %v is invalid", ErrConversion, dType, newType)
-}
-
-func ErrConversionNotSupported(dType int32) error {
-	return fmt.Errorf("%w: to %v is not supported yet", ErrConversion, dType)
-}
 
 // Number is a type which represents a number.
 type Number interface {

@@ -7,11 +7,8 @@ import (
 )
 
 const (
-	// MinConstanShapeOfInput is the minimimum amount of inputs the constant of shape operator expects.
-	MinConstanShapeOfInput = 1
-
-	// MaxConstanShapeOfInput is the maximum amount of inputs the constant of shape operator accepts.
-	MaxConstanShapeOfInput = 1
+	MinConstantOfShapeInputs = 1
+	MaxConstantOfShapeInputs = 1
 )
 
 // ConstantOfShape represents the ONNX constant of shape operator.
@@ -85,12 +82,12 @@ func (c *ConstantOfShape) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tenso
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (c *ConstantOfShape) GetMinInputs() int {
-	return MinConstanShapeOfInput
+	return MinConstantOfShapeInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (c *ConstantOfShape) GetMaxInputs() int {
-	return MaxConstanShapeOfInput
+	return MaxConstantOfShapeInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

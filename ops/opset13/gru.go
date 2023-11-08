@@ -7,11 +7,8 @@ import (
 )
 
 const (
-	// MinGRUInput is the minimimum amount of inputs the gru operator expects.
-	MinGRUInput = 3
-
-	// MaxGRUInput is the maximum amount of inputs the gru operator accepts.
-	MaxGRUInput = 6
+	MinGRUInputs = 3
+	MaxGRUInputs = 6
 )
 
 // GRU represents the ONNX gru operator. It only supports a simple forward gru
@@ -170,12 +167,12 @@ func (g *GRU) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (g *GRU) GetMinInputs() int {
-	return MinGRUInput
+	return MinGRUInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (g *GRU) GetMaxInputs() int {
-	return MaxGRUInput
+	return MaxGRUInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

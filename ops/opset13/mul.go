@@ -7,11 +7,8 @@ import (
 )
 
 const (
-	// MinMulInput is the minimimum amount of inputs the mul operator expects.
-	MinMulInput = 2
-
-	// MaxMulInput is the maximum amount of inputs the mul operator accepts.
-	MaxMulInput = 2
+	MinMulInputs = 2
+	MaxMulInputs = 2
 )
 
 // Mul represents the ONNX mul operator.
@@ -49,12 +46,12 @@ func (m *Mul) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (m *Mul) GetMinInputs() int {
-	return MinMulInput
+	return MinMulInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (m *Mul) GetMaxInputs() int {
-	return MaxMulInput
+	return MaxMulInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

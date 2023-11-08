@@ -7,11 +7,8 @@ import (
 )
 
 const (
-	// MinSubInput is the minimimum amount of inputs the sub operator expects.
-	MinSubInput = 2
-
-	// MaxSubInput is the maximum amount of inputs the sub operator accepts.
-	MaxSubInput = 2
+	MinSubInputs = 2
+	MaxSubInputs = 2
 )
 
 // Sub represents the ONNX sub operator.
@@ -49,12 +46,12 @@ func (s *Sub) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (s *Sub) GetMinInputs() int {
-	return MinSubInput
+	return MinSubInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (s *Sub) GetMaxInputs() int {
-	return MaxSubInput
+	return MaxSubInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

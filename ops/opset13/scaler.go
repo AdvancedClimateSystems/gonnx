@@ -8,7 +8,8 @@ import (
 
 const (
 	ScalerExpectedAttributes = 2
-	ScalerInputs             = 1
+	MinScalerInputs          = 1
+	MaxScalerInputs          = 1
 )
 
 // Scaler represents the ONNX-ml scaler operator.
@@ -76,12 +77,12 @@ func (s *Scaler) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (s *Scaler) GetMinInputs() int {
-	return ScalerInputs
+	return MinScalerInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (s *Scaler) GetMaxInputs() int {
-	return ScalerInputs
+	return MaxScalerInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

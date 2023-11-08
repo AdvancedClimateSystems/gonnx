@@ -6,7 +6,10 @@ import (
 	"gorgonia.org/tensor"
 )
 
-const TransposeInputs = 1
+const (
+	MinTransposeInputs = 1
+	MaxTransposeInputs = 1
+)
 
 // Transpose represents the ONNX transpose operator.
 type Transpose struct {
@@ -55,12 +58,12 @@ func (t *Transpose) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, err
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (t *Transpose) GetMinInputs() int {
-	return TransposeInputs
+	return MinTransposeInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (t *Transpose) GetMaxInputs() int {
-	return TransposeInputs
+	return MaxTransposeInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

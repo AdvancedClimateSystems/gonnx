@@ -7,11 +7,8 @@ import (
 )
 
 const (
-	// MinMatMulInput is the minimimum amount of inputs the matmul operator expects.
-	MinMatMulInput = 2
-
-	// MaxMatMulInput is the maximum amount of inputs the matmul operator accepts.
-	MaxMatMulInput = 2
+	MinMatMulInputs = 2
+	MaxMatMulInputs = 2
 )
 
 // MatMul represents the ONNX matmul operator.
@@ -29,8 +26,6 @@ func (m *MatMul) Init(_ []*onnx.AttributeProto) error {
 
 // Apply applies the matmul operator.
 func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	var ok bool
-
 	A := inputs[0]
 	B := inputs[1]
 
@@ -49,14 +44,16 @@ func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if len(A.Shape()) == 1 {
 		prependedDimension = true
 
-		A, ok = A.Clone().(tensor.Tensor)
+		reshapedA, ok := A.Clone().(tensor.Tensor)
 		if !ok {
 			return nil, ops.ErrTypeAssert("tensor.Tensor", A.Clone())
 		}
 
-		if err := A.Reshape(1, A.Shape()[0]); err != nil {
+		if err := reshapedA.Reshape(1, reshapedA.Shape()[0]); err != nil {
 			return nil, err
 		}
+
+		A = reshapedA
 	}
 
 	// If B is a vector, promote to a matrix for the calculation.
@@ -64,14 +61,16 @@ func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if len(B.Shape()) == 1 {
 		appendedDimension = true
 
-		B, ok = B.Clone().(tensor.Tensor)
+		reshapedB, ok := B.Clone().(tensor.Tensor)
 		if !ok {
 			return nil, ops.ErrTypeAssert("tensor.Tensor", B.Clone())
 		}
 
-		if err := B.Reshape(B.Shape()[0], 1); err != nil {
+		if err := reshapedB.Reshape(reshapedB.Shape()[0], 1); err != nil {
 			return nil, err
 		}
+
+		B = reshapedB
 	}
 
 	// Now we have to perform batch matrix multiplication. First we need to broadcast
@@ -116,12 +115,12 @@ func (m *MatMul) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (m *MatMul) GetMinInputs() int {
-	return MinMatMulInput
+	return MinMatMulInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (m *MatMul) GetMaxInputs() int {
-	return MaxMatMulInput
+	return MaxMatMulInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
