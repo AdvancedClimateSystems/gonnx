@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -22,7 +21,7 @@ func TestTransposeInitFailWrongAttribute(t *testing.T) {
 	trans := &Transpose{}
 	err := trans.Init([]*onnx.AttributeProto{{Name: "unknownAttribute"}})
 
-	expected := fmt.Errorf(ops.UnknownAttributeErrTemplate, trans, "unknownAttribute")
+	expected := ops.ErrInvalidAttribute("unknownAttribute", trans)
 	assert.Equal(t, expected, err)
 }
 
@@ -30,7 +29,7 @@ func TestTransposeInitFailAttrCount(t *testing.T) {
 	trans := &Transpose{}
 	err := trans.Init([]*onnx.AttributeProto{})
 
-	expected := fmt.Errorf(ops.InvalidAttrCountErrTemplate, trans, 1, 0)
+	expected := ops.ErrInvalidAttributeCount(1, 0, trans)
 	assert.Equal(t, expected, err)
 }
 
@@ -85,11 +84,11 @@ func TestInputValidationTranspose(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("transpose operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &Transpose{}),
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			fmt.Errorf("transpose operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Transpose{}),
 		},
 	}
 
@@ -98,6 +97,7 @@ func TestInputValidationTranspose(t *testing.T) {
 		validated, err := transpose.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

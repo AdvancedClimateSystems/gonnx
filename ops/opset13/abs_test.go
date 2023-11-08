@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -125,13 +124,13 @@ func TestInputValidationAbs(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("abs operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &Abs{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("abs operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Abs{}),
 		},
 	}
 
@@ -140,8 +139,6 @@ func TestInputValidationAbs(t *testing.T) {
 		validated, err := abs.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
-		if test.err == nil {
-			assert.Equal(t, test.inputs, validated)
-		}
+		assert.Equal(t, test.inputs, validated)
 	}
 }
