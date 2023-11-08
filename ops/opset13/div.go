@@ -7,11 +7,8 @@ import (
 )
 
 const (
-	// MinDivInput is the minimimum amount of inputs the div operator expects.
-	MinDivInput = 2
-
-	// MaxDivInput is the maximum amount of inputs the div operator accepts.
-	MaxDivInput = 2
+	MinDivInputs = 2
+	MaxDivInputs = 2
 )
 
 // Div represents the ONNX div operator.
@@ -49,12 +46,12 @@ func (d *Div) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (d *Div) GetMinInputs() int {
-	return MinDivInput
+	return MinDivInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (d *Div) GetMaxInputs() int {
-	return MaxDivInput
+	return MaxDivInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

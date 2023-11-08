@@ -7,11 +7,8 @@ import (
 )
 
 const (
-	// MinSliceInput is the minimimum amount of inputs the slice operator expects.
-	MinSliceInput = 3
-
-	// MaxSliceInput is the maximum amount of inputs the slice operator accepts.
-	MaxSliceInput = 5
+	MinSliceInputs = 3
+	MaxSliceInputs = 5
 )
 
 // Slice represents the ONNX slice operator.
@@ -74,12 +71,12 @@ func (s *Slice) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) 
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (s *Slice) GetMinInputs() int {
-	return MinSliceInput
+	return MinSliceInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (s *Slice) GetMaxInputs() int {
-	return MaxSliceInput
+	return MaxSliceInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

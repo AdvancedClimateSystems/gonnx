@@ -7,11 +7,8 @@ import (
 )
 
 const (
-	// MinCastInput is the minimimum amount of inputs the cast operator expects.
-	MinCastInput = 1
-
-	// MaxCastInput is the maximum amount of inputs the cast operator accepts.
-	MaxCastInput = 1
+	MinCastInputs = 1
+	MaxCastInputs = 1
 )
 
 // Cast represents the ONNX cast operator.
@@ -57,12 +54,12 @@ func (c *Cast) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (c *Cast) GetMinInputs() int {
-	return MinCastInput
+	return MinCastInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (c *Cast) GetMaxInputs() int {
-	return MaxCastInput
+	return MaxCastInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

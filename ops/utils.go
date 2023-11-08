@@ -1,8 +1,6 @@
 package ops
 
 import (
-	"errors"
-
 	"gorgonia.org/tensor"
 )
 
@@ -79,11 +77,6 @@ func OffsetTensorIfNegative(t tensor.Tensor, offset int) error {
 
 	return nil
 }
-
-var (
-	ErrCast         = errors.New("cast error")
-	ErrInvalidShape = errors.New("invalid shape error")
-)
 
 // AnyToIntSlice casts the data of a node to an int list. This will only
 // be done if the data is of some sort of int type.

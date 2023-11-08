@@ -8,8 +8,10 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// NUnsqueezeInputs is the exact number of inputs the unsqueeze operator expects.
-const NUnsqueezeInputs = 2
+const (
+	MinUnsqueezeInputs = 2
+	MaxUnsqueezeInputs = 2
+)
 
 // Unsqueeze represents the ONNX unsqueeze operator.
 type Unsqueeze struct{}
@@ -68,12 +70,12 @@ func (u *Unsqueeze) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, err
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (u *Unsqueeze) GetMinInputs() int {
-	return NUnsqueezeInputs
+	return MinUnsqueezeInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (u *Unsqueeze) GetMaxInputs() int {
-	return NUnsqueezeInputs
+	return MaxUnsqueezeInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

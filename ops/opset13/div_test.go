@@ -107,7 +107,7 @@ func TestInputValidationDiv(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(1.0, &Div{}),
+			ops.ErrInvalidInputCount(1, &Div{}),
 		},
 		{
 			[]tensor.Tensor{

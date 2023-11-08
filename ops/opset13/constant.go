@@ -6,14 +6,6 @@ import (
 	"gorgonia.org/tensor"
 )
 
-const (
-	// MinConstInput is the minimimum amount of inputs the constant operator expects.
-	MinConstInput = 1
-
-	// MaxConstInput is the maximum amount of inputs the constant operator accepts.
-	MaxConstInput = 1
-)
-
 // Constant represents the ONNX constant operator.
 type Constant struct {
 	value tensor.Tensor

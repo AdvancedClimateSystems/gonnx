@@ -95,10 +95,10 @@ func repeatTensorsForMutltidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, tens
 // All extra dimensions are given size one (otherwise the tensor cannot be reshaped).
 // The given tensor is cloned such that the tensor is not modified in place.
 // Example: if we add 2 extra dimensions to shape (2, 3) we get shape (1, 1, 2, 3).
-func addExtraDimsToTensor(t tensor.Tensor, nExtraDims int) (tensor.Tensor, error) {
-	t, ok := t.Clone().(tensor.Tensor)
+func addExtraDimsToTensor(originalT tensor.Tensor, nExtraDims int) (tensor.Tensor, error) {
+	t, ok := originalT.Clone().(tensor.Tensor)
 	if !ok {
-		return nil, ErrTypeAssert("tensor.Tensor", t.Clone())
+		return nil, ErrTypeAssert("tensor.Tensor", originalT.Clone())
 	}
 
 	newShape := []int{}

@@ -31,13 +31,13 @@ func TestGatherInitDefault(t *testing.T) {
 func TestGatherInitTooManyAttrs(t *testing.T) {
 	op := Gather{}
 	err := op.Init([]*onnx.AttributeProto{{Name: "axis"}, {Name: "default"}})
-	assert.EqualError(t, err, "operator gather operator attribute error: invalid count 2 expected 1")
+	assert.EqualError(t, err, "gather operator attribute error: invalid count 2 expected 1")
 }
 
 func TestGatherInitInvalidAttrName(t *testing.T) {
 	op := Gather{}
 	err := op.Init([]*onnx.AttributeProto{{Name: "axes"}}) // should be axis
-	assert.EqualError(t, err, "operator gather operator attribute error: invalid attribute axes")
+	assert.EqualError(t, err, "gather operator attribute error: invalid attribute axes")
 }
 
 func TestGather(t *testing.T) {

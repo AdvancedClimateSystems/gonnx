@@ -7,11 +7,8 @@ import (
 )
 
 const (
-	// MinAddInput is the minimimum amount of inputs the add operator expects.
-	MinAddInput = 2
-
-	// MaxAddInput is the maximum amount of inputs the add operator accepts.
-	MaxAddInput = 2
+	MinAddInputs = 2
+	MaxAddInputs = 2
 )
 
 // Add represents the ONNX add operator.
@@ -49,12 +46,12 @@ func (a *Add) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (a *Add) GetMinInputs() int {
-	return MinAddInput
+	return MinAddInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (a *Add) GetMaxInputs() int {
-	return MaxAddInput
+	return MaxAddInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

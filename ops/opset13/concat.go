@@ -7,8 +7,7 @@ import (
 )
 
 const (
-	// MinConcatInput is the minimimum amount of inputs the concat operator expects.
-	MinConcatInput = 1
+	MinConcatInputs = 1
 )
 
 // Concat represents the ONNX concat operator.
@@ -70,7 +69,7 @@ func (c *Concat) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (c *Concat) GetMinInputs() int {
-	return MinConcatInput
+	return MinConcatInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.

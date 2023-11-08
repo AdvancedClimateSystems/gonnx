@@ -7,11 +7,8 @@ import (
 )
 
 const (
-	// MinAbsInput is the minimimum amount of inputs the abs operator expects.
-	MinAbsInput = 1
-
-	// MaxAbsInput is the maximum amount of inputs the abs operator accepts.
-	MaxAbsInput = 1
+	MinAbsInputs = 1
+	MaxAbsInputs = 1
 )
 
 // Abs represents the ONNX abs operator.
@@ -44,12 +41,12 @@ func (a *Abs) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (a *Abs) GetMinInputs() int {
-	return MinAbsInput
+	return MinAbsInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (a *Abs) GetMaxInputs() int {
-	return MaxAbsInput
+	return MaxAbsInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

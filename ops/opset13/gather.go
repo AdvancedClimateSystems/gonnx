@@ -7,11 +7,8 @@ import (
 )
 
 const (
-	// MinGatherInput is the minimimum amount of inputs the gather operator expects.
-	MinGatherInput = 2
-
-	// MaxGatherInput is the maximum amount of inputs the gather operator accepts.
-	MaxGatherInput = 2
+	MinGatherInputs = 2
+	MaxGatherInputs = 2
 )
 
 // Gather represents the ONNX gather operator.
@@ -99,12 +96,12 @@ func (g *Gather) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (g *Gather) GetMinInputs() int {
-	return MinGatherInput
+	return MinGatherInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (g *Gather) GetMaxInputs() int {
-	return MaxGatherInput
+	return MaxGatherInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

@@ -27,13 +27,13 @@ type AttributeError struct {
 func (t *AttributeError) Error() string {
 	switch t.kind {
 	case AttributeErrorCount:
-		return fmt.Sprintf("operator %s attribute error: invalid count %d expected %d", t.operator.String(), t.attributeCount, t.expectedCount)
+		return fmt.Sprintf("%s attribute error: invalid count %d expected %d", t.operator.String(), t.attributeCount, t.expectedCount)
 	case AttributeErrorInvalid:
-		return fmt.Sprintf("operator %s attribute error: invalid attribute %s", t.operator.String(), t.attributeName)
+		return fmt.Sprintf("%s attribute error: invalid attribute %s", t.operator.String(), t.attributeName)
 	case AttributeErrorUnsupported:
-		return fmt.Sprintf("operator %s attribute error: unsupported attribute %s", t.operator.String(), t.attributeName)
+		return fmt.Sprintf("%s attribute error: unsupported attribute %s", t.operator.String(), t.attributeName)
 	default:
-		return fmt.Sprintf("operator %s unknown error attribute error kind %s", t.operator.String(), t.kind)
+		return fmt.Sprintf("%s unknown error attribute error kind %s", t.operator.String(), t.kind)
 	}
 }
 
@@ -119,7 +119,7 @@ func (i *InputError) Error() string {
 	case InputErrorInvalid:
 		return fmt.Sprintf(InvalidInputErrTemplate, i.operator, i.reason)
 	default:
-		return fmt.Sprintf("operator %s unknown error input error kind %s", i.operator.String(), i.kind)
+		return fmt.Sprintf("%s unknown error input error kind %s", i.operator.String(), i.kind)
 	}
 }
 
@@ -250,4 +250,19 @@ func ErrIncompatibleDimensions() error {
 
 func ErrDimension(reason string) error {
 	return &DimensionError{reason: reason}
+}
+
+var (
+	ErrCast         = errors.New("cast error")
+	ErrInvalidShape = errors.New("invalid shape error")
+)
+
+var ErrConversion = errors.New("unable to convert")
+
+func ErrConversionInvalidType(dType tensor.Dtype, newType int32) error {
+	return fmt.Errorf("%w: type %v, to %v is invalid", ErrConversion, dType, newType)
+}
+
+func ErrConversionNotSupported(dType int32) error {
+	return fmt.Errorf("%w: to %v is not supported yet", ErrConversion, dType)
 }
