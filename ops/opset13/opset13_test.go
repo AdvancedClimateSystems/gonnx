@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -137,7 +136,7 @@ func TestGetOperator(t *testing.T) {
 		{
 			"NotYetImplemented",
 			nil,
-			fmt.Errorf(ops.UnknowOpTypeErrTemplate, "NotYetImplemented"),
+			ops.ErrUnknownOperatorType("NotYetImplemented"),
 		},
 	}
 
