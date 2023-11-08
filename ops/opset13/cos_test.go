@@ -91,6 +91,7 @@ func TestInputValidationCos(t *testing.T) {
 		validated, err := cos.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

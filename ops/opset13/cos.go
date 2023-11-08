@@ -24,6 +24,7 @@ func (c *Cos) Init(attributes []*onnx.AttributeProto) error {
 // Apply applies the cos operator.
 func (c *Cos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var out tensor.Tensor
+
 	var err error
 
 	switch inputs[0].Dtype() {
