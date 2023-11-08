@@ -87,10 +87,6 @@ const (
 	InputErrorInvalid     InputErrorKind = "invalid"
 )
 
-// AxesNotAllInRangeErrTemplate is used to format an error when not all indices
-// are within a given range.
-const AxesNotAllInRangeErrTemplate = "all indices entries must be in the range -%d <= x < %d"
-
 type InputError struct {
 	kind     InputErrorKind
 	operator Operator
