@@ -5,7 +5,7 @@ LDFLAGS=-ldflags "-s -w -X main.Version=${VERSION}"
 TEST=$(shell go list ./... | grep -v /onnx/)
 
 BUILD_PARAMS=CGO_ENABLED=0
-GO1.19=ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.21
+GO1.19=ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.19
 
 
 define echotask
