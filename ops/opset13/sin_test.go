@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -77,13 +76,13 @@ func TestInputValidationSin(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("sin operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &Sin{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("sin operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Sin{}),
 		},
 	}
 
@@ -92,6 +91,7 @@ func TestInputValidationSin(t *testing.T) {
 		validated, err := sin.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}
