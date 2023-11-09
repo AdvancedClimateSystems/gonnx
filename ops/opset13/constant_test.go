@@ -2,7 +2,6 @@ package opset13
 
 import (
 	"encoding/binary"
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -45,17 +44,17 @@ func TestConstantInit(t *testing.T) {
 		{
 			[]*onnx.AttributeProto{{Name: "sparse_value"}},
 			nil,
-			fmt.Errorf(ops.UnsupportedAttrErrTemplate, &Constant{}, "sparse_value"),
+			ops.ErrUnsupportedAttribute("sparse_value", &Constant{}),
 		},
 		{
 			[]*onnx.AttributeProto{{Name: "unknownAttribute"}},
 			nil,
-			fmt.Errorf(ops.UnknownAttributeErrTemplate, &Constant{}, "unknownAttribute"),
+			ops.ErrUnsupportedAttribute("unknownAttribute", &Constant{}),
 		},
 		{
 			[]*onnx.AttributeProto{},
 			nil,
-			fmt.Errorf(ops.InvalidAttrCountErrTemplate, &Constant{}, 1, 0),
+			ops.ErrInvalidAttributeCount(1, 0, &Constant{}),
 		},
 	}
 
@@ -64,6 +63,7 @@ func TestConstantInit(t *testing.T) {
 		err := constant.Init(test.initAttr)
 
 		assert.Equal(t, test.err, err)
+
 		if err != nil {
 			assert.Equal(t, test.expected, constant.value)
 		}
@@ -104,7 +104,7 @@ func TestConstant(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test.constant.Init(test.initAttr)
+		_ = test.constant.Init(test.initAttr)
 		res, err := test.constant.Apply([]tensor.Tensor{})
 		assert.Nil(t, err)
 
@@ -133,7 +133,7 @@ func TestInputValidationConstant(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("constant operator: expected 0 input tensors, got 1"),
+			ops.ErrInvalidInputCount(1, &Constant{}),
 		},
 	}
 
@@ -142,6 +142,7 @@ func TestInputValidationConstant(t *testing.T) {
 		validated, err := constant.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}
@@ -157,6 +158,7 @@ func ConstantValueAttrProtoFixture() []*onnx.AttributeProto {
 	binary.LittleEndian.PutUint64(bValues[16:24], uint64(values[2]))
 
 	tp := &onnx.TensorProto{DataType: int32(7), Dims: []int64{3}, RawData: bValues}
+
 	return []*onnx.AttributeProto{{Name: "value", T: tp}}
 }
 
