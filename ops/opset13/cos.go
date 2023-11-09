@@ -23,9 +23,10 @@ func (c *Cos) Init(_ []*onnx.AttributeProto) error {
 
 // Apply applies the cos operator.
 func (c *Cos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	var out tensor.Tensor
-
-	var err error
+	var (
+		out tensor.Tensor
+		err error
+	)
 
 	switch inputs[0].Dtype() {
 	case tensor.Float32:
