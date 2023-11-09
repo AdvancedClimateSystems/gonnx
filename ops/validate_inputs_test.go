@@ -1,7 +1,6 @@
 package ops
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -76,7 +75,7 @@ func TestValidateInputs(t *testing.T) {
 			},
 			PaddedInputsFixture(1, 0),
 			0,
-			fmt.Errorf(InvalidInputCountErrTemplate, &MockOp{}, 2, 1),
+			ErrInvalidInputCount(1, &MockOp{minInputs: 2, maxInputs: 2}),
 		},
 		{
 			&MockOp{
@@ -92,7 +91,7 @@ func TestValidateInputs(t *testing.T) {
 			},
 			PaddedInputsFixture(7, 0),
 			0,
-			fmt.Errorf(InvalidOptionalInputCountErrTemplate, &MockOp{}, 3, 5, 7),
+			ErrInvalidOptionalInputCount(7, &MockOp{minInputs: 3, maxInputs: 5}),
 		},
 		{
 			&MockOp{
@@ -102,15 +101,17 @@ func TestValidateInputs(t *testing.T) {
 			},
 			PaddedInputsFixture(2, 0),
 			0,
-			fmt.Errorf("%v: input %d does not allow type %v", &MockOp{}, 1, tensor.Float32),
+			ErrInvalidInputType(1, "float32", &MockOp{}),
 		},
 	}
 
 	for _, test := range tests {
 		inputs, err := ValidateInputs(test.op, test.inputs)
+		if test.err != nil {
+			assert.EqualError(t, err, test.err.Error())
+		}
 
 		expectedLength := len(test.inputs) + test.expectedNil
-		assert.Equal(t, test.err, err)
 		assert.Equal(t, expectedLength, len(inputs))
 
 		// Check if the added nodes are all nil.
@@ -136,12 +137,15 @@ func TestPadInputs(t *testing.T) {
 func PaddedInputsFixture(nTensors, nNil int) []tensor.Tensor {
 	result := make([]tensor.Tensor, nTensors+nNil)
 	i := 0
+
 	for ; i < nTensors; i++ {
 		result[i] = tensor.New(tensor.WithBacking([]float32{0.0}))
 	}
+
 	for ; i < nTensors+nNil; i++ {
 		result[i] = nil
 	}
+
 	return result
 }
 
@@ -151,11 +155,11 @@ type MockOp struct {
 	inputTypeConstraints [][]tensor.Dtype
 }
 
-func (m *MockOp) Init(attr []*onnx.AttributeProto) error {
+func (m *MockOp) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
-func (m *MockOp) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (m *MockOp) Apply(_ []tensor.Tensor) ([]tensor.Tensor, error) {
 	return nil, nil
 }
 

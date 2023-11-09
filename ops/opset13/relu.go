@@ -15,7 +15,7 @@ func newRelu() ops.Operator {
 }
 
 // Init initializes the relu operator.
-func (r *Relu) Init(attributes []*onnx.AttributeProto) error {
+func (r *Relu) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
