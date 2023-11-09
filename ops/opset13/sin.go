@@ -17,7 +17,7 @@ func newSin() ops.Operator {
 }
 
 // Init initializes the sin operator.
-func (s *Sin) Init(attributes []*onnx.AttributeProto) error {
+func (s *Sin) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
@@ -28,12 +28,15 @@ type SinDType interface {
 // Apply applies the sin operator.
 func (s *Sin) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var out tensor.Tensor
+
 	var err error
-	if inputs[0].Dtype() == tensor.Float32 {
+
+	switch inputs[0].Dtype() {
+	case tensor.Float32:
 		out, err = inputs[0].Apply(sin[float32])
-	} else if inputs[0].Dtype() == tensor.Float64 {
+	case tensor.Float64:
 		out, err = inputs[0].Apply(sin[float64])
-	} else {
+	default:
 		return nil, ops.ErrInvalidInputType(0, inputs[0].Dtype().String(), s)
 	}
 
