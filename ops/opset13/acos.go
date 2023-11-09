@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -18,7 +17,7 @@ func newAcos() ops.Operator {
 }
 
 // Init initializes the acos operator.
-func (c *Acos) Init(attributes []*onnx.AttributeProto) error {
+func (c *Acos) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
@@ -29,13 +28,16 @@ type AcosDType interface {
 // Apply applies the acos operator.
 func (c *Acos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var out tensor.Tensor
+
 	var err error
-	if inputs[0].Dtype() == tensor.Float32 {
+
+	switch inputs[0].Dtype() {
+	case tensor.Float32:
 		out, err = inputs[0].Apply(acos[float32])
-	} else if inputs[0].Dtype() == tensor.Float64 {
+	case tensor.Float64:
 		out, err = inputs[0].Apply(acos[float64])
-	} else {
-		return nil, fmt.Errorf(ops.UnsupportedDtypeErrTemplate, inputs[0].Dtype(), c)
+	default:
+		return nil, ops.ErrInvalidInputType(0, inputs[0].Dtype().String(), c)
 	}
 
 	if err != nil {
