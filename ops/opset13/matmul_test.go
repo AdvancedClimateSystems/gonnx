@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -84,7 +83,7 @@ func TestMatMul(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for i, test := range tests {
 		matmul := &MatMul{}
 		inputs := []tensor.Tensor{
 			ops.TensorWithBackingFixture(test.backings[0], test.shapes[0]...),
@@ -93,7 +92,7 @@ func TestMatMul(t *testing.T) {
 
 		res, err := matmul.Apply(inputs)
 		assert.Nil(t, err)
-		assert.Equal(t, test.expected, res[0].Data())
+		assert.Equal(t, test.expected, res[0].Data(), "test number %d", i)
 		assert.Equal(t, test.expectedShape, res[0].Shape())
 	}
 }
@@ -179,14 +178,14 @@ func TestInputValidationMatMul(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("matmul operator: expected 2 input tensors, got 1"),
+			ops.ErrInvalidInputCount(1, &MatMul{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			fmt.Errorf("matmul operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &MatMul{}),
 		},
 	}
 
@@ -195,6 +194,7 @@ func TestInputValidationMatMul(t *testing.T) {
 		validated, err := matmul.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

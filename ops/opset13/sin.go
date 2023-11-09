@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -35,7 +34,7 @@ func (s *Sin) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	} else if inputs[0].Dtype() == tensor.Float64 {
 		out, err = inputs[0].Apply(sin[float64])
 	} else {
-		return nil, fmt.Errorf(ops.UnsupportedDtypeErrTemplate, inputs[0].Dtype(), s)
+		return nil, ops.ErrInvalidInputType(0, inputs[0].Dtype().String(), s)
 	}
 
 	if err != nil {
