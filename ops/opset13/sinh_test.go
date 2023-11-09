@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -77,13 +76,13 @@ func TestInputValidationSinh(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("sinh operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &Sinh{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("sinh operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Sinh{}),
 		},
 	}
 
@@ -92,6 +91,7 @@ func TestInputValidationSinh(t *testing.T) {
 		validated, err := sinh.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

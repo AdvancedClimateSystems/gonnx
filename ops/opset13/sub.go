@@ -6,6 +6,11 @@ import (
 	"gorgonia.org/tensor"
 )
 
+const (
+	MinSubInputs = 2
+	MaxSubInputs = 2
+)
+
 // Sub represents the ONNX sub operator.
 type Sub struct{}
 
@@ -15,7 +20,7 @@ func newSub() ops.Operator {
 }
 
 // Init initializes the sub operator.
-func (s *Sub) Init(attributes []*onnx.AttributeProto) error {
+func (s *Sub) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
@@ -41,12 +46,12 @@ func (s *Sub) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (s *Sub) GetMinInputs() int {
-	return 2
+	return MinSubInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (s *Sub) GetMaxInputs() int {
-	return 2
+	return MaxSubInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
