@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -29,19 +28,19 @@ func TestAtanh(t *testing.T) {
 			&Atanh{},
 			[]float32{-0.9, -0.5, 0, 0.5},
 			[]int{2, 2},
-                        []float32{-1.4722193, -0.54930615, 0, 0.54930615},
+			[]float32{-1.4722193, -0.54930615, 0, 0.54930615},
 		},
 		{
 			&Atanh{},
 			[]float32{-0.9, -0.5, 0, 0.5},
 			[]int{1, 4},
-                        []float32{-1.4722193, -0.54930615, 0, 0.54930615},
+			[]float32{-1.4722193, -0.54930615, 0, 0.54930615},
 		},
 		{
 			&Atanh{},
 			[]float32{0.5, 0.5, 0.5, 0.5},
 			[]int{1, 4},
-                        []float32{0.54930615, 0.54930615, 0.54930615, 0.54930615},
+			[]float32{0.54930615, 0.54930615, 0.54930615, 0.54930615},
 		},
 	}
 
@@ -77,13 +76,13 @@ func TestInputValidationAtanh(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("atanh operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &Atanh{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("atanh operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Atanh{}),
 		},
 	}
 
@@ -92,6 +91,7 @@ func TestInputValidationAtanh(t *testing.T) {
 		validated, err := atanh.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}
