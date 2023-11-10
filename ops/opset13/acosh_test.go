@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -77,13 +76,13 @@ func TestInputValidationAcosh(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("acosh operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &Acosh{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("acosh operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Acosh{}),
 		},
 	}
 
@@ -92,6 +91,7 @@ func TestInputValidationAcosh(t *testing.T) {
 		validated, err := acosh.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

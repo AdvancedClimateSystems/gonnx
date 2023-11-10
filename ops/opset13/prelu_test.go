@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -67,14 +66,14 @@ func TestInputValidationPRelu(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("prelu operator: expected 2 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &PRelu{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
-			fmt.Errorf("prelu operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &PRelu{}),
 		},
 	}
 
@@ -83,6 +82,7 @@ func TestInputValidationPRelu(t *testing.T) {
 		validated, err := prelu.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}
@@ -102,6 +102,7 @@ func BenchmarkPRelu_Apply(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		}
+
 		_ = y
 	}
 }

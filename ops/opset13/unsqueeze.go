@@ -1,12 +1,16 @@
 package opset13
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	MinUnsqueezeInputs = 2
+	MaxUnsqueezeInputs = 2
 )
 
 // Unsqueeze represents the ONNX unsqueeze operator.
@@ -18,13 +22,14 @@ func newUnsqueeze() ops.Operator {
 }
 
 // Init initializes the unsqueeze operator.
-func (u *Unsqueeze) Init(attributes []*onnx.AttributeProto) error {
+func (u *Unsqueeze) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
 // Apply applies the unsqueeze operator.
 func (u *Unsqueeze) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	dataShape := inputs[0].Shape()
+
 	axes, err := ops.AnyToIntSlice(inputs[1].Data())
 	if err != nil {
 		return nil, err
@@ -33,7 +38,7 @@ func (u *Unsqueeze) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	outputRank := len(dataShape) + len(axes)
 
 	if !ops.AllInRange(axes, -outputRank, outputRank-1) {
-		return nil, fmt.Errorf(ops.AxesNotAllInRangeErrTemplate, outputRank, outputRank)
+		return nil, ops.ErrNotAllAxesInRange(outputRank, outputRank)
 	}
 
 	// negative entries should be offset by the rank of the output tensor
@@ -43,13 +48,18 @@ func (u *Unsqueeze) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	sort.Ints(axes)
 
 	if ops.HasDuplicates(axes) {
-		return nil, fmt.Errorf("Axes cannot have duplicate entries after offset, axes: %v", axes)
+		return nil, ops.ErrInvalidInput("axes cannot have duplicate entries after offset", u)
 	}
 
 	newShape := insertOnes(dataShape, axes)
 
-	out := inputs[0].Clone().(tensor.Tensor)
+	out, ok := inputs[0].Clone().(tensor.Tensor)
+	if !ok {
+		return nil, ops.ErrTypeAssert("tensor.Tensor", inputs[0].Clone())
+	}
+
 	err = out.Reshape(newShape...)
+
 	return []tensor.Tensor{out}, err
 }
 
@@ -60,12 +70,12 @@ func (u *Unsqueeze) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, err
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (u *Unsqueeze) GetMinInputs() int {
-	return 2
+	return MinUnsqueezeInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (u *Unsqueeze) GetMaxInputs() int {
-	return 2
+	return MaxUnsqueezeInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
@@ -82,7 +92,7 @@ func (u *Unsqueeze) String() string {
 // Creates a new array, which is `original` with ones added at the indices specified by `indices`
 // `indices` may not contain duplicates, the elements are assumed to be in the range 0 <= x < N
 // and should be sorted in increasing order.
-// Is done in a single pass through the new array with length: len(original) + len(indices)
+// Is done in a single pass through the new array with length: len(original) + len(indices).
 func insertOnes(original, indices []int) []int {
 	N := len(indices) + len(original)
 
@@ -91,6 +101,7 @@ func insertOnes(original, indices []int) []int {
 
 	originalIdx := 0
 	indicesIdx := 0
+
 	for i := 0; i < N; i++ {
 		if indicesIdx < len(indices) && indices[indicesIdx] == i {
 			newShape[i] = 1
@@ -100,5 +111,6 @@ func insertOnes(original, indices []int) []int {
 			originalIdx++
 		}
 	}
+
 	return newShape
 }
