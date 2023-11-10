@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -18,7 +17,7 @@ func newAtan() ops.Operator {
 }
 
 // Init initializes the atan operator.
-func (a *Atan) Init(attributes []*onnx.AttributeProto) error {
+func (a *Atan) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
@@ -28,14 +27,18 @@ type AtanDType interface {
 
 // Apply applies the atan operator.
 func (a *Atan) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	var out tensor.Tensor
-	var err error
-	if inputs[0].Dtype() == tensor.Float32 {
+	var (
+		out tensor.Tensor
+		err error
+	)
+
+	switch inputs[0].Dtype() {
+	case tensor.Float32:
 		out, err = inputs[0].Apply(atan[float32])
-	} else if inputs[0].Dtype() == tensor.Float64 {
+	case tensor.Float64:
 		out, err = inputs[0].Apply(atan[float64])
-	} else {
-		return nil, fmt.Errorf(ops.UnsupportedDtypeErrTemplate, inputs[0].Dtype(), a)
+	default:
+		return nil, ops.ErrInvalidInputType(0, inputs[0].Dtype().String(), a)
 	}
 
 	if err != nil {

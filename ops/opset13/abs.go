@@ -6,6 +6,11 @@ import (
 	"gorgonia.org/tensor"
 )
 
+const (
+	MinAbsInputs = 1
+	MaxAbsInputs = 1
+)
+
 // Abs represents the ONNX abs operator.
 type Abs struct{}
 
@@ -15,7 +20,7 @@ func newAbs() ops.Operator {
 }
 
 // Init initializes the abs operator.
-func (a *Abs) Init(attributes []*onnx.AttributeProto) error {
+func (a *Abs) Init([]*onnx.AttributeProto) error {
 	return nil
 }
 
@@ -36,12 +41,12 @@ func (a *Abs) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (a *Abs) GetMinInputs() int {
-	return 1
+	return MinAbsInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (a *Abs) GetMaxInputs() int {
-	return 1
+	return MaxAbsInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

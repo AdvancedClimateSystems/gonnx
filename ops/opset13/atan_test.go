@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -20,7 +19,7 @@ func TestAtanInit(t *testing.T) {
 
 func TestAtan(t *testing.T) {
 	tests := []struct {
-		atan    *Atan
+		atan     *Atan
 		backing  []float32
 		shape    []int
 		expected []float32
@@ -29,19 +28,19 @@ func TestAtan(t *testing.T) {
 			&Atan{},
 			[]float32{1, 2, 3, 4},
 			[]int{2, 2},
-                        []float32{0.7853982, 1.1071488, 1.2490457, 1.3258177},
+			[]float32{0.7853982, 1.1071488, 1.2490457, 1.3258177},
 		},
 		{
 			&Atan{},
 			[]float32{1, 2, 3, 4},
 			[]int{1, 4},
-                        []float32{0.7853982, 1.1071488, 1.2490457, 1.3258177},
+			[]float32{0.7853982, 1.1071488, 1.2490457, 1.3258177},
 		},
 		{
 			&Atan{},
 			[]float32{2, 2, 2, 2},
 			[]int{1, 4},
-                        []float32{1.1071488, 1.1071488, 1.1071488, 1.1071488},
+			[]float32{1.1071488, 1.1071488, 1.1071488, 1.1071488},
 		},
 	}
 
@@ -77,13 +76,13 @@ func TestInputValidationAtan(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("atan operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &Atan{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("atan operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Atan{}),
 		},
 	}
 
@@ -92,6 +91,7 @@ func TestInputValidationAtan(t *testing.T) {
 		validated, err := atan.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

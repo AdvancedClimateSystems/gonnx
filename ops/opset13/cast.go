@@ -1,11 +1,14 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	MinCastInputs = 1
+	MaxCastInputs = 1
 )
 
 // Cast represents the ONNX cast operator.
@@ -21,14 +24,14 @@ func newCast() ops.Operator {
 // Init initializes the cast operator.
 func (c *Cast) Init(attributes []*onnx.AttributeProto) error {
 	if len(attributes) != 1 {
-		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, c, 1, len(attributes))
+		return ops.ErrInvalidAttributeCount(1, len(attributes), c)
 	}
 
 	attr := attributes[0]
 	if attr.GetName() == "to" {
 		c.to = int32(attr.GetI())
 	} else {
-		return fmt.Errorf(ops.UnknownAttributeErrTemplate, c, attr.GetName())
+		return ops.ErrInvalidAttribute(attr.GetName(), c)
 	}
 
 	return nil
@@ -51,12 +54,12 @@ func (c *Cast) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (c *Cast) GetMinInputs() int {
-	return 1
+	return MinCastInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (c *Cast) GetMaxInputs() int {
-	return 1
+	return MaxCastInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

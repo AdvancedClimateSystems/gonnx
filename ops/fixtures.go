@@ -4,7 +4,7 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// InputFixture is a function that generates inputs for ops. Useful in testing
+// InputFixture is a function that generates inputs for ops. Useful in testing.
 type InputFixture func() []tensor.Tensor
 
 // Float32TensorFixture returns a float32 backed gorgonia node. It initializes all its values
