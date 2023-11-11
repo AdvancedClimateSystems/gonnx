@@ -1,7 +1,6 @@
 package ops
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -42,29 +41,17 @@ func TestUnidirectionalBroadcast(t *testing.T) {
 		{
 			[][]int{{1, 3, 1}, {3, 2}},
 			nil,
-			fmt.Errorf(
-				UnidirBroadcastErrTemplate,
-				[]int{1, 3, 1},
-				[]int{3, 2},
-			),
+			ErrUnidirBroadcast([]int{1, 3, 1}, []int{3, 2}),
 		},
 		{
 			[][]int{{5}, {2, 3, 4}},
 			nil,
-			fmt.Errorf(
-				UnidirBroadcastErrTemplate,
-				[]int{5},
-				[]int{2, 3, 4},
-			),
+			ErrUnidirBroadcast([]int{5}, []int{2, 3, 4}),
 		},
 		{
 			[][]int{{1, 4, 5}, {1, 1, 3}},
 			nil,
-			fmt.Errorf(
-				UnidirBroadcastErrTemplate,
-				[]int{1, 4, 5},
-				[]int{1, 1, 3},
-			),
+			ErrUnidirBroadcast([]int{1, 4, 5}, []int{1, 1, 3}),
 		},
 	}
 
@@ -75,6 +62,7 @@ func TestUnidirectionalBroadcast(t *testing.T) {
 		newA, newB, err := UnidirectionalBroadcast(A, B)
 
 		assert.Equal(t, test.err, err)
+
 		if err == nil {
 			assert.Equal(t, test.expectedShape, newA.Shape())
 			assert.Equal(t, test.expectedShape, newB.Shape())

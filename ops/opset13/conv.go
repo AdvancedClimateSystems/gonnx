@@ -1,11 +1,16 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+var (
+	MinConvInputs      = 2
+	MaxConvInputs      = 3
+	NDims1DConvolution = 3
+	NDims2DConvolution = 4
 )
 
 type AutoPadSetting string
@@ -62,30 +67,30 @@ func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
 		case "dilations":
 			c.dilations, err = ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
-				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.dilations)
+				return ops.ErrInvalidAttribute(attr.GetName(), c)
 			}
 		case "group":
 			c.group = int(attr.GetI())
 			if c.group != 1 {
-				return fmt.Errorf(ops.UnsupportedAttrErrTemplate, c, attr.GetName())
+				return ops.ErrUnsupportedAttribute(attr.GetName(), c)
 			}
 		case "kernel_shape":
 			c.kernelShape, err = ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
-				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.kernelShape)
+				return ops.ErrInvalidAttribute(attr.GetName(), c)
 			}
 		case "pads":
 			c.pads, err = ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
-				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.pads)
+				return ops.ErrInvalidAttribute(attr.GetName(), c)
 			}
 		case "strides":
 			c.strides, err = ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
-				return fmt.Errorf(ops.InvalidAttrTemplate, c, attr.GetName(), c.strides)
+				return ops.ErrInvalidAttribute(attr.GetName(), c)
 			}
 		default:
-			return fmt.Errorf(ops.UnsupportedAttrErrTemplate, c, attr.GetName())
+			return ops.ErrUnsupportedAttribute(attr.GetName(), c)
 		}
 	}
 
@@ -126,12 +131,12 @@ func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var out tensor.Tensor
 
 	switch len(x.Shape()) {
-	case 3:
+	case NDims1DConvolution:
 		out, err = c.applyConv1D(x, kernel)
-	case 4:
+	case NDims2DConvolution:
 		out, err = c.applyConv2D(x, kernel)
 	default:
-		return nil, fmt.Errorf("The convolution operator currently only supports 1D or 2D convolution, i.e. shape [N x C x H (x W)]")
+		return nil, ops.ErrInvalidInput("the convolution operator currently only supports 1D or 2D convolution, i.e. shape [N x C x H (x W)]", c)
 	}
 
 	if err != nil {
@@ -155,12 +160,12 @@ func (c *Conv) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (c *Conv) GetMinInputs() int {
-	return 2
+	return MinConvInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (c *Conv) GetMaxInputs() int {
-	return 3
+	return MaxConvInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
@@ -199,7 +204,8 @@ func (c *Conv) setKernelShape(kernel tensor.Tensor) {
 // setDefaultPaddings sets default paddings as attribute. Can be called when no paddings
 // were set during initialization.
 func (c *Conv) setDefaultPaddings(x tensor.Tensor) {
-	paddingLength := len(x.Shape()[2:]) * 2
+	NPadsPerDim := 2
+	paddingLength := len(x.Shape()[2:]) * NPadsPerDim
 
 	pads := make([]int, paddingLength)
 	for i := 0; i < paddingLength; i++ {
@@ -229,11 +235,12 @@ func (c *Conv) setPaddingWithAutoPad(x tensor.Tensor) {
 		return
 	}
 
+	NPadsPerDim := 2
 	inputShape := x.Shape()
 	nDims := len(inputShape)
 	nSpatialDims := nDims - nNonSpatialDims
 
-	c.pads = make([]int, nSpatialDims*2)
+	c.pads = make([]int, nSpatialDims*NPadsPerDim)
 
 	for i := 0; i < nSpatialDims; i++ {
 		dim := inputShape[i]
@@ -242,9 +249,9 @@ func (c *Conv) setPaddingWithAutoPad(x tensor.Tensor) {
 
 		var padHead int
 		if c.autoPad == "SAME_LOWER" {
-			padHead = (padNeeded + 1) / 2
+			padHead = (padNeeded + 1) / NPadsPerDim
 		} else {
-			padHead = padNeeded / 2
+			padHead = padNeeded / NPadsPerDim
 		}
 
 		padTail := padNeeded - padHead
@@ -545,7 +552,7 @@ func (c *Conv) padInput(x tensor.Tensor) (tensor.Tensor, error) {
 // shape [C, kernelShape[0], kernelShape[1], ...].
 func (c *Conv) getSubImage(x tensor.Tensor, batchIdx int, startSpatialCoords ...int) (tensor.Tensor, error) {
 	if len(startSpatialCoords) != len(c.kernelShape) {
-		return nil, fmt.Errorf("expected the coordinates to have the same number of dimensions as the kernel")
+		return nil, ops.ErrDimension("expected the coordinates to have the same number of dimensions as the kernel")
 	}
 
 	slices := []tensor.Slice{

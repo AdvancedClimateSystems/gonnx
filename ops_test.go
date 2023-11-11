@@ -2,7 +2,7 @@ package gonnx
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"sort"
 	"strings"
@@ -106,9 +106,9 @@ type ONNXTestCase struct {
 }
 
 func TestOps(t *testing.T) {
-	var runnedTests []string
-
+	runnedTests := []string{}
 	opNames := opset13.GetOpNames()
+
 	for _, opName := range opNames {
 		tests, err := getTestCasesForOp(opName)
 		assert.Nil(t, err)
@@ -131,6 +131,7 @@ func TestOps(t *testing.T) {
 
 	sort.Strings(expectedTests)
 	sort.Strings(runnedTests)
+
 	assert.Equal(t, expectedTests, runnedTests)
 }
 
@@ -209,7 +210,12 @@ func getTestCase(folder string) (*ONNXTestCase, error) {
 }
 
 func readTestModel(folder string) (*Model, error) {
-	bytesModel, err := ioutil.ReadFile(folder + "/model.onnx")
+	file, err := os.Open(folder + "/model.onnx")
+	if err != nil {
+		return nil, err
+	}
+
+	bytesModel, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +243,12 @@ func readTestTensors(basePath, baseFile string, inputs []*onnx.ValueInfoProto) (
 	for i := 0; i < len(inputs); i++ {
 		filePath := fmt.Sprintf("%v/%v_%d.pb", basePath, baseFile, i)
 
-		bytesInput, err := ioutil.ReadFile(filePath)
+		file, err := os.Open(filePath)
+		if err != nil {
+			return nil, err
+		}
+
+		bytesInput, err := io.ReadAll(file)
 		if err != nil {
 			return nil, err
 		}

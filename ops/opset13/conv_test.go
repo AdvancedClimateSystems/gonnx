@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -32,11 +31,7 @@ func TestConvInitUnsupported(t *testing.T) {
 	assert.Equal(
 		t,
 		err,
-		fmt.Errorf(
-			ops.UnsupportedAttrErrTemplate,
-			c,
-			"group",
-		),
+		ops.ErrUnsupportedAttribute("group", c),
 	)
 }
 
@@ -274,14 +269,14 @@ func TestInputValidationConv(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("conv operator: expected 2-3 input tensors, got 1"),
+			ops.ErrInvalidOptionalInputCount(1, &Conv{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			fmt.Errorf("conv operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Conv{}),
 		},
 	}
 
