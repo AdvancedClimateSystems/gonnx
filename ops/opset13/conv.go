@@ -249,9 +249,11 @@ func (c *Conv) setPaddingWithAutoPad(x tensor.Tensor) {
 
 		var padHead int
 		if c.autoPad == "SAME_LOWER" {
-			padHead = (padNeeded + 1) / NPadsPerDim
+			// nolint
+			padHead = (padNeeded + 1) / 2
 		} else {
-			padHead = padNeeded / NPadsPerDim
+			//nolint
+			padHead = padNeeded / 2
 		}
 
 		padTail := padNeeded - padHead
