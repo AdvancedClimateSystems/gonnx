@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -91,12 +90,7 @@ func TestSoftmaxFail(t *testing.T) {
 	assert.Equal(
 		t,
 		err,
-		fmt.Errorf(
-			ops.AxisOutOfRangeErrTemplate,
-			2,
-			2,
-			3,
-		),
+		ops.ErrAxisOutOfRange(-2, 2, 3),
 	)
 }
 
@@ -122,21 +116,22 @@ func TestInputValidationSoftmax(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("softmax operator: expected 1 input tensors, got 2"),
+			ops.ErrInvalidInputCount(2, &Softmax{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("softmax operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Softmax{}),
 		},
 	}
 
 	for _, test := range tests {
-		softmax := &Softmax{axis: -1}
+		softmax := &Softmax{}
 		validated, err := softmax.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}
