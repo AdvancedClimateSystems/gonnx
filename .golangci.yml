@@ -43,10 +43,17 @@ linters:
 linters-settings:
   gomnd:
     ignored-functions:
-      - 'strconv.ParseInt'
-      - 'strconv.ParseFloat'
-      - 'strconv.FormatInt'
-      - 'strconv.FormatFloat'
+      - "strconv.ParseInt"
+      - "strconv.ParseFloat"
+      - "strconv.FormatInt"
+      - "strconv.FormatFloat"
+  gocritic:
+    disabled-checks:
+      # In the world of AI tensor's are often denoted with a capital letter.
+      # We want to adopt the go style guide as much as possible but we also want
+      # to be able to easily show when a variable is a Tensor. So we chose to
+      # disable captLocal. Note that any other parameter should use a lower case letters.
+      - "captLocal"
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0

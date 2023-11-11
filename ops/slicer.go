@@ -13,6 +13,8 @@ type Slicer struct {
 // will be set to 1. If options are given, it is assumed that the first element will be the value
 // for the end index and the second element the value for the step of the Slicer.
 func NewSlicer(start int, options ...int) tensor.Slice {
+	const maxOptionLength = 2
+
 	end := start + 1
 	step := 1
 
@@ -20,7 +22,7 @@ func NewSlicer(start int, options ...int) tensor.Slice {
 		end = options[0]
 	}
 
-	if len(options) >= 2 {
+	if len(options) >= maxOptionLength {
 		step = options[1]
 	}
 

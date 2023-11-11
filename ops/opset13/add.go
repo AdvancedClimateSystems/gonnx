@@ -6,6 +6,11 @@ import (
 	"gorgonia.org/tensor"
 )
 
+const (
+	MinAddInputs = 2
+	MaxAddInputs = 2
+)
+
 // Add represents the ONNX add operator.
 type Add struct{}
 
@@ -15,7 +20,7 @@ func newAdd() ops.Operator {
 }
 
 // Init initializes the add operator.
-func (a *Add) Init(attributes []*onnx.AttributeProto) error {
+func (a *Add) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
@@ -41,12 +46,12 @@ func (a *Add) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (a *Add) GetMinInputs() int {
-	return 2
+	return MinAddInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (a *Add) GetMaxInputs() int {
-	return 2
+	return MaxAddInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
