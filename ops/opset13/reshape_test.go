@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -84,14 +83,14 @@ func TestInputValidationReshape(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			fmt.Errorf("reshape operator: expected 2 input tensors, got 1"),
+			ops.ErrInvalidInputCount(1, &Reshape{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			fmt.Errorf("reshape operator: input 1 does not allow type int"),
+			ops.ErrInvalidInputType(1, "int", &Reshape{}),
 		},
 	}
 
@@ -100,6 +99,7 @@ func TestInputValidationReshape(t *testing.T) {
 		validated, err := reshape.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}
