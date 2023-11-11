@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -108,14 +107,14 @@ func TestInputValidationDiv(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("div operator: expected 2 input tensors, got 1"),
+			ops.ErrInvalidInputCount(1, &Div{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			fmt.Errorf("div operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Div{}),
 		},
 	}
 
@@ -124,6 +123,7 @@ func TestInputValidationDiv(t *testing.T) {
 		validated, err := div.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

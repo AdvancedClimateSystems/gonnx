@@ -2,7 +2,7 @@ package gonnx
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"sort"
 	"strings"
@@ -120,8 +120,9 @@ type ONNXTestCase struct {
 }
 
 func TestOps(t *testing.T) {
-	var runnedTests []string
+	runnedTests := []string{}
 	opNames := opset13.GetOpNames()
+
 	for _, opName := range opNames {
 		tests, err := getTestCasesForOp(opName)
 		assert.Nil(t, err)
@@ -141,8 +142,10 @@ func TestOps(t *testing.T) {
 			runnedTests = append(runnedTests, test.name)
 		}
 	}
+
 	sort.Strings(expectedTests)
 	sort.Strings(runnedTests)
+
 	assert.Equal(t, expectedTests, runnedTests)
 }
 
@@ -160,6 +163,7 @@ func getTestCasesForOp(opName string) ([]*ONNXTestCase, error) {
 	}
 
 	var tests []*ONNXTestCase
+
 	for _, testFolder := range testFolders {
 		if shouldRunTest(testFolder, opFilter) {
 			testcase, err := getTestCase(fmt.Sprintf("./test_data/%v", testFolder))
@@ -188,6 +192,7 @@ func shouldRunTest(folder, opFilter string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -200,6 +205,7 @@ func getTestCase(folder string) (*ONNXTestCase, error) {
 	}
 
 	basePath := fmt.Sprintf("%v/test_data_set_0", folder)
+
 	inputs, err := readTestTensors(basePath, "input", model.mp.Graph.GetInput())
 	if err != nil {
 		return nil, err
@@ -213,11 +219,17 @@ func getTestCase(folder string) (*ONNXTestCase, error) {
 	testcase.model = model
 	testcase.inputs = inputs
 	testcase.outputs = outputs
+
 	return testcase, nil
 }
 
 func readTestModel(folder string) (*Model, error) {
-	bytesModel, err := ioutil.ReadFile(folder + "/model.onnx")
+	file, err := os.Open(folder + "/model.onnx")
+	if err != nil {
+		return nil, err
+	}
+
+	bytesModel, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}
@@ -243,9 +255,14 @@ func readTestTensors(basePath, baseFile string, inputs []*onnx.ValueInfoProto) (
 	tensors := make(Tensors)
 
 	for i := 0; i < len(inputs); i++ {
-
 		filePath := fmt.Sprintf("%v/%v_%d.pb", basePath, baseFile, i)
-		bytesInput, err := ioutil.ReadFile(filePath)
+
+		file, err := os.Open(filePath)
+		if err != nil {
+			return nil, err
+		}
+
+		bytesInput, err := io.ReadAll(file)
 		if err != nil {
 			return nil, err
 		}
