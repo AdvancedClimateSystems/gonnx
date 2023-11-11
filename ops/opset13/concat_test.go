@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -22,7 +21,7 @@ func TestConcatInitFail(t *testing.T) {
 	concat := &Concat{}
 	err := concat.Init([]*onnx.AttributeProto{})
 
-	expected := fmt.Errorf(ops.InvalidAttrCountErrTemplate, concat, 1, 0)
+	expected := ops.ErrInvalidAttributeCount(1, 0, concat)
 	assert.Equal(t, expected, err)
 }
 

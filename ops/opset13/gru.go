@@ -1,11 +1,14 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	MinGRUInputs = 3
+	MaxGRUInputs = 6
 )
 
 // GRU represents the ONNX gru operator. It only supports a simple forward gru
@@ -35,7 +38,7 @@ func (g *GRU) Init(attributes []*onnx.AttributeProto) error {
 		case "linear_before_reset":
 			g.linearBeforeReset = ops.Int64ToBool(attr.GetI())
 		default:
-			return fmt.Errorf(ops.UnsupportedAttrErrTemplate, g, attr.GetName())
+			return ops.ErrInvalidAttribute(attr.GetName(), g)
 		}
 	}
 
@@ -48,8 +51,9 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	W := inputs[1]
 	R := inputs[2]
 	B := inputs[3]
+
 	if inputs[4] != nil {
-		return nil, fmt.Errorf("%v: sequence lens not yet supported as input", g)
+		return nil, ops.ErrUnsupportedInput("sequence lens", g)
 	}
 
 	initialH := inputs[5]
@@ -79,18 +83,24 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if initialH == nil {
 		prevH = g.initialH(batchSize)
 	} else {
-		prevH = initialH.Clone().(tensor.Tensor)
+		var ok bool
+		prevH, ok = initialH.Clone().(tensor.Tensor)
+		if !ok {
+			return nil, ops.ErrTypeAssert("tensor.Tensor", initialH.Clone())
+		}
 	}
 
 	// Extract the shape of the hidden dimensions without the bidirectional dimension, as
 	// we do not support bidirectional GRU yet.
 	shapeWithoutBidir := prevH.Shape().Clone()[1:]
+
 	err = prevH.Reshape(shapeWithoutBidir...)
 	if err != nil {
 		return nil, err
 	}
 
 	outputs := []tensor.Tensor{}
+
 	for i := 0; i < seqLength; i++ {
 		Xt, err := g.extractXt(X, i)
 		if err != nil {
@@ -136,12 +146,17 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	Yh := prevH.Clone().(tensor.Tensor)
+	Yh, ok := prevH.Clone().(tensor.Tensor)
+	if !ok {
+		return nil, ops.ErrTypeAssert("tensor.Tensor", prevH.Clone())
+	}
+
 	// Reshape the output so it adds the num_directions as specified by onnx.
 	err = Yh.Reshape([]int{1, batchSize, g.hiddenSize}...)
 	if err != nil {
 		return nil, err
 	}
+
 	return []tensor.Tensor{Y, Yh}, nil
 }
 
@@ -152,12 +167,12 @@ func (g *GRU) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (g *GRU) GetMinInputs() int {
-	return 3
+	return MinGRUInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (g *GRU) GetMaxInputs() int {
-	return 6
+	return MaxGRUInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
@@ -187,6 +202,7 @@ func (g *GRU) gateCalculation(
 	Xt, H, W, R, Wb, Rb tensor.Tensor, activation ops.Activation,
 ) (tensor.Tensor, error) {
 	gemm := &Gemm{transA: false, transB: true, alpha: 1.0, beta: 1.0}
+
 	inputCalc, err := gemm.Apply([]tensor.Tensor{Xt, W, Wb})
 	if err != nil {
 		return nil, err
@@ -213,6 +229,7 @@ func (g *GRU) htCalculation(
 		if err != nil {
 			return nil, err
 		}
+
 		return g.gateCalculation(Xt, temp1, W, R, Wb, Rb, activation)
 	}
 
@@ -266,6 +283,7 @@ func (g *GRU) getForwardWeights(W tensor.Tensor) (Wz, Wr, Wh tensor.Tensor, err 
 	if err != nil {
 		return nil, nil, nil, err
 	}
+
 	return n[0], n[1], n[2], nil
 }
 
@@ -275,6 +293,7 @@ func (g *GRU) getRecurrentWeights(R tensor.Tensor) (Rz, Rr, Rh tensor.Tensor, er
 	if err != nil {
 		return nil, nil, nil, err
 	}
+
 	return recurrentWeights[0], recurrentWeights[1], recurrentWeights[2], nil
 }
 
@@ -284,6 +303,7 @@ func (g *GRU) getBiases(B tensor.Tensor) (Wbz, Wbr, Wbh, Rbz, Rbr, Rbh tensor.Te
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
+
 	return biases[0], biases[1], biases[2], biases[3], biases[4], biases[5], nil
 }
 
@@ -296,11 +316,14 @@ func (g *GRU) getBiases(B tensor.Tensor) (Wbz, Wbr, Wbh, Rbz, Rbr, Rbh tensor.Te
 // W will have a shape of (num_directions, 3 * hidden_size, ...) and we extract the
 // by slicing over the '3 * hidden_size' dimension.
 func (g *GRU) extractWeights(W tensor.Tensor) ([]tensor.Tensor, error) {
+	const nWeightMatrices = 3
+
 	dirSlice := ops.NewSlicer(0)
-	weights := make([]tensor.Tensor, 3)
+	weights := make([]tensor.Tensor, nWeightMatrices)
 
 	for i := 0; i < 3; i++ {
 		slice := ops.NewSlicer(i*g.hiddenSize, (i+1)*g.hiddenSize)
+
 		w, err := W.Slice(dirSlice, slice, nil)
 		if err != nil {
 			return nil, err
@@ -308,6 +331,7 @@ func (g *GRU) extractWeights(W tensor.Tensor) ([]tensor.Tensor, error) {
 
 		weights[i] = w
 	}
+
 	return weights, nil
 }
 
@@ -319,11 +343,14 @@ func (g *GRU) extractWeights(W tensor.Tensor) ([]tensor.Tensor, error) {
 // B has a shape of (num_directions, 6 * hidden_size) and every individual bias tensor should have
 // shape (hidden_size). We extract the biases by slicing over the '6 * hidden_size' dimension.
 func (g *GRU) extractBiases(B tensor.Tensor) ([]tensor.Tensor, error) {
-	dirSlice := ops.NewSlicer(0)
-	biases := make([]tensor.Tensor, 7)
+	const nWeightMatrices = 6
 
-	for i := 0; i < 6; i++ {
+	dirSlice := ops.NewSlicer(0)
+	biases := make([]tensor.Tensor, nWeightMatrices)
+
+	for i := 0; i < nWeightMatrices; i++ {
 		slice := ops.NewSlicer(i*g.hiddenSize, (i+1)*g.hiddenSize)
+
 		w, err := B.Slice(dirSlice, slice)
 		if err != nil {
 			return nil, err
@@ -331,6 +358,7 @@ func (g *GRU) extractBiases(B tensor.Tensor) ([]tensor.Tensor, error) {
 
 		biases[i] = w
 	}
+
 	return biases, nil
 }
 
@@ -338,9 +366,11 @@ func (g *GRU) extractBiases(B tensor.Tensor) ([]tensor.Tensor, error) {
 // of the gru operator this tensor can be used as the biases tensor. By default biases
 // are all 0.
 func (g *GRU) initialB() tensor.Tensor {
+	const nWeightMatrices = 6
+
 	return tensor.New(
-		tensor.WithShape(1, 6*g.hiddenSize),
-		tensor.WithBacking(ops.Zeros(6*g.hiddenSize)),
+		tensor.WithShape(1, nWeightMatrices*g.hiddenSize),
+		tensor.WithBacking(ops.Zeros(nWeightMatrices*g.hiddenSize)),
 	)
 }
 
@@ -349,6 +379,7 @@ func (g *GRU) initialB() tensor.Tensor {
 // (num_directions, batch_size, hidden_size).
 func (g *GRU) initialH(batchSize int) tensor.Tensor {
 	hiddenFloats := ops.Zeros(batchSize * g.hiddenSize)
+
 	return tensor.New(
 		tensor.WithShape(1, batchSize, g.hiddenSize),
 		tensor.WithBacking(hiddenFloats),
