@@ -6,6 +6,11 @@ import (
 	"gorgonia.org/tensor"
 )
 
+var (
+	MinEqualInputs = 2
+	MaxEqualInputs = 2
+)
+
 // Equal represents the ONNX equal operator.
 type Equal struct{}
 
@@ -41,12 +46,12 @@ func (e *Equal) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) 
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (e *Equal) GetMinInputs() int {
-	return 2
+	return MinEqualInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (e *Equal) GetMaxInputs() int {
-	return 2
+	return MaxEqualInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

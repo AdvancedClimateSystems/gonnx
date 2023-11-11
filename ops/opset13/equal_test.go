@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -110,14 +109,14 @@ func TestInputValidationEqual(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("equal operator: expected 2 input tensors, got 1"),
+			ops.ErrInvalidInputCount(1, &Equal{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			fmt.Errorf("equal operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Equal{}),
 		},
 	}
 

@@ -6,6 +6,11 @@ import (
 	"gorgonia.org/tensor"
 )
 
+var (
+	MinGreaterInputs = 2
+	MaxGreaterInputs = 2
+)
+
 // Greater represents the ONNX greater operator.
 type Greater struct{}
 
@@ -41,12 +46,12 @@ func (g *Greater) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (g *Greater) GetMinInputs() int {
-	return 2
+	return MinGreaterInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (g *Greater) GetMaxInputs() int {
-	return 2
+	return MaxGreaterInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
