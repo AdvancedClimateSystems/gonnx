@@ -1,8 +1,6 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
@@ -25,7 +23,7 @@ func newLogSoftmax() ops.Operator {
 func (l *LogSoftmax) Init(attributes []*onnx.AttributeProto) error {
 	nAttributes := len(attributes)
 	if nAttributes > 1 {
-		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, l, 1, nAttributes)
+		return ops.ErrInvalidAttributeCount(1, nAttributes, l)
 	}
 
 	if nAttributes == 1 {
@@ -41,7 +39,7 @@ func (l *LogSoftmax) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	nDims := len(input.Shape())
 
 	if l.axis < -nDims || l.axis >= nDims {
-		return nil, fmt.Errorf(ops.AxisOutOfRangeErrTemplate, nDims, nDims, l.axis)
+		return nil, ops.ErrAxisOutOfRange(-nDims, nDims, l.axis)
 	}
 
 	axis := l.axis
