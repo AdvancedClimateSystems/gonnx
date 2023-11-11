@@ -1,11 +1,14 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	MinGatherInputs = 2
+	MaxGatherInputs = 2
 )
 
 // Gather represents the ONNX gather operator.
@@ -15,24 +18,25 @@ type Gather struct {
 
 // newGather creates a new gather operator.
 func newGather() ops.Operator {
-	return &Gather{}
+	return &Gather{
+		axis: 0,
+	}
 }
 
 // Init initializes the gather operator.
 func (g *Gather) Init(attributes []*onnx.AttributeProto) error {
-	switch length := len(attributes); {
-	case length > 1:
-		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, g, "0 or 1", len(attributes))
-	case length == 1:
+	if len(attributes) == 1 {
 		attr := attributes[0]
+
 		if attr.GetName() == "axis" {
 			g.axis = int(attr.GetI())
 		} else {
-			return fmt.Errorf(ops.UnknownAttributeErrTemplate, g, attr.GetName())
+			return ops.ErrInvalidAttribute(attr.GetName(), g)
 		}
-	default:
-		g.axis = 0
+	} else if len(attributes) > 1 {
+		return ops.ErrInvalidAttributeCount(1, len(attributes), g)
 	}
+
 	return nil
 }
 
@@ -43,6 +47,7 @@ func (g *Gather) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	indices := tensor.New(tensor.WithBacking(indicesData), tensor.WithShape(inputs[1].Shape()...))
 
 	data := inputs[0]
@@ -50,8 +55,9 @@ func (g *Gather) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	// Make sure axis is in the correct range (according to the size of the data tensor)
 	rank := len(data.Shape())
 	dataAxis := g.axis
+
 	if dataAxis < -rank || dataAxis > rank-1 {
-		return nil, fmt.Errorf(ops.AxisOutOfRangeErrTemplate, rank, rank, dataAxis)
+		return nil, ops.ErrAxisOutOfRange(rank, rank, dataAxis)
 	}
 	// Offset axis if a negative index is given.
 	if dataAxis < 0 {
@@ -62,9 +68,13 @@ func (g *Gather) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	// dimension which is selected by `axis`)
 	axisDimSize := data.Shape()[dataAxis]
 	if !ops.AllInRange(indicesData, -axisDimSize, axisDimSize-1) {
-		return nil, fmt.Errorf(ops.AxesNotAllInRangeErrTemplate, axisDimSize, axisDimSize)
+		return nil, ops.ErrNotAllAxesInRange(axisDimSize, axisDimSize)
 	}
-	ops.OffsetTensorIfNegative(indices, axisDimSize)
+
+	err = ops.OffsetTensorIfNegative(indices, axisDimSize)
+	if err != nil {
+		return nil, err
+	}
 
 	// Make the shape of the output tensor
 	os := insertWithReplace(indices.Shape(), data.Shape(), dataAxis)
@@ -75,6 +85,7 @@ func (g *Gather) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return []tensor.Tensor{output}, nil
 }
 
@@ -85,12 +96,12 @@ func (g *Gather) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (g *Gather) GetMinInputs() int {
-	return 2
+	return MinGatherInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (g *Gather) GetMaxInputs() int {
-	return 2
+	return MaxGatherInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
@@ -152,13 +163,20 @@ func (g *Gather) String() string {
 // slicing to extract the blocks that we need to assign, and then pairwise assign them.
 func gather(out, data, indices tensor.Tensor, axis int) error {
 	it := indices.Iterator()
-	for it.Reset(); !it.Done(); it.Next() {
+	it.Reset()
+
+	for !it.Done() {
 		coords := it.Coord()
+
 		at, err := indices.At(coords...)
 		if err != nil {
 			return err
 		}
-		k := at.(int)
+
+		k, ok := at.(int)
+		if !ok {
+			return ops.ErrTypeAssert("int", at)
+		}
 
 		// Slice that selects `k` on the given axis.
 		// Equivalent to: data[:, ... , :, k, :, ..., :], where `k` is on the index `axis`
@@ -175,9 +193,15 @@ func gather(out, data, indices tensor.Tensor, axis int) error {
 		for i, s := range coords {
 			oslices[i+axis] = ops.NewSlicer(s)
 		}
+
 		outputSlice, _ := out.Slice(oslices...)
 
 		err = ops.PairwiseAssign(outputSlice, dataSlice)
+		if err != nil {
+			return err
+		}
+
+		_, err = it.Next()
 		if err != nil {
 			return err
 		}
@@ -192,10 +216,11 @@ func gather(out, data, indices tensor.Tensor, axis int) error {
 // Example:
 // > a = [-1, -2, -3]
 // > x = [1, 2, 3, 4, 5, 6, 7]
-// insertWithReplace(a, x, 3) -> [1, 2, 3, -1, -2, -3, 5, 6, 7]
+// insertWithReplace(a, x, 3) -> [1, 2, 3, -1, -2, -3, 5, 6, 7].
 func insertWithReplace(a, x []int, axis int) []int {
 	y := append([]int{}, x[:axis]...)
 	y = append(y, a...)
+
 	if axis+1 < len(x) {
 		y = append(y, x[axis+1:]...)
 	}

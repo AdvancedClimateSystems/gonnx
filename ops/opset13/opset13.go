@@ -1,8 +1,6 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/ops"
 )
 
@@ -37,18 +35,21 @@ var operators13 = map[string]func() ops.Operator{
 }
 
 // GetOperator maps strings as found in the ModelProto to Operators from opset 13.
-func GetOperator(opType string) (ops.Operator, error) {
-	if opInit, ok := operators13[opType]; ok {
+func GetOperator(operatorType string) (ops.Operator, error) {
+	if opInit, ok := operators13[operatorType]; ok {
 		return opInit(), nil
 	}
-	return nil, fmt.Errorf(ops.UnknowOpTypeErrTemplate, opType)
+
+	return nil, ops.ErrUnknownOperatorType(operatorType)
 }
 
 // GetOpNames returns a list with operator names for opset 13.
 func GetOpNames() []string {
-	var opList []string
+	opList := make([]string, 0, len(operators13))
+
 	for opName := range operators13 {
 		opList = append(opList, opName)
 	}
+
 	return opList
 }

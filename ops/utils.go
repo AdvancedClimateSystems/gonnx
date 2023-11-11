@@ -1,8 +1,6 @@
 package ops
 
 import (
-	"fmt"
-
 	"gorgonia.org/tensor"
 )
 
@@ -11,6 +9,7 @@ func Abs(x int) int {
 	if x < 0 {
 		x *= -1
 	}
+
 	return x
 }
 
@@ -26,21 +25,26 @@ func AllInRange(arr []int, min, max int) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
-// HasDuplicates checks if there are duplicates in the sorted array `arr`
+// HasDuplicates checks if there are duplicates in the sorted array `arr`.
 func HasDuplicates(arr []int) bool {
 	if len(arr) < 1 {
 		return false
 	}
+
 	prev := arr[0]
+
 	for _, x := range arr[1:] {
 		if prev == x {
 			return true
 		}
+
 		prev = x
 	}
+
 	return false
 }
 
@@ -51,50 +55,61 @@ func OffsetArrayIfNegative(arr []int, offset int) {
 		if ax < 0 {
 			ax += offset
 		}
+
 		arr[i] = ax
 	}
 }
 
 // OffsetTensorIfNegative adds an offset to every negative element in tensor t.
 // Works only for tensors with Dtype int (same as offset).
-func OffsetTensorIfNegative(t tensor.Tensor, offset int) {
+func OffsetTensorIfNegative(t tensor.Tensor, offset int) error {
 	f := func(n int) int {
 		if n < 0 {
 			return n + offset
 		}
+
 		return n
 	}
-	t.Apply(f, tensor.WithReuse(t))
+
+	if _, err := t.Apply(f, tensor.WithReuse(t)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // AnyToIntSlice casts the data of a node to an int list. This will only
 // be done if the data is of some sort of int type.
-func AnyToIntSlice(any interface{}) ([]int, error) {
+func AnyToIntSlice(value interface{}) ([]int, error) {
 	var res []int
 
-	switch data := any.(type) {
+	switch data := value.(type) {
 	case []int8:
 		for _, value := range data {
 			res = append(res, int(value))
 		}
+
 		return res, nil
 	case []int16:
 		for _, value := range data {
 			res = append(res, int(value))
 		}
+
 		return res, nil
 	case []int32:
 		for _, value := range data {
 			res = append(res, int(value))
 		}
+
 		return res, nil
 	case []int64:
 		for _, value := range data {
 			res = append(res, int(value))
 		}
+
 		return res, nil
 	default:
-		return nil, fmt.Errorf("could not cast %v to int list", data)
+		return nil, ErrCast
 	}
 }
 
@@ -116,14 +131,14 @@ func GetValueAsTensorType(value float64, dtype tensor.Dtype) (interface{}, error
 	case tensor.Float64:
 		return value, nil
 	default:
-		return nil, fmt.Errorf("unknown type %v, cannot cast constant to this type", dtype)
+		return nil, ErrCast
 	}
 }
 
 // IfScalarToSlice will wrap the value in a slice if it is a scalar in a slice with that value,
 // otherwise will return itself.
-func IfScalarToSlice(any interface{}) interface{} {
-	switch data := any.(type) {
+func IfScalarToSlice(value any) any {
+	switch data := value.(type) {
 	case int8:
 		return []int8{data}
 	case int16:
@@ -143,7 +158,7 @@ func IfScalarToSlice(any interface{}) interface{} {
 	case complex128:
 		return []complex128{data}
 	default:
-		return any
+		return value
 	}
 }
 
@@ -153,6 +168,7 @@ func Zeros(size int) []float32 {
 	for i := range res {
 		res[i] = 0.0
 	}
+
 	return res
 }
 
@@ -162,6 +178,7 @@ func Full(size int, value float32) []float32 {
 	for i := range res {
 		res[i] = value
 	}
+
 	return res
 }
 
@@ -171,6 +188,7 @@ func Ones(size int) []float32 {
 	for i := range res {
 		res[i] = 1.0
 	}
+
 	return res
 }
 
@@ -180,6 +198,7 @@ func Arange(size int, step float32) []float32 {
 	for i := range res {
 		res[i] = float32(i) * step
 	}
+
 	return res
 }
 
@@ -193,12 +212,15 @@ func NElements(shp ...int) int {
 	return nElem
 }
 
-// PairwiseAssign essentially does pairwise t1 = t2 in place!
+// PairwiseAssign essentially does pairwise t1 = t2 in place!.
 func PairwiseAssign(t1, t2 tensor.Tensor) (err error) {
 	if !t1.Shape().Eq(t2.Shape()) {
-		return fmt.Errorf("Shapes of tensors must be equal, were %v and %v", t1.Shape(), t2.Shape())
+		return ErrInvalidShape
 	}
+
 	it := t1.Iterator()
+	// We cannot check the error here since it is a post statement so ignore the nolint errcheck here.
+	// nolint errcheck
 	for it.Reset(); !it.Done(); it.Next() {
 		coord := it.Coord()
 
@@ -212,5 +234,6 @@ func PairwiseAssign(t1, t2 tensor.Tensor) (err error) {
 			return err
 		}
 	}
+
 	return nil
 }
