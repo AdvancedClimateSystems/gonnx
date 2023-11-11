@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -27,27 +26,27 @@ func TestGruInitUnkownAttr(t *testing.T) {
 	}{
 		{
 			[]*onnx.AttributeProto{{Name: "activation_alpha"}},
-			fmt.Errorf(ops.UnsupportedAttrErrTemplate, &gru, "activation_alpha"),
+			ops.ErrInvalidAttribute("activation_alpha", &gru),
 		},
 		{
 			[]*onnx.AttributeProto{{Name: "activation_beta"}},
-			fmt.Errorf(ops.UnsupportedAttrErrTemplate, &gru, "activation_beta"),
+			ops.ErrInvalidAttribute("activation_beta", &gru),
 		},
 		{
 			[]*onnx.AttributeProto{{Name: "direction"}},
-			fmt.Errorf(ops.UnsupportedAttrErrTemplate, &gru, "direction"),
+			ops.ErrInvalidAttribute("direction", &gru),
 		},
 		{
 			[]*onnx.AttributeProto{{Name: "clip"}},
-			fmt.Errorf(ops.UnsupportedAttrErrTemplate, &gru, "clip"),
+			ops.ErrInvalidAttribute("clip", &gru),
 		},
 		{
 			[]*onnx.AttributeProto{{Name: "activation"}},
-			fmt.Errorf(ops.UnsupportedAttrErrTemplate, &gru, "activation"),
+			ops.ErrInvalidAttribute("activation", &gru),
 		},
 		{
 			[]*onnx.AttributeProto{{Name: "unknown"}},
-			fmt.Errorf(ops.UnsupportedAttrErrTemplate, &gru, "unknown"),
+			ops.ErrInvalidAttribute("unknown", &gru),
 		},
 	}
 
@@ -138,7 +137,7 @@ func TestInputValidationGRU(t *testing.T) {
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]float32{1, 2}, 2)},
 			nil,
-			fmt.Errorf("gru operator: expected 3-6 input tensors, got 1"),
+			ops.ErrInvalidOptionalInputCount(1, &GRU{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -147,7 +146,7 @@ func TestInputValidationGRU(t *testing.T) {
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
-			fmt.Errorf("gru operator: input 1 does not allow type int"),
+			ops.ErrInvalidInputType(1, "int", &GRU{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -156,7 +155,7 @@ func TestInputValidationGRU(t *testing.T) {
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
-			fmt.Errorf("gru operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &GRU{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -165,7 +164,7 @@ func TestInputValidationGRU(t *testing.T) {
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
-			fmt.Errorf("gru operator: input 1 does not allow type int"),
+			ops.ErrInvalidInputType(1, "int", &GRU{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -174,7 +173,7 @@ func TestInputValidationGRU(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
 			nil,
-			fmt.Errorf("gru operator: input 2 does not allow type int"),
+			ops.ErrInvalidInputType(2, "int", &GRU{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -184,7 +183,7 @@ func TestInputValidationGRU(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
 			nil,
-			fmt.Errorf("gru operator: input 3 does not allow type int"),
+			ops.ErrInvalidInputType(3, "int", &GRU{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -195,7 +194,7 @@ func TestInputValidationGRU(t *testing.T) {
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
-			fmt.Errorf("gru operator: input 4 does not allow type float32"),
+			ops.ErrInvalidInputType(4, "float32", &GRU{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -207,7 +206,7 @@ func TestInputValidationGRU(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
 			nil,
-			fmt.Errorf("gru operator: input 5 does not allow type int"),
+			ops.ErrInvalidInputType(5, "int", &GRU{}),
 		},
 	}
 
@@ -216,6 +215,7 @@ func TestInputValidationGRU(t *testing.T) {
 		validated, err := gru.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			if test.expected != nil {
 				assert.Equal(t, test.expected, validated)
