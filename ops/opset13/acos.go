@@ -21,10 +21,6 @@ func (c *Acos) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
-type AcosDType interface {
-	float32 | float64
-}
-
 // Apply applies the acos operator.
 func (c *Acos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var out tensor.Tensor
@@ -73,6 +69,6 @@ func (c *Acos) String() string {
 	return "acos operator"
 }
 
-func acos[T AcosDType](x T) T {
+func acos[T ops.FloatType](x T) T {
 	return T(math.Acos(float64(x)))
 }
