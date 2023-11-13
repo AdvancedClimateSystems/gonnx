@@ -21,10 +21,6 @@ func (c *Acosh) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
-type AcoshDType interface {
-	float32 | float64
-}
-
 // Apply applies the acosh operator.
 func (c *Acosh) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var (
@@ -74,6 +70,6 @@ func (c *Acosh) String() string {
 	return "acosh operator"
 }
 
-func acosh[T AcoshDType](x T) T {
+func acosh[T ops.FloatType](x T) T {
 	return T(math.Acosh(float64(x)))
 }
