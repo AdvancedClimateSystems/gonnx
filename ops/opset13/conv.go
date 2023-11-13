@@ -30,29 +30,18 @@ const nNonSpatialDims = 2
 
 // Conv represents the ONNX conv operator.
 type Conv struct {
-	// Type of padding to apply before doing the convolutions.
-	autoPad AutoPadSetting
-
-	// Dilation value along each dimension of the filter.
-	dilations []int
-
-	// Numer of groups the input channels and the output channels are divided into.
-	group int
-
-	// Shape of the convolutional kernel. Can be present, but if not should be inferred (i.e. useless attribute).
+	autoPad     AutoPadSetting
+	dilations   []int
+	group       int
 	kernelShape []int
-
-	// Padding for the beginning and ending of each dimension. Cannot be used with autopad setting.
-	pads []int
-
-	// Strides along each dimension.
-	strides []int
+	pads        []int
+	strides     []int
 }
 
 // newConv creates a new conv operator.
 func newConv() ops.Operator {
 	return &Conv{
-		autoPad: "NOTSET",
+		autoPad: NotSet,
 	}
 }
 
@@ -124,7 +113,7 @@ func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	if c.autoPad != "NOTSET" {
+	if c.autoPad != NotSet {
 		c.setPaddingWithAutoPad(x)
 	}
 
@@ -231,7 +220,7 @@ func (c *Conv) setDefaultStrides(x tensor.Tensor) {
 // setPaddingWithAutoPad sets the padding attribute of the operator based on
 // the input tensor `x`, the shape of the kernel and the strides.
 func (c *Conv) setPaddingWithAutoPad(x tensor.Tensor) {
-	if c.autoPad == "NOTSET" {
+	if c.autoPad == NotSet {
 		return
 	}
 
@@ -248,7 +237,7 @@ func (c *Conv) setPaddingWithAutoPad(x tensor.Tensor) {
 		padNeeded := (targetSize-1)*c.strides[i] + c.kernelShape[i] - dim
 
 		var padHead int
-		if c.autoPad == "SAME_LOWER" {
+		if c.autoPad == SameLower {
 			// nolint
 			padHead = (padNeeded + 1) / 2
 		} else {

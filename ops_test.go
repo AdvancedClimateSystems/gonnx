@@ -295,6 +295,8 @@ var expectedTests = []string{
 	"test_conv_with_strides_and_asymmetric_padding",
 	"test_conv_with_strides_no_padding",
 	"test_conv_with_strides_padding",
+	"test_cos",
+	"test_cos_example",
 	"test_div",
 	"test_div_bcast",
 	"test_div_example",
