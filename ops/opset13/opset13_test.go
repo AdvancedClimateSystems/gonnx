@@ -24,6 +24,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Acosh",
+			newAcosh(),
+			nil,
+		},
+		{
 			"Add",
 			newAdd(),
 			nil,
@@ -46,6 +51,11 @@ func TestGetOperator(t *testing.T) {
 		{
 			"ConstantOfShape",
 			newConstantOfShape(),
+			nil,
+		},
+		{
+			"Conv",
+			newConv(),
 			nil,
 		},
 		{
