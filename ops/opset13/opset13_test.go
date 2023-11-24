@@ -19,6 +19,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Acosh",
+			newAcosh(),
+			nil,
+		},
+		{
 			"Add",
 			newAdd(),
 			nil,
