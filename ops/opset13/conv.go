@@ -238,10 +238,10 @@ func (c *Conv) setPaddingWithAutoPad(x tensor.Tensor) {
 
 		var padHead int
 		if c.autoPad == SameLower {
-			// nolint
+			// nolint, as the division by two is literally division by two
 			padHead = (padNeeded + 1) / 2
 		} else {
-			//nolint
+			// nolint, as the division by two is literally division by two
 			padHead = padNeeded / 2
 		}
 
