@@ -21,15 +21,12 @@ func (s *Sin) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
-type SinDType interface {
-	float32 | float64
-}
-
 // Apply applies the sin operator.
 func (s *Sin) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	var out tensor.Tensor
-
-	var err error
+	var (
+		out tensor.Tensor
+		err error
+	)
 
 	switch inputs[0].Dtype() {
 	case tensor.Float32:
@@ -73,6 +70,6 @@ func (s *Sin) String() string {
 	return "sin operator"
 }
 
-func sin[T SinDType](x T) T {
+func sin[T ops.FloatType](x T) T {
 	return T(math.Sin(float64(x)))
 }
