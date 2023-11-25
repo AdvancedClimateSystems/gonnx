@@ -21,15 +21,12 @@ func (s *Sinh) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
-type SinhDType interface {
-	float32 | float64
-}
-
 // Apply applies the sinh operator.
 func (s *Sinh) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	var out tensor.Tensor
-
-	var err error
+	var (
+		out tensor.Tensor
+		err error
+	)
 
 	switch inputs[0].Dtype() {
 	case tensor.Float32:
@@ -73,6 +70,6 @@ func (s *Sinh) String() string {
 	return "sinh operator"
 }
 
-func sinh[T SinhDType](x T) T {
+func sinh[T ops.FloatType](x T) T {
 	return T(math.Sinh(float64(x)))
 }
