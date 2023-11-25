@@ -21,10 +21,6 @@ func (a *Atan) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
-type AtanDType interface {
-	float32 | float64
-}
-
 // Apply applies the atan operator.
 func (a *Atan) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var (
@@ -74,6 +70,6 @@ func (a *Atan) String() string {
 	return "atan operator"
 }
 
-func atan[T AtanDType](x T) T {
+func atan[T ops.FloatType](x T) T {
 	return T(math.Atan(float64(x)))
 }
