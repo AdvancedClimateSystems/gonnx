@@ -21,10 +21,6 @@ func (a *Asinh) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
-type AsinhDType interface {
-	float32 | float64
-}
-
 // Apply applies the asinh operator.
 func (a *Asinh) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var (
@@ -74,6 +70,6 @@ func (a *Asinh) String() string {
 	return "asinh operator"
 }
 
-func asinh[T AsinhDType](x T) T {
+func asinh[T ops.FloatType](x T) T {
 	return T(math.Asinh(float64(x)))
 }
