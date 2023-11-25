@@ -21,10 +21,6 @@ func (t *Tan) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
-type TanDType interface {
-	float32 | float64
-}
-
 // Apply applies the tan operator.
 func (t *Tan) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var (
@@ -74,6 +70,6 @@ func (t *Tan) String() string {
 	return "tan operator"
 }
 
-func tan[T TanDType](x T) T {
+func tan[T ops.FloatType](x T) T {
 	return T(math.Tan(float64(x)))
 }
