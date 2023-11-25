@@ -21,15 +21,12 @@ func (s *Asin) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
-type AsinDType interface {
-	float32 | float64
-}
-
 // Apply applies the asin operator.
 func (s *Asin) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	var out tensor.Tensor
-
-	var err error
+	var (
+		out tensor.Tensor
+		err error
+	)
 
 	switch inputs[0].Dtype() {
 	case tensor.Float32:
@@ -73,6 +70,6 @@ func (s *Asin) String() string {
 	return "asin operator"
 }
 
-func asin[T AsinDType](x T) T {
+func asin[T ops.FloatType](x T) T {
 	return T(math.Asin(float64(x)))
 }
