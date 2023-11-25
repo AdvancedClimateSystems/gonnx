@@ -1,2 +1,4 @@
 test_data/
 .coverage.out
+
+sample_models/.env
