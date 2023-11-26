@@ -21,7 +21,7 @@ func (c *Cosh) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
-// Apply applies the sin operator.
+// Apply applies the cosh operator.
 func (c *Cosh) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var (
 		out tensor.Tensor
