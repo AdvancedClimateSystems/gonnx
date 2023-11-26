@@ -39,6 +39,11 @@ func TestGetOperator(t *testing.T) {
                         nil,
                 },
 		{
+			"Asin",
+			newAsin(),
+			nil,
+		},
+		{
 			"Cast",
 			newCast(),
 			nil,
@@ -123,6 +128,16 @@ func TestGetOperator(t *testing.T) {
 			newSigmoid(),
 			nil,
 		},
+		{
+			"Sin",
+			newSin(),
+			nil,
+		},
+    {
+      "Sinh",
+			newSinh(),
+      nil,
+    },
 		{
 			"Slice",
 			newSlice(),
