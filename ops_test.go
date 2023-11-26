@@ -341,6 +341,8 @@ var expectedTests = []string{
 	"test_sin_example",
 	"test_sigmoid_example",
 	"test_sigmoid",
+	"test_sinh",
+	"test_sinh_example",
 	"test_slice_negative_axes",
 	"test_slice_default_steps",
 	"test_slice",
