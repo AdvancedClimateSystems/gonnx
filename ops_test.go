@@ -278,6 +278,8 @@ var expectedTests = []string{
 	"test_acosh_example",
 	"test_add",
 	"test_add_bcast",
+	"test_asin",
+	"test_asin_example",
 	"test_cast_DOUBLE_to_FLOAT",
 	"test_cast_FLOAT_to_DOUBLE",
 	"test_concat_1d_axis_0",
