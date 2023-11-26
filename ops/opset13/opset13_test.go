@@ -119,6 +119,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Sin",
+			newSin(),
+			nil,
+		},
+		{
 			"Slice",
 			newSlice(),
 			nil,
