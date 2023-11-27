@@ -27,6 +27,7 @@ func ValidateInputs(op Operator, inputs []tensor.Tensor) ([]tensor.Tensor, error
 func checkNInputs(op Operator, inputs []tensor.Tensor) (int, error) {
 	nInputs := len(inputs)
 	padLength := 0
+
 	min := op.GetMinInputs()
 	max := op.GetMaxInputs()
 
