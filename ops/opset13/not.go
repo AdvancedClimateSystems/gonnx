@@ -47,9 +47,7 @@ func (n *Not) GetMaxInputs() int {
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
 func (n *Not) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{
-		{tensor.Bool},
-	}
+	return [][]tensor.Dtype{{tensor.Bool}}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.

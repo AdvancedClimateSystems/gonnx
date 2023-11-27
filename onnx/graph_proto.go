@@ -376,13 +376,8 @@ func ReadFloat64ArrayFromBytes(data []byte) ([]float64, error) {
 // ReadBoolArrayFromBytes reads data and parses it to an array of bool.
 func ReadBoolArrayFromBytes(data []byte) []bool {
 	values := make([]bool, len(data))
-
 	for i, b := range data {
-		if b > 0 {
-			values[i] = true
-		} else {
-			values[i] = false
-		}
+		values[i] = b > 0
 	}
 
 	return values
