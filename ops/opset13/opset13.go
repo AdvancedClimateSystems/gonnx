@@ -35,6 +35,7 @@ var operators13 = map[string]func() ops.Operator{
 	"Slice":           newSlice,
 	"Squeeze":         newSqueeze,
 	"Sub":             newSub,
+	"Tan":             newTan,
 	"Tanh":            newTanh,
 	"Transpose":       newTranspose,
 	"Unsqueeze":       newUnsqueeze,
