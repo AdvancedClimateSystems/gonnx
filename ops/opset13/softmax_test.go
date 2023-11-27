@@ -84,7 +84,8 @@ func TestSoftmaxFail(t *testing.T) {
 	}
 
 	softmax := &Softmax{
-		axis: 3, // This axis is out of range.
+		// This axis is out of range, because the input tensor only has 2 dimensions.
+		axis: 3,
 	}
 	_, err := softmax.Apply(inputs)
 	assert.Equal(

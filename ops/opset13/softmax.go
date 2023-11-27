@@ -15,7 +15,7 @@ type Softmax struct {
 // newSoftmax creates a new softmax operator.
 func newSoftmax() ops.Operator {
 	return &Softmax{
-		axis: -1,
+		axis: -1, // This is the default value by ONNX definition.
 	}
 }
 
@@ -73,9 +73,7 @@ func (s *Softmax) GetMaxInputs() int {
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
 func (s *Softmax) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{
-		{tensor.Float32, tensor.Float64},
-	}
+	return [][]tensor.Dtype{{tensor.Float32, tensor.Float64}}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
