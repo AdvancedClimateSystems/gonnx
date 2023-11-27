@@ -10,6 +10,7 @@ var operators13 = map[string]func() ops.Operator{
 	"Acosh":           newAcosh,
 	"Add":             newAdd,
 	"Asin":            newAsin,
+	"Atan":            newAtan,
 	"Cast":            newCast,
 	"Concat":          newConcat,
 	"Constant":        newConstant,
