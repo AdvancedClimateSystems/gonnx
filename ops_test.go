@@ -280,6 +280,8 @@ var expectedTests = []string{
 	"test_add_bcast",
 	"test_asin",
 	"test_asin_example",
+	"test_asinh",
+	"test_asinh_example",
 	"test_atan",
 	"test_atan_example",
 	"test_atanh",
