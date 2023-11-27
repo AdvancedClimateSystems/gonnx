@@ -282,6 +282,8 @@ var expectedTests = []string{
 	"test_asin_example",
 	"test_atan",
 	"test_atan_example",
+	"test_atanh",
+	"test_atanh_example",
 	"test_cast_DOUBLE_to_FLOAT",
 	"test_cast_FLOAT_to_DOUBLE",
 	"test_concat_1d_axis_0",
