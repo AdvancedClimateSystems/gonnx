@@ -309,6 +309,8 @@ var expectedTests = []string{
 	"test_conv_with_strides_padding",
 	"test_cos",
 	"test_cos_example",
+	"test_cosh",
+	"test_cosh_example",
 	"test_div",
 	"test_div_bcast",
 	"test_div_example",
