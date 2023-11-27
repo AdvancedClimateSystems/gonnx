@@ -33,11 +33,16 @@ func TestGetOperator(t *testing.T) {
 			newAdd(),
 			nil,
 		},
-                {
-                        "Atanh",
-                        newAtanh(),
-                        nil,
-                },
+    {
+      "Atan",
+      newAtan(),
+      nil,
+    },
+    {
+      "Atanh",
+      newAtanh(),
+      nil,
+    },
 		{
 			"Asin",
 			newAsin(),
