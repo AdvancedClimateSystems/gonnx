@@ -159,6 +159,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Softmax",
+			newSoftmax(),
+			nil,
+		},
+		{
 			"Squeeze",
 			newSqueeze(),
 			nil,

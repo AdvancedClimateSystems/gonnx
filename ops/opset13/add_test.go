@@ -53,7 +53,6 @@ func TestAdd(t *testing.T) {
 		res, err := test.add.Apply(inputs)
 		assert.Nil(t, err)
 
-		assert.Nil(t, err)
 		assert.Equal(t, test.expected, res[0].Data())
 	}
 }

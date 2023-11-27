@@ -42,17 +42,31 @@ var ignoredTests = []string{
 	"test_shape_start_negative_1",       // Opset15
 	"test_reshape_allowzero_reordered",  // Opset14
 
-	"test_constant_pad",              // Pad is not implemented yet.
-	"test_constant_pad_axes",         // Pad is not implemented yet.
-	"test_gemm_alpha",                // For gemm in opset 11.
-	"test_gemm_default_no_bias",      // For gemm in opset 11.
-	"test_gemm_default_scalar_bias",  // For gemm in opset 11.
-	"test_relu_expanded_ver18",       // CastLike operator not implemented yet.
-	"test_slice_start_out_of_bounds", // ONNX expects nil output, but we throw an error.
-	"test_slice_end_out_of_bounds",   // ONNX expects nil output, but we throw an error.
-	"test_slice_neg_steps",           // ONNX expects nil output, but we throw an error.
-	"test_slice_neg",                 // ONNX expects nil output, but we throw an error.
-	"test_transpose_default",         // For transpose in opset 9.
+	"test_constant_pad",                         // Pad is not implemented yet.
+	"test_constant_pad_axes",                    // Pad is not implemented yet.
+	"test_gemm_alpha",                           // For gemm in opset 11.
+	"test_gemm_default_no_bias",                 // For gemm in opset 11.
+	"test_gemm_default_scalar_bias",             // For gemm in opset 11.
+	"test_relu_expanded_ver18",                  // CastLike operator not implemented yet.
+	"test_softmax_default_axis_expanded_ver18",  // ReduceMax operator not implemented yet.
+	"test_softmax_axis_1_expanded_ver18",        // ReduceMax operator not implemented yet.
+	"test_softmax_negative_axis_expanded_ver18", // ReduceMax operator not implemented yet.
+	"test_softmax_example_expanded_ver18",       // ReduceMax operator not implemented yet.
+	"test_softmax_axis_0_expanded_ver18",        // ReduceMax operator not implemented yet.
+	"test_softmax_large_number_expanded_ver18",  // ReduceMax operator not implemented yet.
+	"test_softmax_axis_2_expanded_ver18",        // ReduceMax operator not implemented yet.
+	"test_softmax_axis_0_expanded",              // ReduceMax operator not implemented yet.
+	"test_softmax_negative_axis_expanded",       // ReduceMax operator not implemented yet.
+	"test_softmax_large_number_expanded",        // ReduceMax operator not implemented yet.
+	"test_softmax_axis_1_expanded",              // ReduceMax operator not implemented yet.
+	"test_softmax_example_expanded",             // ReduceMax operator not implemented yet.
+	"test_softmax_axis_2_expanded",              // ReduceMax operator not implemented yet.
+	"test_softmax_default_axis_expanded",        // ReduceMax operator not implemented yet.
+	"test_slice_start_out_of_bounds",            // ONNX expects nil output, but we throw an error.
+	"test_slice_end_out_of_bounds",              // ONNX expects nil output, but we throw an error.
+	"test_slice_neg_steps",                      // ONNX expects nil output, but we throw an error.
+	"test_slice_neg",                            // ONNX expects nil output, but we throw an error.
+	"test_transpose_default",                    // For transpose in opset 9.
 
 	"test_cast_FLOAT_to_STRING",                       // Unsupported datatype STRING.
 	"test_cast_STRING_to_FLOAT",                       // Unsupported datatype STRING.
@@ -355,7 +369,14 @@ var expectedTests = []string{
 	"test_slice_default_steps",
 	"test_slice",
 	"test_slice_default_axes",
+	"test_softmax_axis_0",
+	"test_softmax_axis_1",
+	"test_softmax_axis_2",
+	"test_softmax_default_axis",
 	"test_squeeze_negative_axes",
+	"test_softmax_example",
+	"test_softmax_large_number",
+	"test_softmax_negative_axis",
 	"test_squeeze",
 	"test_sub",
 	"test_sub_bcast",

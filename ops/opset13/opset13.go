@@ -35,6 +35,7 @@ var operators13 = map[string]func() ops.Operator{
 	"Sin":             newSin,
 	"Sinh":            newSinh,
 	"Slice":           newSlice,
+	"Softmax":         newSoftmax,
 	"Squeeze":         newSqueeze,
 	"Sub":             newSub,
 	"Tan":             newTan,
