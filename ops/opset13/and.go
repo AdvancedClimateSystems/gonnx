@@ -93,7 +93,7 @@ func and(A, B tensor.Tensor) (tensor.Tensor, error) {
 			return nil, ops.ErrTypeAssert("bool", valB)
 		}
 
-		output.SetAt(boolA && boolB, iterator.Coord()...)
+		err = output.SetAt(boolA && boolB, iterator.Coord()...)
 		if err != nil {
 			return nil, err
 		}
