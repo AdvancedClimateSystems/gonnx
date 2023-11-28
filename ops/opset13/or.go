@@ -72,7 +72,7 @@ func or(A, B tensor.Tensor) (tensor.Tensor, error) {
 	iterator := A.Iterator()
 	iterator.Reset()
 
-	for iterator.Reset(); !iterator.Done(); iterator.Next() {
+	for !iterator.Done() {
 		valA, err := A.At(iterator.Coord()...)
 		if err != nil {
 			return nil, err
@@ -93,7 +93,15 @@ func or(A, B tensor.Tensor) (tensor.Tensor, error) {
 			return nil, ops.ErrTypeAssert("bool", valB)
 		}
 
-		output.SetAt(boolA || boolB, iterator.Coord()...)
+		err = output.SetAt(boolA || boolB, iterator.Coord()...)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = iterator.Next()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return output, nil
