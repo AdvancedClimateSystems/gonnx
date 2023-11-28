@@ -33,16 +33,16 @@ func TestGetOperator(t *testing.T) {
 			newAdd(),
 			nil,
 		},
-    {
-      "Atan",
-      newAtan(),
-      nil,
-    },
-    {
-      "Atanh",
-      newAtanh(),
-      nil,
-    },
+		{
+			"Atan",
+			newAtan(),
+			nil,
+		},
+		{
+			"Atanh",
+			newAtanh(),
+			nil,
+		},
 		{
 			"Asin",
 			newAsin(),
@@ -94,6 +94,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Equal",
+			newEqual(),
+			nil,
+		},
+		{
 			"Gather",
 			newGather(),
 			nil,
@@ -101,6 +106,16 @@ func TestGetOperator(t *testing.T) {
 		{
 			"Gemm",
 			newGemm(),
+			nil,
+		},
+		{
+			"Greater",
+			newGreater(),
+			nil,
+		},
+		{
+			"GreaterOrEqual",
+			newGreaterOrEqual(),
 			nil,
 		},
 		{
@@ -121,6 +136,11 @@ func TestGetOperator(t *testing.T) {
 		{
 			"Not",
 			newNot(),
+			nil,
+		},
+		{
+			"PRelu",
+			newPRelu(),
 			nil,
 		},
 		{
