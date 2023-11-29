@@ -31,7 +31,10 @@ type RNN struct {
 
 // newRNN creates a new rnn operator.
 func newRNN() ops.Operator {
-	return &RNN{}
+	return &RNN{
+		activations: []string{"tanh"},
+		direction:   Forward,
+	}
 }
 
 // Init initializes the rnn operator.
@@ -53,6 +56,9 @@ func (r *RNN) Init(attributes []*onnx.AttributeProto) error {
 			r.clip = attr.GetF()
 		case "direction":
 			r.direction = RNNDirection(attr.GetS())
+			if r.direction != Forward {
+				return ops.ErrUnsupportedAttribute(attr.GetName(), r)
+			}
 		case "hidden_size":
 			r.hiddenSize = int(attr.GetI())
 		default:
@@ -65,22 +71,30 @@ func (r *RNN) Init(attributes []*onnx.AttributeProto) error {
 
 // Apply applies the rnn operator.
 func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	X := inputs[0]
-	W := inputs[1]
-	R := inputs[2]
-	B := inputs[3]
-
 	if inputs[4] != nil {
 		return nil, ops.ErrUnsupportedInput("sequence lens", r)
 	}
 
+	X := inputs[0]
+
+	Wi, err := r.getWeights(inputs[1])
+	if err != nil {
+		return nil, err
+	}
+
+	Ri, err := r.getWeights(inputs[2])
+	if err != nil {
+		return nil, err
+	}
+
 	initialH := inputs[5]
+
 	seqLength := X.Shape()[0]
 	batchSize := X.Shape()[1]
 
-	Wz, Wr, Wh, err := r.getForwardWeights(W)
-	if err != nil {
-		return nil, err
+	B := inputs[3]
+	if B != nil {
+		// TODO: bias stuff
 	}
 
 	return []tensor.Tensor{out}, nil
@@ -115,24 +129,40 @@ func (r *RNN) String() string {
 	return "rnn operator"
 }
 
-// getForwardWeights returns the weights for the gate.
-func (r *RNN) getForwardWeights(W tensor.Tensor) (Wz, Wr, Wh tensor.Tensor, err error) {
-	n, err := r.extractWeights(W)
+// getWeights returns the weights from a concatenated weight tensor. The result is
+// a single weight matrix. W has shape (num_directions, hidden_size, ...).
+// We do not support bidirectional layers, so we can simply index the first element
+// of W to get the weights for either the input or the recurrence
+func (r *RNN) getWeights(X tensor.Tensor) (tensor.Tensor, error) {
+	weights, err := X.Slice(ops.NewSlicer(0), nil, nil)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
-	return n[0], n[1], n[2], nil
+	return weights, nil
 }
 
-// extractWeights extracts 1 or 2 weight tensors from node W.
-// W contains all 2 weight tensors concatenated on top of each other in the following order:
+// getRecurrentWeights returns the weights for the recurrence. This consists of a single
+// weight matrix. W has shape (num_directions, hidden_size, ...).
+// We do not support bidirectional layers, so we can simply index the first element
+// of W to get the weights for the input gate.
+func (r *RNN) getInputWeights(W tensor.Tensor) (tensor.Tensor, error) {
+	Wi, err := W.Slice(ops.NewSlicer(0), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return Wi, nil
+}
+
+// extractWeights extracts 1-2 weight tensors from tensor W.
+// W contains all 1-2 weight tensors concatenated on top of each other in the following order:
 //
 //	forward weights:   [Wi, Wbi]
 //	recurrent weights: [Ri, Rbi]
 //
-// W will have a shape of (num_directions, 2 * hidden_size, ...) and we extract the
-// by slicing over the '2 * hidden_size' dimension.
+// W will have a shape of (num_directions, (1 or 2) * hidden_size, ...) and we extract the
+// by slicing over the '(1 or 2) * hidden_size' dimension.
 func (r *RNN) extractWeights(W tensor.Tensor) ([]tensor.Tensor, error) {
 	nWeightMatrices := 1
 	if r.direction == Bidirectional {
