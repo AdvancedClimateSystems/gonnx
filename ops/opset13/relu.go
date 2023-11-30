@@ -21,24 +21,9 @@ func (r *Relu) Init(_ []*onnx.AttributeProto) error {
 
 // Apply applies the relu operator.
 func (r *Relu) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	t := inputs[0]
+	out, err := ops.ReLU(inputs[0])
 
-	typedZero, err := ops.GetValueAsTensorType(0.0, t.Dtype())
-	if err != nil {
-		return nil, err
-	}
-
-	comparison, err := tensor.Gt(t, typedZero, tensor.AsSameType())
-	if err != nil {
-		return nil, err
-	}
-
-	out, err := tensor.Mul(t, comparison)
-	if err != nil {
-		return nil, err
-	}
-
-	return []tensor.Tensor{out}, nil
+	return []tensor.Tensor{out}, err
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.

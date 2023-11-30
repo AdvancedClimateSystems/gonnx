@@ -19,6 +19,12 @@ const (
 	Bidirectional RNNDirection = "bidirectional"
 )
 
+var RNNActivations = map[string]ops.Activation{
+	"Tanh":    ops.Tanh,
+	"Sigmoid": ops.Tanh,
+	"ReLU":    ops.ReLU,
+}
+
 // RNN represents the ONNX rnn operator.
 type RNN struct {
 	activationAlpha []float32
@@ -87,22 +93,79 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	initialH := inputs[5]
+	B := inputs[3]
+	if B == nil {
+		B = r.getDefaultB()
+	}
+
+	Wbi, Rbi, err := r.getBiases(B)
+	if err != nil {
+		return nil, err
+	}
 
 	seqLength := X.Shape()[0]
 	batchSize := X.Shape()[1]
 
-	B := inputs[3]
-	if B != nil {
-		// TODO: bias stuff
+	prevH := inputs[5]
+	if prevH == nil {
+		prevH = r.getInitialH(batchSize)
 	}
 
-	return []tensor.Tensor{out}, nil
+	// Extract the shape of the hidden dimensions without the bidirectional dimension, as
+	// we do not support bidirectional RNN yet.
+	if err = prevH.Reshape(prevH.Shape().Clone()[1:]...); err != nil {
+		return nil, err
+	}
+
+	outputs := []tensor.Tensor{}
+
+	for t := 0; t < seqLength; t++ {
+		Xt, err := X.Slice(ops.NewSlicer(t, t+1), nil, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		prevH, err = r.layerCalculation(Xt, prevH, Wi, Ri, Wbi, Rbi, ops.Tanh)
+		if err != nil {
+			return nil, err
+		}
+
+		outputs = append(outputs, prevH)
+	}
+
+	var Y tensor.Tensor
+	if len(outputs) > 1 {
+		Y, err = tensor.Concat(0, outputs[0], outputs[1:]...)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		Y = outputs[0]
+	}
+
+	// Reshape the output so it adds the num_directions as specified by onnx.
+	err = Y.Reshape(seqLength, 1, batchSize, r.hiddenSize)
+	if err != nil {
+		return nil, err
+	}
+
+	Yh, ok := prevH.Clone().(tensor.Tensor)
+	if !ok {
+		return nil, ops.ErrTypeAssert("tensor.Tensor", prevH.Clone())
+	}
+
+	// Reshape the output so it adds the num_directions as specified by onnx.
+	err = Yh.Reshape(1, batchSize, r.hiddenSize)
+	if err != nil {
+		return nil, err
+	}
+
+	return []tensor.Tensor{Y, Yh}, nil
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
 func (r *RNN) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(a, inputs)
+	return ops.ValidateInputs(r, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
@@ -119,8 +182,12 @@ func (r *RNN) GetMaxInputs() int {
 // for the corresponding input tensor.
 func (r *RNN) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{
-		{tensor.Uint32, tensor.Uint64, tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
-		{tensor.Uint32, tensor.Uint64, tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
+		{tensor.Float32, tensor.Float64},
+		{tensor.Float32, tensor.Float64},
+		{tensor.Float32, tensor.Float64},
+		{tensor.Float32, tensor.Float64},
+		{tensor.Int32},
+		{tensor.Float32, tensor.Float64},
 	}
 }
 
@@ -132,7 +199,7 @@ func (r *RNN) String() string {
 // getWeights returns the weights from a concatenated weight tensor. The result is
 // a single weight matrix. W has shape (num_directions, hidden_size, ...).
 // We do not support bidirectional layers, so we can simply index the first element
-// of W to get the weights for either the input or the recurrence
+// of W to get the weights for either the input or the recurrence.
 func (r *RNN) getWeights(X tensor.Tensor) (tensor.Tensor, error) {
 	weights, err := X.Slice(ops.NewSlicer(0), nil, nil)
 	if err != nil {
@@ -142,46 +209,69 @@ func (r *RNN) getWeights(X tensor.Tensor) (tensor.Tensor, error) {
 	return weights, nil
 }
 
-// getRecurrentWeights returns the weights for the recurrence. This consists of a single
-// weight matrix. W has shape (num_directions, hidden_size, ...).
-// We do not support bidirectional layers, so we can simply index the first element
-// of W to get the weights for the input gate.
-func (r *RNN) getInputWeights(W tensor.Tensor) (tensor.Tensor, error) {
-	Wi, err := W.Slice(ops.NewSlicer(0), nil, nil)
+func (r *RNN) getBiases(B tensor.Tensor) (tensor.Tensor, tensor.Tensor, error) {
+	Wbi, err := B.Slice(ops.NewSlicer(0), ops.NewSlicer(0, r.hiddenSize))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	nBiasMatrices := 2
+
+	Rbi, err := B.Slice(ops.NewSlicer(0), ops.NewSlicer(r.hiddenSize, nBiasMatrices*r.hiddenSize))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return Wbi, Rbi, nil
+}
+
+// getDefaultB returns the default bias tensor if no bias tensor is provided.
+// The bias tensor for RNN consists of two concatenated bias tensors, one for
+// the input calculation and one for the hidden calculation. It has shape:
+//
+//	(num_directions, 2*hiddenSize).
+//
+// By default all values are 0.
+func (r *RNN) getDefaultB() tensor.Tensor {
+	nBiasMatrices := 2
+
+	return tensor.New(
+		tensor.WithShape(1, nBiasMatrices*r.hiddenSize),
+		tensor.WithBacking(ops.Zeros(nBiasMatrices*r.hiddenSize)),
+	)
+}
+
+// getInitialH can be used to construct an initial hidden tensor when it is not
+// specified by the inputs of the operator. In this case it is assumed to be 0.
+// It has shape (num_directions, batch_size, hidden_size).
+func (r *RNN) getInitialH(batchSize int) tensor.Tensor {
+	hiddenFloats := ops.Zeros(batchSize * r.hiddenSize)
+
+	return tensor.New(
+		tensor.WithShape(1, batchSize, r.hiddenSize),
+		tensor.WithBacking(hiddenFloats),
+	)
+}
+
+func (r *RNN) layerCalculation(
+	Xt, H, Wi, Ri, Wbi, Rbi tensor.Tensor, activation ops.Activation,
+) (tensor.Tensor, error) {
+	gemm := &Gemm{transA: false, transB: true, alpha: 1.0, beta: 1.0}
+
+	inputCalc, err := gemm.Apply([]tensor.Tensor{Xt, Wi, Wbi})
 	if err != nil {
 		return nil, err
 	}
 
-	return Wi, nil
-}
-
-// extractWeights extracts 1-2 weight tensors from tensor W.
-// W contains all 1-2 weight tensors concatenated on top of each other in the following order:
-//
-//	forward weights:   [Wi, Wbi]
-//	recurrent weights: [Ri, Rbi]
-//
-// W will have a shape of (num_directions, (1 or 2) * hidden_size, ...) and we extract the
-// by slicing over the '(1 or 2) * hidden_size' dimension.
-func (r *RNN) extractWeights(W tensor.Tensor) ([]tensor.Tensor, error) {
-	nWeightMatrices := 1
-	if r.direction == Bidirectional {
-		nWeightMatrices = 2
+	hiddenCalc, err := gemm.Apply([]tensor.Tensor{H, Ri, Rbi})
+	if err != nil {
+		return nil, err
 	}
 
-	dirSlice := ops.NewSlicer(0)
-	weights := make([]tensor.Tensor, nWeightMatrices)
-
-	for i := 0; i < nWeightMatrices; i++ {
-		slice := ops.NewSlicer(i*r.hiddenSize, (i+1)*r.hiddenSize)
-
-		w, err := W.Slice(dirSlice, slice, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		weights[i] = w
+	result, err := tensor.Add(inputCalc[0], hiddenCalc[0])
+	if err != nil {
+		return nil, err
 	}
 
-	return weights, nil
+	return activation(result)
 }

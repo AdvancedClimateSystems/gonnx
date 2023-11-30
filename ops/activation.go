@@ -1,6 +1,8 @@
 package ops
 
-import "gorgonia.org/tensor"
+import (
+	"gorgonia.org/tensor"
+)
 
 // Activation is an activation function.
 type Activation func(n tensor.Tensor) (tensor.Tensor, error)
@@ -33,4 +35,19 @@ func Sigmoid(X tensor.Tensor) (tensor.Tensor, error) {
 	}
 
 	return tensor.Div(typedOne, numeratorX)
+}
+
+// ReLU performs the ReLU operation on a tensor.
+func ReLU(X tensor.Tensor) (tensor.Tensor, error) {
+	typedZero, err := GetValueAsTensorType(0.0, X.Dtype())
+	if err != nil {
+		return nil, err
+	}
+
+	comparison, err := tensor.Gt(X, typedZero, tensor.AsSameType())
+	if err != nil {
+		return nil, err
+	}
+
+	return tensor.Mul(X, comparison)
 }
