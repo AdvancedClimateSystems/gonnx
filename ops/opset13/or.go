@@ -26,21 +26,13 @@ func (o *Or) Init(_ []*onnx.AttributeProto) error {
 
 // Apply applies the or operator.
 func (o *Or) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	in1, in2, err := ops.MultidirectionalBroadcast(inputs[0], inputs[1])
-	if err != nil {
-		return nil, err
-	}
-
-	out, err := ops.ApplyBooleanOperator(
-		in1,
-		in2,
-		func(a, b bool) bool { return a || b },
+	return ops.ApplyBinaryOperation(
+		inputs[0],
+		inputs[1],
+		ops.Or,
+		false,
+		true,
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	return []tensor.Tensor{out}, nil
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
