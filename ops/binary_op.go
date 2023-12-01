@@ -33,6 +33,26 @@ func ApplyBinaryOperation(A, B tensor.Tensor, op BinaryOp, broadcastOption Broad
 	return []tensor.Tensor{out}, err
 }
 
+// Add adds 2 tensors to each other.
+func Add(A, B tensor.Tensor) (tensor.Tensor, error) {
+	return tensor.Add(A, B)
+}
+
+// Div divides 1 tensor by the other.
+func Div(A, B tensor.Tensor) (tensor.Tensor, error) {
+	return tensor.Div(A, B)
+}
+
+// Mul multiplies 2 tensors with each other.
+func Mul(A, B tensor.Tensor) (tensor.Tensor, error) {
+	return tensor.Mul(A, B)
+}
+
+// Sub subtracts 1 tensor from the other.
+func Sub(A, B tensor.Tensor) (tensor.Tensor, error) {
+	return tensor.Sub(A, B)
+}
+
 // Or applies the boolean 'or' operation on 2 tensors.
 func Or(A, B tensor.Tensor) (tensor.Tensor, error) {
 	return applyBooleanBinaryOperator(
