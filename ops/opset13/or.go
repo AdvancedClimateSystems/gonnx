@@ -31,7 +31,11 @@ func (o *Or) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	out, err := or(in1, in2)
+	out, err := ops.ApplyBooleanOperator(
+		in1,
+		in2,
+		func(a, b bool) bool { return a || b },
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -63,46 +67,4 @@ func (o *Or) GetInputTypeConstraints() [][]tensor.Dtype {
 // String implements the stringer interface, and can be used to format errors or messages.
 func (o *Or) String() string {
 	return "or operator"
-}
-
-func or(A, B tensor.Tensor) (tensor.Tensor, error) {
-	output := tensor.NewDense(tensor.Bool, A.Shape())
-	output.Zero()
-
-	iterator := A.Iterator()
-	iterator.Reset()
-
-	for !iterator.Done() {
-		valA, err := A.At(iterator.Coord()...)
-		if err != nil {
-			return nil, err
-		}
-
-		boolA, ok := valA.(bool)
-		if !ok {
-			return nil, ops.ErrTypeAssert("bool", valA)
-		}
-
-		valB, err := B.At(iterator.Coord()...)
-		if err != nil {
-			return nil, err
-		}
-
-		boolB, ok := valB.(bool)
-		if !ok {
-			return nil, ops.ErrTypeAssert("bool", valB)
-		}
-
-		err = output.SetAt(boolA || boolB, iterator.Coord()...)
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = iterator.Next()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return output, nil
 }
