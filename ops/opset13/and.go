@@ -30,8 +30,7 @@ func (a *And) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		inputs[0],
 		inputs[1],
 		ops.And,
-		false,
-		true,
+		ops.MultidirectionalBroadcasting,
 	)
 }
 

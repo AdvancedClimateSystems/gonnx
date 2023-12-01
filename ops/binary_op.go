@@ -10,17 +10,18 @@ type BinaryOp func(A, B tensor.Tensor) (tensor.Tensor, error)
 // ApplyBinaryOperation applies a binary operation (an operation of arity 2) to 2 tensors.
 // It returns a list of tensors with only 1 output tensor in order for this function to
 // be easily used in operators.
-func ApplyBinaryOperation(A, B tensor.Tensor, op BinaryOp, unidirBroadcast, multidirBroadcast bool) ([]tensor.Tensor, error) {
+func ApplyBinaryOperation(A, B tensor.Tensor, op BinaryOp, broadcastOption BroadcastType) ([]tensor.Tensor, error) {
 	var err error
 
-	if unidirBroadcast {
+	switch broadcastOption {
+	case NoBroadcasting:
+		break
+	case UnidirectionalBroadcasting:
 		A, B, err = UnidirectionalBroadcast(A, B)
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if multidirBroadcast {
+	case MultidirectionalBroadcasting:
 		A, B, err = MultidirectionalBroadcast(A, B)
 		if err != nil {
 			return nil, err

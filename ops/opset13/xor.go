@@ -30,8 +30,7 @@ func (x *Xor) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		inputs[0],
 		inputs[1],
 		ops.Xor,
-		false,
-		true,
+		ops.MultidirectionalBroadcasting,
 	)
 }
 
