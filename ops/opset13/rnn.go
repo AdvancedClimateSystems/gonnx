@@ -19,10 +19,11 @@ const (
 	Bidirectional RNNDirection = "bidirectional"
 )
 
+// These activations are supported in the RNN calculation.
 var RNNActivations = map[string]ops.Activation{
-	"Tanh":    ops.Tanh,
-	"Sigmoid": ops.Tanh,
-	"ReLU":    ops.ReLU,
+	"tanh":    ops.Tanh,
+	"sigmoid": ops.Sigmoid,
+	"relu":    ops.ReLU,
 }
 
 // RNN represents the ONNX rnn operator.
@@ -30,7 +31,6 @@ type RNN struct {
 	activationAlpha []float32
 	activationBeta  []float32
 	activations     []string
-	clip            float32
 	direction       RNNDirection
 	hiddenSize      int
 }
@@ -59,7 +59,7 @@ func (r *RNN) Init(attributes []*onnx.AttributeProto) error {
 
 			r.activations = activations
 		case "clip":
-			r.clip = attr.GetF()
+			return ops.ErrUnsupportedAttribute(attr.GetName(), r)
 		case "direction":
 			r.direction = RNNDirection(attr.GetS())
 			if r.direction != Forward {
@@ -106,57 +106,59 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	seqLength := X.Shape()[0]
 	batchSize := X.Shape()[1]
 
-	prevH := inputs[5]
-	if prevH == nil {
-		prevH = r.getInitialH(batchSize)
+	Ht := inputs[5]
+	if Ht == nil {
+		Ht = r.getInitialH(batchSize)
 	}
 
-	// Extract the shape of the hidden dimensions without the bidirectional dimension, as
-	// we do not support bidirectional RNN yet.
-	if err = prevH.Reshape(prevH.Shape().Clone()[1:]...); err != nil {
+	// Reshape the hidden tensor without the bidirectional dimension, as
+	// we do not support bidirectional RNN yet. This is the first dimension.
+	if err = Ht.Reshape(Ht.Shape().Clone()[1:]...); err != nil {
 		return nil, err
+	}
+
+	activation := RNNActivations[r.activations[0]]
+	if activation == nil {
+		return nil, ops.ErrUnsupportedAttribute("activations", r)
 	}
 
 	outputs := []tensor.Tensor{}
 
+	// Loop over all timesteps of the input, applying the RNN calculation to every
+	// timesteps while updating the hidden tensor.
 	for t := 0; t < seqLength; t++ {
 		Xt, err := X.Slice(ops.NewSlicer(t, t+1), nil, nil)
 		if err != nil {
 			return nil, err
 		}
 
-		prevH, err = r.layerCalculation(Xt, prevH, Wi, Ri, Wbi, Rbi, ops.Tanh)
+		Ht, err = r.layerCalculation(Xt, Ht, Wi, Ri, Wbi, Rbi, RNNActivations[r.activations[0]])
 		if err != nil {
 			return nil, err
 		}
 
-		outputs = append(outputs, prevH)
+		outputs = append(outputs, Ht)
 	}
 
-	var Y tensor.Tensor
+	Y := outputs[0]
 	if len(outputs) > 1 {
-		Y, err = tensor.Concat(0, outputs[0], outputs[1:]...)
+		Y, err = tensor.Concat(0, Y, outputs[1:]...)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		Y = outputs[0]
 	}
 
-	// Reshape the output so it adds the num_directions as specified by onnx.
-	err = Y.Reshape(seqLength, 1, batchSize, r.hiddenSize)
-	if err != nil {
+	Yh, ok := Ht.Clone().(tensor.Tensor)
+	if !ok {
+		return nil, ops.ErrTypeAssert("tensor.Tensor", Ht.Clone())
+	}
+
+	// Reshape the outputs so it adds the num_directions as specified by onnx.
+	if err = Y.Reshape(seqLength, 1, batchSize, r.hiddenSize); err != nil {
 		return nil, err
 	}
 
-	Yh, ok := prevH.Clone().(tensor.Tensor)
-	if !ok {
-		return nil, ops.ErrTypeAssert("tensor.Tensor", prevH.Clone())
-	}
-
-	// Reshape the output so it adds the num_directions as specified by onnx.
-	err = Yh.Reshape(1, batchSize, r.hiddenSize)
-	if err != nil {
+	if err = Yh.Reshape(1, batchSize, r.hiddenSize); err != nil {
 		return nil, err
 	}
 
@@ -209,6 +211,11 @@ func (r *RNN) getWeights(X tensor.Tensor) (tensor.Tensor, error) {
 	return weights, nil
 }
 
+// getBiases splits an input bias tensor B into its subparts. The B input for the
+// RNN operator consists of two biases, Wbi and Rbi. These biases are concatenated
+// in the second dimension, where B has shape (num_directions, 2 * hiddenSize).
+// This function slices the B tensor to return 2 bias tensors. We disregard the
+// num_directions axis as we do not support the bidirectional direction.
 func (r *RNN) getBiases(B tensor.Tensor) (tensor.Tensor, tensor.Tensor, error) {
 	Wbi, err := B.Slice(ops.NewSlicer(0), ops.NewSlicer(0, r.hiddenSize))
 	if err != nil {
@@ -231,7 +238,8 @@ func (r *RNN) getBiases(B tensor.Tensor) (tensor.Tensor, tensor.Tensor, error) {
 //
 //	(num_directions, 2*hiddenSize).
 //
-// By default all values are 0.
+// By default all values are 0. Note that we do not support the bidirectional
+// option so the first dim always has size 1.
 func (r *RNN) getDefaultB() tensor.Tensor {
 	nBiasMatrices := 2
 
@@ -244,15 +252,22 @@ func (r *RNN) getDefaultB() tensor.Tensor {
 // getInitialH can be used to construct an initial hidden tensor when it is not
 // specified by the inputs of the operator. In this case it is assumed to be 0.
 // It has shape (num_directions, batch_size, hidden_size).
+// As we do not support the birectional option, the num_directions dim size is
+// always 1.
 func (r *RNN) getInitialH(batchSize int) tensor.Tensor {
-	hiddenFloats := ops.Zeros(batchSize * r.hiddenSize)
-
 	return tensor.New(
 		tensor.WithShape(1, batchSize, r.hiddenSize),
-		tensor.WithBacking(hiddenFloats),
+		tensor.WithBacking(ops.Zeros(batchSize*r.hiddenSize)),
 	)
 }
 
+// layerCalculation performs the actual RNN calculation. By ONNX definition
+// this is:
+//
+//	Ht = f(Xt*(Wi^T) + Ht-1*(Ri^T) + Wbi + Rbi)
+//
+// We achieve this by two Gemm operations, adding them together and finally
+// putting them through an activation function.
 func (r *RNN) layerCalculation(
 	Xt, H, Wi, Ri, Wbi, Rbi tensor.Tensor, activation ops.Activation,
 ) (tensor.Tensor, error) {
