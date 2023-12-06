@@ -11,7 +11,7 @@ import (
 
 func TestConvInit(t *testing.T) {
 	c := &Conv{}
-	err := c.Init(Conv2DOnnxAttributeProtoFixture())
+	err := c.Init(Conv2DOnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
 
@@ -26,7 +26,7 @@ func TestConvInit(t *testing.T) {
 
 func TestConvInitUnsupported(t *testing.T) {
 	c := &Conv{}
-	err := c.Init(ConvUnsupportedOnnxAttributeProtoFixture())
+	err := c.Init(ConvUnsupportedOnnxNodeProtoFixture())
 
 	assert.Equal(
 		t,
@@ -671,18 +671,22 @@ func TestAddBias(t *testing.T) {
 	}
 }
 
-func Conv2DOnnxAttributeProtoFixture() []*onnx.AttributeProto {
-	return []*onnx.AttributeProto{
-		{Name: "auto_pad", S: []byte("VALID")},
-		{Name: "dilations", Ints: []int64{1, 1}},
-		{Name: "kernel_shape", Ints: []int64{2, 2}},
-		{Name: "pads", Ints: []int64{1, 2}},
-		{Name: "strides", Ints: []int64{1, 1}},
+func Conv2DOnnxNodeProtoFixture() *onnx.NodeProto {
+	return &onnx.NodeProto{
+		Attribute: []*onnx.AttributeProto{
+			{Name: "auto_pad", S: []byte("VALID")},
+			{Name: "dilations", Ints: []int64{1, 1}},
+			{Name: "kernel_shape", Ints: []int64{2, 2}},
+			{Name: "pads", Ints: []int64{1, 2}},
+			{Name: "strides", Ints: []int64{1, 1}},
+		},
 	}
 }
 
-func ConvUnsupportedOnnxAttributeProtoFixture() []*onnx.AttributeProto {
-	return []*onnx.AttributeProto{
-		{Name: "group", I: 2},
+func ConvUnsupportedOnnxNodeProtoFixture() *onnx.NodeProto {
+	return &onnx.NodeProto{
+		Attribute: []*onnx.AttributeProto{
+			{Name: "group", I: 2},
+		},
 	}
 }

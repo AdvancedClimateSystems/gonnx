@@ -17,7 +17,7 @@ func newAtan() ops.Operator {
 }
 
 // Init initializes the atan operator.
-func (a *Atan) Init(_ []*onnx.AttributeProto) error {
+func (a *Atan) Init(*onnx.NodeProto) error {
 	return nil
 }
 

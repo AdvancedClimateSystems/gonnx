@@ -46,10 +46,10 @@ func newConv() ops.Operator {
 }
 
 // Init initializes the conv operator.
-func (c *Conv) Init(attributes []*onnx.AttributeProto) error {
+func (c *Conv) Init(n *onnx.NodeProto) error {
 	var err error
 
-	for _, attr := range attributes {
+	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
 		case "auto_pad":
 			c.autoPad = AutoPadSetting(attr.GetS())

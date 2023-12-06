@@ -11,7 +11,7 @@ import (
 
 func TestTransposeInit(t *testing.T) {
 	trans := &Transpose{}
-	err := trans.Init(TransposeOnnxAttributeProtoFixture())
+	err := trans.Init(TransposeOnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
 	assert.Equal(t, []int{1, 0}, trans.perm)
@@ -19,7 +19,7 @@ func TestTransposeInit(t *testing.T) {
 
 func TestTransposeInitFailWrongAttribute(t *testing.T) {
 	trans := &Transpose{}
-	err := trans.Init([]*onnx.AttributeProto{{Name: "unknownAttribute"}})
+	err := trans.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "unknownAttribute"}}})
 
 	expected := ops.ErrInvalidAttribute("unknownAttribute", trans)
 	assert.Equal(t, expected, err)
@@ -27,7 +27,7 @@ func TestTransposeInitFailWrongAttribute(t *testing.T) {
 
 func TestTransposeInitFailAttrCount(t *testing.T) {
 	trans := &Transpose{}
-	err := trans.Init([]*onnx.AttributeProto{})
+	err := trans.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{}})
 
 	expected := ops.ErrInvalidAttributeCount(1, 0, trans)
 	assert.Equal(t, expected, err)
@@ -104,8 +104,10 @@ func TestInputValidationTranspose(t *testing.T) {
 	}
 }
 
-func TransposeOnnxAttributeProtoFixture() []*onnx.AttributeProto {
-	return []*onnx.AttributeProto{
-		{Name: "perm", Ints: []int64{1, 0}},
+func TransposeOnnxNodeProtoFixture() *onnx.NodeProto {
+	return &onnx.NodeProto{
+		Attribute: []*onnx.AttributeProto{
+			{Name: "perm", Ints: []int64{1, 0}},
+		},
 	}
 }

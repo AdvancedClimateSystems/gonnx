@@ -47,8 +47,8 @@ func newRNN() ops.Operator {
 }
 
 // Init initializes the rnn operator.
-func (r *RNN) Init(attributes []*onnx.AttributeProto) error {
-	for _, attr := range attributes {
+func (r *RNN) Init(n *onnx.NodeProto) error {
+	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
 		case "activation_alpha":
 			r.activationAlpha = attr.GetFloats()
@@ -68,6 +68,7 @@ func (r *RNN) Init(attributes []*onnx.AttributeProto) error {
 			if r.direction != Forward {
 				return ops.ErrUnsupportedAttribute(attr.GetName(), r)
 			}
+		// nolint as these attributes are operator specific
 		case "hidden_size":
 			r.hiddenSize = int(attr.GetI())
 		default:

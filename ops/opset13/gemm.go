@@ -30,8 +30,8 @@ func newGemm() ops.Operator {
 }
 
 // Init initializes the Gemm operator based on the ModelProto attributes.
-func (g *Gemm) Init(attributes []*onnx.AttributeProto) error {
-	for _, attr := range attributes {
+func (g *Gemm) Init(n *onnx.NodeProto) error {
+	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
 		case "alpha":
 			g.alpha = attr.GetF()

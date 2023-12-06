@@ -11,7 +11,7 @@ import (
 
 func TestGruInit(t *testing.T) {
 	gru := &GRU{}
-	err := gru.Init(GRUOnnxAttributeProtoFixture())
+	err := gru.Init(GRUOnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
 	assert.Equal(t, true, gru.linearBeforeReset)
@@ -51,7 +51,7 @@ func TestGruInitUnkownAttr(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		err := gru.Init(test.attr)
+		err := gru.Init(&onnx.NodeProto{Attribute: test.attr})
 		assert.Equal(t, test.err, err)
 	}
 }
@@ -268,9 +268,11 @@ func gruInputNoBNoH() []tensor.Tensor {
 	return inputs
 }
 
-func GRUOnnxAttributeProtoFixture() []*onnx.AttributeProto {
-	return []*onnx.AttributeProto{
-		{Name: "linear_before_reset", I: 1},
-		{Name: "hidden_size", I: 5},
+func GRUOnnxNodeProtoFixture() *onnx.NodeProto {
+	return &onnx.NodeProto{
+		Attribute: []*onnx.AttributeProto{
+			{Name: "linear_before_reset", I: 1},
+			{Name: "hidden_size", I: 5},
+		},
 	}
 }

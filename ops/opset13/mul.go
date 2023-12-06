@@ -20,7 +20,7 @@ func newMul() ops.Operator {
 }
 
 // Init initializes the mul operator.
-func (m *Mul) Init(_ []*onnx.AttributeProto) error {
+func (m *Mul) Init(*onnx.NodeProto) error {
 	return nil
 }
 

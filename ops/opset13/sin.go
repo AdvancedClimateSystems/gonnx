@@ -17,7 +17,7 @@ func newSin() ops.Operator {
 }
 
 // Init initializes the sin operator.
-func (s *Sin) Init(_ []*onnx.AttributeProto) error {
+func (s *Sin) Init(*onnx.NodeProto) error {
 	return nil
 }
 

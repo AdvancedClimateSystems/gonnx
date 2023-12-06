@@ -17,7 +17,7 @@ func newCosh() ops.Operator {
 }
 
 // Init initializes the cosh operator.
-func (c *Cosh) Init(_ []*onnx.AttributeProto) error {
+func (c *Cosh) Init(*onnx.NodeProto) error {
 	return nil
 }
 

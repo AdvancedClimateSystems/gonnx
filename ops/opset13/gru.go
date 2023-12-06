@@ -30,9 +30,11 @@ func newGRU() ops.Operator {
 // Init initializes the gru operator. Currently, our GRU operator does not support all
 // attributes as specified by the ONNX operator. The basic functionality is working and
 // the other attributes can be added later on.
-func (g *GRU) Init(attributes []*onnx.AttributeProto) error {
+func (g *GRU) Init(n *onnx.NodeProto) error {
+	attributes := n.GetAttribute()
 	for _, attr := range attributes {
 		switch attr.GetName() {
+		// nolint as these attributes are operator specific
 		case "hidden_size":
 			g.hiddenSize = int(attr.GetI())
 		case "linear_before_reset":
@@ -321,7 +323,7 @@ func (g *GRU) extractWeights(W tensor.Tensor) ([]tensor.Tensor, error) {
 	dirSlice := ops.NewSlicer(0)
 	weights := make([]tensor.Tensor, nWeightMatrices)
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < nWeightMatrices; i++ {
 		slice := ops.NewSlicer(i*g.hiddenSize, (i+1)*g.hiddenSize)
 
 		w, err := W.Slice(dirSlice, slice, nil)
