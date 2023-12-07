@@ -7,55 +7,55 @@ import (
 )
 
 var (
-	MinEqualInputs = 2
-	MaxEqualInputs = 2
+	MinLessInputs = 2
+	MaxLessInputs = 2
 )
 
-// Equal represents the ONNX equal operator.
-type Equal struct{}
+// Less represents the ONNX less operator.
+type Less struct{}
 
-// newEqual creates a new equal operator.
-func newEqual() ops.Operator {
-	return &Equal{}
+// newLess creates a new less operator.
+func newLess() ops.Operator {
+	return &Less{}
 }
 
-// Init initializes the equal operator.
-func (e *Equal) Init(_ []*onnx.AttributeProto) error {
+// Init initializes the less operator.
+func (l *Less) Init(_ []*onnx.AttributeProto) error {
 	return nil
 }
 
-// Apply applies the equal operator.
-func (e *Equal) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+// Apply applies the less operator.
+func (l *Less) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ApplyBinaryOperation(
 		inputs[0],
 		inputs[1],
-		ops.Equal,
+		ops.Lt,
 		ops.MultidirectionalBroadcasting,
 	)
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (e *Equal) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(e, inputs)
+func (l *Less) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+	return ops.ValidateInputs(l, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (e *Equal) GetMinInputs() int {
-	return MinEqualInputs
+func (l *Less) GetMinInputs() int {
+	return MinLessInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (e *Equal) GetMaxInputs() int {
-	return MaxEqualInputs
+func (l *Less) GetMaxInputs() int {
+	return MaxLessInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (e *Equal) GetInputTypeConstraints() [][]tensor.Dtype {
+func (l *Less) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{ops.AllTypes, ops.AllTypes}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (e *Equal) String() string {
-	return "equal operator"
+func (l *Less) String() string {
+	return "less operator"
 }

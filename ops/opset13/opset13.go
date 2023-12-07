@@ -9,6 +9,7 @@ var operators13 = map[string]func() ops.Operator{
 	"Acos":            newAcos,
 	"Acosh":           newAcosh,
 	"Add":             newAdd,
+	"And":             newAnd,
 	"Asin":            newAsin,
 	"Asinh":           newAsinh,
 	"Atan":            newAtan,
@@ -27,9 +28,12 @@ var operators13 = map[string]func() ops.Operator{
 	"Greater":         newGreater,
 	"GreaterOrEqual":  newGreaterOrEqual,
 	"GRU":             newGRU,
+	"Less":            newLess,
+	"LessOrEqual":     newLessOrEqual,
 	"MatMul":          newMatMul,
 	"Mul":             newMul,
 	"Not":             newNot,
+	"Or":              newOr,
 	"PRelu":           newPRelu,
 	"Relu":            newRelu,
 	"Reshape":         newReshape,
@@ -46,6 +50,7 @@ var operators13 = map[string]func() ops.Operator{
 	"Tanh":            newTanh,
 	"Transpose":       newTranspose,
 	"Unsqueeze":       newUnsqueeze,
+	"Xor":             newXor,
 }
 
 // GetOperator maps strings as found in the ModelProto to Operators from opset 13.

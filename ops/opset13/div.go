@@ -26,17 +26,12 @@ func (d *Div) Init(_ []*onnx.AttributeProto) error {
 
 // Apply applies the div operator.
 func (d *Div) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	in1, in2, err := ops.MultidirectionalBroadcast(inputs[0], inputs[1])
-	if err != nil {
-		return nil, err
-	}
-
-	out, err := tensor.Div(in1, in2)
-	if err != nil {
-		return nil, err
-	}
-
-	return []tensor.Tensor{out}, nil
+	return ops.ApplyBinaryOperation(
+		inputs[0],
+		inputs[1],
+		ops.Div,
+		ops.MultidirectionalBroadcasting,
+	)
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
