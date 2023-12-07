@@ -4,6 +4,14 @@ import (
 	"gorgonia.org/tensor"
 )
 
+// Activations maps strings to the activation function. This is
+// used by operators like LSTM, GRU and RNN.
+var Activations = map[string]Activation{
+	"tanh":    Tanh,
+	"sigmoid": Sigmoid,
+	"relu":    ReLU,
+}
+
 // Activation is an activation function.
 type Activation func(n tensor.Tensor) (tensor.Tensor, error)
 

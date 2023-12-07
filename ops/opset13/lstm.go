@@ -11,19 +11,12 @@ const (
 	MaxLSTMInputs = 8
 )
 
-// These activations are supported in the LSTM calculation.
-var LSTMActivations = map[string]ops.Activation{
-	"tanh":    ops.Tanh,
-	"sigmoid": ops.Sigmoid,
-	"relu":    ops.ReLU,
-}
-
 // LSTM represents the ONNX lstm operator.
 type LSTM struct {
 	activationAlpha []float32
 	activationBeta  []float32
 	activations     []string
-	direction       RNNDirection
+	direction       ops.SequenceProcessDirection
 	hiddenSize      int
 	inputForget     bool
 
@@ -34,7 +27,7 @@ type LSTM struct {
 func newLSTM() ops.Operator {
 	return &LSTM{
 		activations: []string{"sigmoid", "tanh", "tanh"},
-		direction:   Forward,
+		direction:   ops.Forward,
 		inputForget: false,
 		outputs:     []string{"Y", "Y_h", "Y_c"},
 	}
@@ -44,26 +37,25 @@ func newLSTM() ops.Operator {
 func (l *LSTM) Init(n *onnx.NodeProto) error {
 	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
-		case "activation_alpha":
+		case ops.ActivationAlphaAttr:
 			l.activationAlpha = attr.GetFloats()
-		case "activation_beta":
+		case ops.ActivationBetaAttr:
 			l.activationBeta = attr.GetFloats()
-		case "activations":
+		case ops.ActivationsAttr:
 			activations := []string{}
 			for _, activation := range attr.GetStrings() {
 				activations = append(activations, string(activation))
 			}
 
 			l.activations = activations
-		case "clip":
+		case ops.ClipAttr:
 			return ops.ErrUnsupportedAttribute(attr.GetName(), l)
-		case "direction":
-			l.direction = RNNDirection(attr.GetS())
-			if l.direction != Forward {
+		case ops.DirectionAttr:
+			l.direction = ops.SequenceProcessDirection(attr.GetS())
+			if l.direction != ops.Forward {
 				return ops.ErrUnsupportedAttribute(attr.GetName(), l)
 			}
-		// nolint as these attributes are operator specific
-		case "hidden_size":
+		case ops.HiddenSizeAttr:
 			l.hiddenSize = int(attr.GetI())
 		case "input_forget":
 			l.inputForget = attr.GetI() == 1
@@ -80,7 +72,7 @@ func (l *LSTM) Init(n *onnx.NodeProto) error {
 // Apply applies the lstm operator.
 func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if inputs[4] != nil {
-		return nil, ops.ErrUnsupportedInput("sequence lens", l)
+		return nil, ops.ErrUnsupportedInput("sequence_lens", l)
 	}
 
 	X := inputs[0]
@@ -140,17 +132,17 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	fActivation := LSTMActivations[l.activations[0]]
+	fActivation := ops.Activations[l.activations[0]]
 	if fActivation == nil {
 		return nil, ops.ErrUnsupportedAttribute("activations", l)
 	}
 
-	gActivation := LSTMActivations[l.activations[1]]
+	gActivation := ops.Activations[l.activations[1]]
 	if gActivation == nil {
 		return nil, ops.ErrUnsupportedAttribute("activations", l)
 	}
 
-	hActivation := LSTMActivations[l.activations[2]]
+	hActivation := ops.Activations[l.activations[2]]
 	if hActivation == nil {
 		return nil, ops.ErrUnsupportedAttribute("activations", l)
 	}

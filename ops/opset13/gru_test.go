@@ -14,8 +14,12 @@ func TestGruInit(t *testing.T) {
 	err := gru.Init(GRUOnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
-	assert.Equal(t, true, gru.linearBeforeReset)
+	assert.Equal(t, []float32{1.0}, gru.activationAlpha)
+	assert.Equal(t, []float32{2.0}, gru.activationBeta)
+	assert.Equal(t, []string{"sigmoid", "tanh"}, gru.activations)
+	assert.Equal(t, gru.direction, ops.Forward)
 	assert.Equal(t, 5, gru.hiddenSize)
+	assert.Equal(t, true, gru.linearBeforeReset)
 }
 
 func TestGruInitUnkownAttr(t *testing.T) {
@@ -25,24 +29,8 @@ func TestGruInitUnkownAttr(t *testing.T) {
 		err  error
 	}{
 		{
-			[]*onnx.AttributeProto{{Name: "activation_alpha"}},
-			ops.ErrInvalidAttribute("activation_alpha", &gru),
-		},
-		{
-			[]*onnx.AttributeProto{{Name: "activation_beta"}},
-			ops.ErrInvalidAttribute("activation_beta", &gru),
-		},
-		{
-			[]*onnx.AttributeProto{{Name: "direction"}},
-			ops.ErrInvalidAttribute("direction", &gru),
-		},
-		{
 			[]*onnx.AttributeProto{{Name: "clip"}},
-			ops.ErrInvalidAttribute("clip", &gru),
-		},
-		{
-			[]*onnx.AttributeProto{{Name: "activation"}},
-			ops.ErrInvalidAttribute("activation", &gru),
+			ops.ErrUnsupportedAttribute("clip", &gru),
 		},
 		{
 			[]*onnx.AttributeProto{{Name: "unknown"}},
@@ -64,25 +52,53 @@ func TestGru(t *testing.T) {
 		err      error
 	}{
 		{
-			&GRU{4, true},
+			&GRU{
+				activationAlpha:   []float32{},
+				activationBeta:    []float32{},
+				activations:       []string{"sigmoid", "tanh"},
+				direction:         ops.Forward,
+				hiddenSize:        4,
+				linearBeforeReset: true,
+			},
 			gruInput0,
 			[]float32{6.6936556e-03, 8.3446503e-07, 0.0000000e+00, 0.0000000e+00},
 			nil,
 		},
 		{
-			&GRU{4, false},
+			&GRU{
+				activationAlpha:   []float32{},
+				activationBeta:    []float32{},
+				activations:       []string{"sigmoid", "tanh"},
+				direction:         ops.Forward,
+				hiddenSize:        4,
+				linearBeforeReset: false,
+			},
 			gruInput0,
 			[]float32{6.6936556e-03, 8.3446503e-07, 0.0000000e+00, 0.0000000e+00},
 			nil,
 		},
 		{
-			&GRU{4, false},
+			&GRU{
+				activationAlpha:   []float32{},
+				activationBeta:    []float32{},
+				activations:       []string{"sigmoid", "tanh"},
+				direction:         ops.Forward,
+				hiddenSize:        4,
+				linearBeforeReset: false,
+			},
 			gruInput1,
 			[]float32{0.44905475, 0.4406946, 0.43368173, 0.42782417},
 			nil,
 		},
 		{
-			&GRU{4, false},
+			&GRU{
+				activationAlpha:   []float32{},
+				activationBeta:    []float32{},
+				activations:       []string{"sigmoid", "tanh"},
+				direction:         ops.Forward,
+				hiddenSize:        4,
+				linearBeforeReset: false,
+			},
 			gruInputNoBNoH,
 			[]float32{0.24553154, 0.24553154, 0.24553154, 0.24553154},
 			nil,
@@ -271,8 +287,12 @@ func gruInputNoBNoH() []tensor.Tensor {
 func GRUOnnxNodeProtoFixture() *onnx.NodeProto {
 	return &onnx.NodeProto{
 		Attribute: []*onnx.AttributeProto{
-			{Name: "linear_before_reset", I: 1},
+			{Name: "activation_alpha", Floats: []float32{1.0}},
+			{Name: "activation_beta", Floats: []float32{2.0}},
+			{Name: "activations", Strings: [][]byte{[]byte("sigmoid"), []byte("tanh")}},
+			{Name: "direction", S: []byte("forward")},
 			{Name: "hidden_size", I: 5},
+			{Name: "linear_before_reset", I: 1},
 		},
 	}
 }

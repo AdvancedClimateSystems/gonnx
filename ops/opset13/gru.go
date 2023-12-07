@@ -14,17 +14,21 @@ const (
 // GRU represents the ONNX gru operator. It only supports a simple forward gru
 // operation with default activations.
 type GRU struct {
-	// Number of neurons in the hidden state.
-	hiddenSize int
-
-	// When computing the output of the hidden gate, apply the linear
-	// transformation before multiplying by the output of the reset gate.
+	activationAlpha   []float32
+	activationBeta    []float32
+	activations       []string
+	direction         ops.SequenceProcessDirection
+	hiddenSize        int
 	linearBeforeReset bool
 }
 
 // newGRU creates a new gru operator.
 func newGRU() ops.Operator {
-	return &GRU{}
+	return &GRU{
+		activations:       []string{"sigmoid", "tanh"},
+		direction:         ops.Forward,
+		linearBeforeReset: false,
+	}
 }
 
 // Init initializes the gru operator. Currently, our GRU operator does not support all
@@ -34,8 +38,25 @@ func (g *GRU) Init(n *onnx.NodeProto) error {
 	attributes := n.GetAttribute()
 	for _, attr := range attributes {
 		switch attr.GetName() {
-		// nolint as these attributes are operator specific
-		case "hidden_size":
+		case ops.ActivationAlphaAttr:
+			g.activationAlpha = attr.GetFloats()
+		case ops.ActivationBetaAttr:
+			g.activationBeta = attr.GetFloats()
+		case ops.ActivationsAttr:
+			activations := []string{}
+			for _, activation := range attr.GetStrings() {
+				activations = append(activations, string(activation))
+			}
+
+			g.activations = activations
+		case ops.ClipAttr:
+			return ops.ErrUnsupportedAttribute(attr.GetName(), g)
+		case ops.DirectionAttr:
+			g.direction = ops.SequenceProcessDirection(attr.GetS())
+			if g.direction != ops.Forward {
+				return ops.ErrUnsupportedAttribute(attr.GetName(), g)
+			}
+		case ops.HiddenSizeAttr:
 			g.hiddenSize = int(attr.GetI())
 		case "linear_before_reset":
 			g.linearBeforeReset = ops.Int64ToBool(attr.GetI())
@@ -101,6 +122,16 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
+	fActivation := ops.Activations[g.activations[0]]
+	if fActivation == nil {
+		return nil, ops.ErrUnsupportedAttribute("activations", g)
+	}
+
+	gActivation := ops.Activations[g.activations[1]]
+	if gActivation == nil {
+		return nil, ops.ErrUnsupportedAttribute("activations", g)
+	}
+
 	outputs := []tensor.Tensor{}
 
 	for i := 0; i < seqLength; i++ {
@@ -109,17 +140,17 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 			return nil, err
 		}
 
-		zt, err := g.gateCalculation(Xt, prevH, Wz, Rz, Wbz, Rbz, ops.Sigmoid)
+		zt, err := g.gateCalculation(Xt, prevH, Wz, Rz, Wbz, Rbz, fActivation)
 		if err != nil {
 			return nil, err
 		}
 
-		rt, err := g.gateCalculation(Xt, prevH, Wr, Rr, Wbr, Rbr, ops.Sigmoid)
+		rt, err := g.gateCalculation(Xt, prevH, Wr, Rr, Wbr, Rbr, fActivation)
 		if err != nil {
 			return nil, err
 		}
 
-		ht, err := g.htCalculation(Xt, prevH, rt, Wh, Rh, Wbh, Rbh, ops.Tanh)
+		ht, err := g.htCalculation(Xt, prevH, rt, Wh, Rh, Wbh, Rbh, gActivation)
 		if err != nil {
 			return nil, err
 		}

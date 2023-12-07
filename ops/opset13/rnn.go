@@ -11,30 +11,12 @@ const (
 	MaxRNNInputs = 6
 )
 
-// RNNDirection is the direction of the RNN. RNNs process sequences. We can process
-// those forward (from first to last), in reverse (from last to first) or
-// bidirectional (which is both forward and reverse added together).
-type RNNDirection string
-
-const (
-	Forward       RNNDirection = "forward"
-	Reverse       RNNDirection = "reverse"
-	Bidirectional RNNDirection = "bidirectional"
-)
-
-// These activations are supported in the RNN calculation.
-var RNNActivations = map[string]ops.Activation{
-	"tanh":    ops.Tanh,
-	"sigmoid": ops.Sigmoid,
-	"relu":    ops.ReLU,
-}
-
 // RNN represents the ONNX rnn operator.
 type RNN struct {
 	activationAlpha []float32
 	activationBeta  []float32
 	activations     []string
-	direction       RNNDirection
+	direction       ops.SequenceProcessDirection
 	hiddenSize      int
 }
 
@@ -42,7 +24,7 @@ type RNN struct {
 func newRNN() ops.Operator {
 	return &RNN{
 		activations: []string{"tanh"},
-		direction:   Forward,
+		direction:   ops.Forward,
 	}
 }
 
@@ -50,26 +32,25 @@ func newRNN() ops.Operator {
 func (r *RNN) Init(n *onnx.NodeProto) error {
 	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
-		case "activation_alpha":
+		case ops.ActivationAlphaAttr:
 			r.activationAlpha = attr.GetFloats()
-		case "activation_beta":
+		case ops.ActivationBetaAttr:
 			r.activationBeta = attr.GetFloats()
-		case "activations":
+		case ops.ActivationsAttr:
 			activations := []string{}
 			for _, activation := range attr.GetStrings() {
 				activations = append(activations, string(activation))
 			}
 
 			r.activations = activations
-		case "clip":
+		case ops.ClipAttr:
 			return ops.ErrUnsupportedAttribute(attr.GetName(), r)
-		case "direction":
-			r.direction = RNNDirection(attr.GetS())
-			if r.direction != Forward {
+		case ops.DirectionAttr:
+			r.direction = ops.SequenceProcessDirection(attr.GetS())
+			if r.direction != ops.Forward {
 				return ops.ErrUnsupportedAttribute(attr.GetName(), r)
 			}
-		// nolint as these attributes are operator specific
-		case "hidden_size":
+		case ops.HiddenSizeAttr:
 			r.hiddenSize = int(attr.GetI())
 		default:
 			return ops.ErrInvalidAttribute(attr.GetName(), r)
@@ -122,7 +103,7 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	activation := RNNActivations[r.activations[0]]
+	activation := ops.Activations[r.activations[0]]
 	if activation == nil {
 		return nil, ops.ErrUnsupportedAttribute("activations", r)
 	}
@@ -137,7 +118,7 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 			return nil, err
 		}
 
-		Ht, err = r.layerCalculation(Xt, Ht, Wi, Ri, Wbi, Rbi, RNNActivations[r.activations[0]])
+		Ht, err = r.layerCalculation(Xt, Ht, Wi, Ri, Wbi, Rbi, activation)
 		if err != nil {
 			return nil, err
 		}

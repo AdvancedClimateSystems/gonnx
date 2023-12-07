@@ -18,7 +18,7 @@ func TestRNNInit(t *testing.T) {
 	assert.Equal(t, []float32{1.0}, rnn.activationAlpha)
 	assert.Equal(t, []float32{2.0}, rnn.activationBeta)
 	assert.Equal(t, []string{"sigmoid"}, rnn.activations)
-	assert.Equal(t, RNNDirection("forward"), rnn.direction)
+	assert.Equal(t, ops.SequenceProcessDirection("forward"), rnn.direction)
 	assert.Equal(t, 5, rnn.hiddenSize)
 }
 
@@ -46,7 +46,7 @@ func TestRNN(t *testing.T) {
 				activationAlpha: []float32{},
 				activationBeta:  []float32{},
 				activations:     []string{"tanh"},
-				direction:       Forward,
+				direction:       ops.Forward,
 				hiddenSize:      4,
 			},
 			rnnInput0,
@@ -58,7 +58,7 @@ func TestRNN(t *testing.T) {
 				activationAlpha: []float32{},
 				activationBeta:  []float32{},
 				activations:     []string{"sigmoid"},
-				direction:       Forward,
+				direction:       ops.Forward,
 				hiddenSize:      4,
 			},
 			rnnInput0,
@@ -70,7 +70,7 @@ func TestRNN(t *testing.T) {
 				activationAlpha: []float32{},
 				activationBeta:  []float32{},
 				activations:     []string{"relu"},
-				direction:       Forward,
+				direction:       ops.Forward,
 				hiddenSize:      4,
 			},
 			rnnInput0,
@@ -82,7 +82,7 @@ func TestRNN(t *testing.T) {
 				activationAlpha: []float32{},
 				activationBeta:  []float32{},
 				activations:     []string{"tanh"},
-				direction:       Forward,
+				direction:       ops.Forward,
 				hiddenSize:      10,
 			},
 			rnnInput1,
@@ -94,7 +94,7 @@ func TestRNN(t *testing.T) {
 				activationAlpha: []float32{},
 				activationBeta:  []float32{},
 				activations:     []string{"tanh"},
-				direction:       Forward,
+				direction:       ops.Forward,
 				hiddenSize:      4,
 			},
 			rnnInputNoB,
@@ -107,7 +107,7 @@ func TestRNN(t *testing.T) {
 				activationAlpha: []float32{},
 				activationBeta:  []float32{},
 				activations:     []string{"tanh"},
-				direction:       Forward,
+				direction:       ops.Forward,
 				hiddenSize:      4,
 			},
 			rnnInputNoBNoH,
