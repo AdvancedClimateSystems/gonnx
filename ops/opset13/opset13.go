@@ -25,6 +25,7 @@ var operators13 = map[string]func() ops.Operator{
 	"Gather":          newGather,
 	"Gemm":            newGemm,
 	"GRU":             newGRU,
+	"LinearRegressor": newLinearRegressor,
 	"MatMul":          newMatMul,
 	"Mul":             newMul,
 	"Not":             newNot,
