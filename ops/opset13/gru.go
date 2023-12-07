@@ -70,31 +70,28 @@ func (g *GRU) Init(n *onnx.NodeProto) error {
 
 // Apply applies the gru operator.
 func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	X := inputs[0]
-	W := inputs[1]
-	R := inputs[2]
-	B := inputs[3]
-
 	if inputs[4] != nil {
 		return nil, ops.ErrUnsupportedInput("sequence lens", g)
 	}
 
-	initialH := inputs[5]
+	X := inputs[0]
 	seqLength := X.Shape()[0]
 	batchSize := X.Shape()[1]
 
-	Wz, Wr, Wh, err := g.getForwardWeights(W)
+	Wz, Wr, Wh, err := g.getWeights(inputs[1])
 	if err != nil {
 		return nil, err
 	}
 
-	Rz, Rr, Rh, err := g.getRecurrentWeights(R)
+	Rz, Rr, Rh, err := g.getWeights(inputs[2])
 	if err != nil {
 		return nil, err
 	}
 
+	B := inputs[3]
 	if B == nil {
-		B = g.initialB()
+		nBiasMatrices := 6
+		B = ops.ZeroTensor(1, nBiasMatrices*g.hiddenSize)
 	}
 
 	Wbz, Wbr, Wbh, Rbz, Rbr, Rbh, err := g.getBiases(B)
@@ -102,15 +99,9 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	var prevH tensor.Tensor
-	if initialH == nil {
-		prevH = g.initialH(batchSize)
-	} else {
-		var ok bool
-		prevH, ok = initialH.Clone().(tensor.Tensor)
-		if !ok {
-			return nil, ops.ErrTypeAssert("tensor.Tensor", initialH.Clone())
-		}
+	prevH := inputs[5]
+	if prevH == nil {
+		prevH = ops.ZeroTensor(1, batchSize, g.hiddenSize)
 	}
 
 	// Extract the shape of the hidden dimensions without the bidirectional dimension, as
@@ -292,7 +283,7 @@ func (g *GRU) htCalculation(
 }
 
 func (g *GRU) hiddenCalculation(zt, ht, prevH tensor.Tensor) (tensor.Tensor, error) {
-	temp1, err := tensor.Sub(onesTensor(zt), zt)
+	temp1, err := tensor.Sub(ops.OnesTensor(zt), zt)
 	if err != nil {
 		return nil, err
 	}
@@ -310,119 +301,28 @@ func (g *GRU) hiddenCalculation(zt, ht, prevH tensor.Tensor) (tensor.Tensor, err
 	return tensor.Add(temp2, temp3)
 }
 
-// getForwardWeights returns the weights for the gate.
-func (g *GRU) getForwardWeights(W tensor.Tensor) (Wz, Wr, Wh tensor.Tensor, err error) {
-	n, err := g.extractWeights(W)
+// getWeights splits tensor W into 3 weight matrices.
+func (g *GRU) getWeights(W tensor.Tensor) (Wz, Wr, Wh tensor.Tensor, err error) {
+	nWeightMatrices := 3
+	nWeightDimensions := 3
+
+	weights, err := ops.ExtractMatrices(W, nWeightMatrices, nWeightDimensions, g.hiddenSize)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	return n[0], n[1], n[2], nil
-}
-
-// getRecurrentWeights returns recurrent weights.
-func (g *GRU) getRecurrentWeights(R tensor.Tensor) (Rz, Rr, Rh tensor.Tensor, err error) {
-	recurrentWeights, err := g.extractWeights(R)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	return recurrentWeights[0], recurrentWeights[1], recurrentWeights[2], nil
+	return weights[0], weights[1], weights[2], nil
 }
 
 // getBiases returns the biases from the Bias node as specified by the ONNX standard.
 func (g *GRU) getBiases(B tensor.Tensor) (Wbz, Wbr, Wbh, Rbz, Rbr, Rbh tensor.Tensor, err error) {
-	biases, err := g.extractBiases(B)
+	nBiasMatrices := 6
+	nBiasDimensions := 2
+
+	biases, err := ops.ExtractMatrices(B, nBiasMatrices, nBiasDimensions, g.hiddenSize)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	return biases[0], biases[1], biases[2], biases[3], biases[4], biases[5], nil
-}
-
-// extractWeights extracts 3 weight tensors from node W.
-// W contains all 3 weight tensors concatenated on top of each other in the following order:
-//
-//	forward weights:   [Wz, Wr, Wh]
-//	recurrent weights: [Rz, Rr, Rh]
-//
-// W will have a shape of (num_directions, 3 * hidden_size, ...) and we extract the
-// by slicing over the '3 * hidden_size' dimension.
-func (g *GRU) extractWeights(W tensor.Tensor) ([]tensor.Tensor, error) {
-	const nWeightMatrices = 3
-
-	dirSlice := ops.NewSlicer(0)
-	weights := make([]tensor.Tensor, nWeightMatrices)
-
-	for i := 0; i < nWeightMatrices; i++ {
-		slice := ops.NewSlicer(i*g.hiddenSize, (i+1)*g.hiddenSize)
-
-		w, err := W.Slice(dirSlice, slice, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		weights[i] = w
-	}
-
-	return weights, nil
-}
-
-// extractBiases extracts the 6 bias tensors from tensor B.
-// B contains all 6 bias tensors concatenated on top of each other in the following order:
-//
-//	[Wbz, Wbr, Wbh, Rbz, Rbr, Rbh]
-//
-// B has a shape of (num_directions, 6 * hidden_size) and every individual bias tensor should have
-// shape (hidden_size). We extract the biases by slicing over the '6 * hidden_size' dimension.
-func (g *GRU) extractBiases(B tensor.Tensor) ([]tensor.Tensor, error) {
-	const nWeightMatrices = 6
-
-	dirSlice := ops.NewSlicer(0)
-	biases := make([]tensor.Tensor, nWeightMatrices)
-
-	for i := 0; i < nWeightMatrices; i++ {
-		slice := ops.NewSlicer(i*g.hiddenSize, (i+1)*g.hiddenSize)
-
-		w, err := B.Slice(dirSlice, slice)
-		if err != nil {
-			return nil, err
-		}
-
-		biases[i] = w
-	}
-
-	return biases, nil
-}
-
-// initialB returns the initialB tensor. If the biases are not specified by the inputs
-// of the gru operator this tensor can be used as the biases tensor. By default biases
-// are all 0.
-func (g *GRU) initialB() tensor.Tensor {
-	const nWeightMatrices = 6
-
-	return tensor.New(
-		tensor.WithShape(1, nWeightMatrices*g.hiddenSize),
-		tensor.WithBacking(ops.Zeros(nWeightMatrices*g.hiddenSize)),
-	)
-}
-
-// initialH can be used for initialH when it is not specified by the inputs of the operator.
-// if it is not specified by the inputs assumed to be 0. It has shape
-// (num_directions, batch_size, hidden_size).
-func (g *GRU) initialH(batchSize int) tensor.Tensor {
-	hiddenFloats := ops.Zeros(batchSize * g.hiddenSize)
-
-	return tensor.New(
-		tensor.WithShape(1, batchSize, g.hiddenSize),
-		tensor.WithBacking(hiddenFloats),
-	)
-}
-
-// onesTensor returns a new tensor with the same shape as the given tensor intialized with all ones.
-func onesTensor(t tensor.Tensor) tensor.Tensor {
-	return tensor.New(
-		tensor.WithShape(t.Shape()...),
-		tensor.WithBacking(ops.Ones(ops.NElements(t.Shape()...))),
-	)
 }

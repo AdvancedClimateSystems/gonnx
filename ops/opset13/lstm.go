@@ -76,6 +76,8 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	}
 
 	X := inputs[0]
+	seqLength := X.Shape()[0]
+	batchSize := X.Shape()[1]
 
 	Wi, Wo, Wf, Wc, err := l.getWeights(inputs[1])
 	if err != nil {
@@ -90,7 +92,7 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	B := inputs[3]
 	if B == nil {
 		nBiasMatrices := 8
-		B = l.getZeroTensor(1, nBiasMatrices*l.hiddenSize)
+		B = ops.ZeroTensor(1, nBiasMatrices*l.hiddenSize)
 	}
 
 	Wbi, Wbo, Wbf, Wbc, Rbi, Rbo, Rbf, Rbc, err := l.getBiases(B)
@@ -98,17 +100,14 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	seqLength := X.Shape()[0]
-	batchSize := X.Shape()[1]
-
 	Ht := inputs[5]
 	if Ht == nil {
-		Ht = l.getZeroTensor(1, batchSize, l.hiddenSize)
+		Ht = ops.ZeroTensor(1, batchSize, l.hiddenSize)
 	}
 
 	Ct := inputs[6]
 	if Ct == nil {
-		Ct = l.getZeroTensor(1, batchSize, l.hiddenSize)
+		Ct = ops.ZeroTensor(1, batchSize, l.hiddenSize)
 	}
 
 	var Pi, Po, Pf tensor.Tensor
@@ -375,7 +374,7 @@ func (l *LSTM) getWeights(W tensor.Tensor) (Wi, Wo, Wf, Wh tensor.Tensor, err er
 	nWeightMatrices := 4
 	nWeightDimensions := 3
 
-	weights, err := l.extractMatrices(W, nWeightMatrices, nWeightDimensions)
+	weights, err := ops.ExtractMatrices(W, nWeightMatrices, nWeightDimensions, l.hiddenSize)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -388,7 +387,7 @@ func (l *LSTM) getBiases(B tensor.Tensor) (Wbi, Wbo, Wbf, Wbc, Rbi, Rbo, Rbf, Rb
 	nBiasMatrices := 8
 	nBiasDimensions := 2
 
-	b, err := l.extractMatrices(B, nBiasMatrices, nBiasDimensions)
+	b, err := ops.ExtractMatrices(B, nBiasMatrices, nBiasDimensions, l.hiddenSize)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, nil, nil, err
 	}
@@ -401,53 +400,10 @@ func (l *LSTM) getPeepholes(P tensor.Tensor) (Pi, Po, Pf tensor.Tensor, err erro
 	nPeepholeMatrices := 3
 	nPeepholeDimensions := 2
 
-	p, err := l.extractMatrices(P, nPeepholeMatrices, nPeepholeDimensions)
+	p, err := ops.ExtractMatrices(P, nPeepholeMatrices, nPeepholeDimensions, l.hiddenSize)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
 	return p[0], p[1], p[2], nil
-}
-
-// extractMatrices extracts 4 tensors from tensor M.
-// M contains all matrices concatenated on top of each other in the following order:
-//
-//	forward weights:   [Wi, Wo, Wf, Wc]
-//	recurrent weights: [Ri, Ro, Rf, Rc]
-//	biases:            [Wbi, Wbo, Wbf, Wbc, Rbi, Rbo, Rbf, Rbc]
-//
-// M is assumed to have a shape of (num_directions, nMatrices * hidden_size, ...) and we extract the
-// by slicing over the 'nMatrices * hidden_size' dimension.
-func (l *LSTM) extractMatrices(M tensor.Tensor, nMatrices, nDimensions int) ([]tensor.Tensor, error) {
-	dirSlice := ops.NewSlicer(0)
-	matrices := make([]tensor.Tensor, nMatrices)
-
-	for i := 0; i < nMatrices; i++ {
-		hiddenSlice := ops.NewSlicer(i*l.hiddenSize, (i+1)*l.hiddenSize)
-
-		allSlices := make([]tensor.Slice, nDimensions)
-		allSlices[0] = dirSlice
-		allSlices[1] = hiddenSlice
-
-		for i := 2; i < nDimensions; i++ {
-			allSlices[i] = nil
-		}
-
-		m, err := M.Slice(allSlices...)
-		if err != nil {
-			return nil, err
-		}
-
-		matrices[i] = m
-	}
-
-	return matrices, nil
-}
-
-// getZeroTensor returns a tensor filled with zeros with the given shape.
-func (l *LSTM) getZeroTensor(shape ...int) tensor.Tensor {
-	return tensor.New(
-		tensor.WithShape(shape...),
-		tensor.WithBacking(ops.Zeros(ops.NElements(shape...))),
-	)
 }
