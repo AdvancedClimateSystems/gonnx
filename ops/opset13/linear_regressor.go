@@ -1,8 +1,6 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
@@ -49,7 +47,7 @@ func (l *LinearRegressor) Init(attributes []*onnx.AttributeProto) error {
 		case "intercepts":
 			floats := attr.GetFloats()
 			l.intercepts = tensor.New(tensor.WithShape(len(floats)), tensor.WithBacking(floats))
-		case "postTransform":
+		case "post_transform":
 			return ops.ErrUnsupportedAttribute(attr.GetName(), l)
 		case "targets":
 			l.targets = int(attr.GetI())
@@ -58,19 +56,19 @@ func (l *LinearRegressor) Init(attributes []*onnx.AttributeProto) error {
 		}
 	}
 
-	fmt.Println(ops.NElements(l.coefficients.Shape()...))
-	fmt.Println(l.targets)
+	err := l.coefficients.Reshape(l.targets, ops.NElements(l.coefficients.Shape()...)/l.targets)
+	if err != nil {
+		return err
+	}
 
-	return l.coefficients.Reshape(ops.NElements(l.coefficients.Shape()...)/l.targets, l.targets)
+	return l.coefficients.T()
 }
 
 // Apply applies the linearRegressor operator.
 func (l *LinearRegressor) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	X := inputs[0]
 
-	fmt.Println(X.Shape(), l.coefficients.Shape())
-
-	result, err := tensor.Dot(X, l.coefficients)
+	result, err := tensor.MatMul(X, l.coefficients)
 	if err != nil {
 		return nil, err
 	}
