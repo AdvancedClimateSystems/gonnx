@@ -22,13 +22,6 @@ const (
 	Bidirectional RNNDirection = "bidirectional"
 )
 
-// These activations are supported in the RNN calculation.
-var RNNActivations = map[string]ops.Activation{
-	"tanh":    ops.Tanh,
-	"sigmoid": ops.Sigmoid,
-	"relu":    ops.ReLU,
-}
-
 // RNN represents the ONNX rnn operator.
 type RNN struct {
 	activationAlpha []float32
@@ -121,9 +114,9 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	activation := RNNActivations[r.activations[0]]
-	if activation == nil {
-		return nil, ops.ErrUnsupportedAttribute("activations", r)
+	activation, err := ops.GetActivation(r.activations[0])
+	if err != nil {
+		return nil, err
 	}
 
 	outputs := []tensor.Tensor{}
@@ -136,7 +129,7 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 			return nil, err
 		}
 
-		Ht, err = r.layerCalculation(Xt, Ht, Wi, Ri, Wbi, Rbi, RNNActivations[r.activations[0]])
+		Ht, err = r.layerCalculation(Xt, Ht, Wi, Ri, Wbi, Rbi, activation)
 		if err != nil {
 			return nil, err
 		}
