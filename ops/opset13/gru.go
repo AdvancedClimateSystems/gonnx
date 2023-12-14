@@ -90,6 +90,7 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	B := inputs[3]
 	if B == nil {
+		// 6 is the number of bias matrices required by ONNX definition.
 		nBiasMatrices := 6
 		B = ops.ZeroTensor(1, nBiasMatrices*g.hiddenSize)
 	}
@@ -113,14 +114,14 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	fActivation := ops.Activations[g.activations[0]]
-	if fActivation == nil {
-		return nil, ops.ErrUnsupportedAttribute("activations", g)
+	fActivation, err := ops.GetActivation(g.activations[0])
+	if err != nil {
+		return nil, err
 	}
 
-	gActivation := ops.Activations[g.activations[1]]
+	gActivation, err := ops.GetActivation(g.activations[1])
 	if gActivation == nil {
-		return nil, ops.ErrUnsupportedAttribute("activations", g)
+		return nil, err
 	}
 
 	outputs := []tensor.Tensor{}
@@ -302,6 +303,8 @@ func (g *GRU) hiddenCalculation(zt, ht, prevH tensor.Tensor) (tensor.Tensor, err
 }
 
 // getWeights splits tensor W into 3 weight matrices.
+// The W tensor, by GONNX definition, has 3 dimensions with 3 weight
+// tensors in it (6 if bidirectional, but that is not supported).
 func (g *GRU) getWeights(W tensor.Tensor) (Wz, Wr, Wh tensor.Tensor, err error) {
 	nWeightMatrices := 3
 	nWeightDimensions := 3
@@ -315,6 +318,8 @@ func (g *GRU) getWeights(W tensor.Tensor) (Wz, Wr, Wh tensor.Tensor, err error) 
 }
 
 // getBiases returns the biases from the Bias node as specified by the ONNX standard.
+// The B tensor, by GONNX definition, has 2 dimensions with 6 bias
+// tensors in it (12 if bidirectional, but that is not supported).
 func (g *GRU) getBiases(B tensor.Tensor) (Wbz, Wbr, Wbh, Rbz, Rbr, Rbh tensor.Tensor, err error) {
 	nBiasMatrices := 6
 	nBiasDimensions := 2

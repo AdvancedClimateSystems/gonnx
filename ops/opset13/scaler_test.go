@@ -28,7 +28,7 @@ func TestScalerInitFailWrongAttribute(t *testing.T) {
 
 func TestScalerInitFailAttrCount(t *testing.T) {
 	scaler := &Scaler{}
-	err := scaler.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{}})
+	err := scaler.Init(ops.EmptyNodeProto())
 
 	expected := ops.ErrInvalidAttributeCount(2, 0, scaler)
 	assert.Equal(t, expected, err)

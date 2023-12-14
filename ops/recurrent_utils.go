@@ -25,7 +25,7 @@ const (
 	HiddenSizeAttr      = "hidden_size"
 )
 
-// extractMatrices extracts a given number of matrices from tensor M.
+// ExtractMatrices extracts a given number of matrices from tensor M.
 // M contains concatenated matrices along a certain dimension.
 // M is assumed to have a shape of (num_directions, nMatrices * hidden_size, ...) and we extract the
 // by slicing over the 'nMatrices * hidden_size' dimension.

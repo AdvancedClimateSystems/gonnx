@@ -22,8 +22,11 @@ func (r *Relu) Init(*onnx.NodeProto) error {
 // Apply applies the relu operator.
 func (r *Relu) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	out, err := ops.ReLU(inputs[0])
+	if err != nil {
+		return nil, err
+	}
 
-	return []tensor.Tensor{out}, err
+	return []tensor.Tensor{out}, nil
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.

@@ -4,16 +4,24 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// Activations maps strings to the activation function. This is
+// Activation is an activation function.
+type Activation func(n tensor.Tensor) (tensor.Tensor, error)
+
+// activations maps strings to the activation function. This is
 // used by operators like LSTM, GRU and RNN.
-var Activations = map[string]Activation{
+var activations = map[string]Activation{
 	"tanh":    Tanh,
 	"sigmoid": Sigmoid,
 	"relu":    ReLU,
 }
 
-// Activation is an activation function.
-type Activation func(n tensor.Tensor) (tensor.Tensor, error)
+func GetActivation(activation string) (Activation, error) {
+	if a, ok := activations[activation]; ok {
+		return a, nil
+	}
+
+	return nil, ErrActivationNotImplemented(activation)
+}
 
 // Tanh performs the tanh operation on a tensor.
 func Tanh(X tensor.Tensor) (tensor.Tensor, error) {

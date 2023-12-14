@@ -11,6 +11,17 @@ const (
 	MaxRNNInputs = 6
 )
 
+// RNNDirection is the direction of the RNN. RNNs process sequences. We can process
+// those forward (from first to last), in reverse (from last to first) or
+// bidirectional (which is both forward and reverse added together).
+type RNNDirection string
+
+const (
+	Forward       RNNDirection = "forward"
+	Reverse       RNNDirection = "reverse"
+	Bidirectional RNNDirection = "bidirectional"
+)
+
 // RNN represents the ONNX rnn operator.
 type RNN struct {
 	activationAlpha []float32
@@ -82,6 +93,7 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	B := inputs[3]
 	if B == nil {
+		// 2 is the number of bias matrices required by ONNX definition.
 		nBiasMatrices := 2
 		B = ops.ZeroTensor(1, nBiasMatrices*r.hiddenSize)
 	}
@@ -103,9 +115,9 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	activation := ops.Activations[r.activations[0]]
-	if activation == nil {
-		return nil, ops.ErrUnsupportedAttribute("activations", r)
+	activation, err := ops.GetActivation(r.activations[0])
+	if err != nil {
+		return nil, err
 	}
 
 	outputs := []tensor.Tensor{}
@@ -221,7 +233,8 @@ func (r *RNN) layerCalculation(
 
 // getWeights returns the weights from a concatenated weight tensor. The result is
 // a single weight matrix. W has shape (num_directions, hidden_size, ...).
-// This function extracts 1 weight matrix from tensor W.
+// The W tensor, by GONNX definition, has 3 dimensions with 1 weight
+// tensor in it (2 if bidirectional, but that is not supported).
 func (r *RNN) getWeights(W tensor.Tensor) (tensor.Tensor, error) {
 	nWeightMatrices := 1
 	nWeightDimensions := 3
@@ -235,6 +248,8 @@ func (r *RNN) getWeights(W tensor.Tensor) (tensor.Tensor, error) {
 }
 
 // getBiases splits tensor B into 2 bias matrices.
+// The B tensor, by GONNX definition, has 2 dimensions with 2 bias
+// tensors in it (4 if bidirectional, but that is not supported).
 func (r *RNN) getBiases(B tensor.Tensor) (Wbi, Rbi tensor.Tensor, err error) {
 	nBiasMatrices := 2
 	nBiasDimensions := 2
