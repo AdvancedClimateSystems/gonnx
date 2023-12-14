@@ -1,9 +1,7 @@
 package ops
 
 import (
-	"fmt"
-
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/onnx"
 	"gorgonia.org/tensor"
 )
 
@@ -14,8 +12,11 @@ type Number interface {
 
 // ConvertTensorDtype converts an interface of a specific dtype to a new dtype.
 func ConvertTensorDtype(t tensor.Tensor, newType int32) (tensor.Tensor, error) {
-	var err error
-	var newBacking any
+	var (
+		err        error
+		newBacking any
+	)
+
 	backing := IfScalarToSlice(t.Data())
 
 	switch t.Dtype() {
@@ -40,7 +41,7 @@ func ConvertTensorDtype(t tensor.Tensor, newType int32) (tensor.Tensor, error) {
 	case tensor.Uint64:
 		newBacking, err = convertBacking(backing.([]uint64), newType)
 	default:
-		return nil, fmt.Errorf("unable to convert tensor of type %v to type %v", t.Dtype(), newType)
+		return nil, ErrConversionInvalidType(t.Dtype(), newType)
 	}
 
 	if err != nil {
@@ -72,8 +73,10 @@ func convertBacking[B Number](backing []B, dataType int32) (any, error) {
 		return createNewBacking[B, uint32](backing), nil
 	case onnx.TensorProto_UINT64:
 		return createNewBacking[B, uint64](backing), nil
+	case onnx.TensorProto_BFLOAT16, onnx.TensorProto_BOOL, onnx.TensorProto_COMPLEX64, onnx.TensorProto_COMPLEX128, onnx.TensorProto_FLOAT16, onnx.TensorProto_UNDEFINED, onnx.TensorProto_STRING:
+		return nil, ErrConversionNotSupported(dataType)
 	default:
-		return nil, fmt.Errorf("converting to onnx datatype %d is not supported yet", dataType)
+		return nil, ErrConversionNotSupported(dataType)
 	}
 }
 

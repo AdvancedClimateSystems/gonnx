@@ -1,18 +1,17 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
 func TestGemmInit(t *testing.T) {
 	gemm := Gemm{}
-	err := gemm.Init(GemmOnnxAttributeProtoFixture())
+	err := gemm.Init(GemmOnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
 	assert.Equal(t, float32(10.0), gemm.alpha)
@@ -23,9 +22,9 @@ func TestGemmInit(t *testing.T) {
 
 func TestGemmInitFail(t *testing.T) {
 	gemm := &Gemm{}
-	err := gemm.Init([]*onnx.AttributeProto{{Name: "unknownAttribute"}})
+	err := gemm.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "unknownAttribute"}}})
 
-	expected := fmt.Errorf(ops.UnknownAttributeErrTemplate, gemm, "unknownAttribute")
+	expected := ops.ErrInvalidAttribute("unknownAttribute", gemm)
 	assert.Equal(t, expected, err)
 }
 
@@ -68,7 +67,8 @@ func TestGemm(t *testing.T) {
 		{
 			&Gemm{1, 1, false, false},
 			[][]int{{20, 4}, {4, 6}, {6}},
-			[]float32{84, 91, 98, 105, 112, 119, 228, 251, 274,
+			[]float32{
+				84, 91, 98, 105, 112, 119, 228, 251, 274,
 				297, 320, 343, 372, 411, 450, 489, 528, 567, 516, 571,
 				626, 681, 736, 791, 660, 731, 802, 873, 944, 1015, 804,
 				891, 978, 1065, 1152, 1239, 948, 1051, 1154, 1257,
@@ -80,7 +80,8 @@ func TestGemm(t *testing.T) {
 				2331, 2562, 2793, 3024, 3255, 2244, 2491, 2738, 2985,
 				3232, 3479, 2388, 2651, 2914, 3177, 3440, 3703, 2532,
 				2811, 3090, 3369, 3648, 3927, 2676, 2971, 3266, 3561,
-				3856, 4151, 2820, 3131, 3442, 3753, 4064, 4375},
+				3856, 4151, 2820, 3131, 3442, 3753, 4064, 4375,
+			},
 		},
 	}
 
@@ -94,6 +95,7 @@ func TestGemm(t *testing.T) {
 		} else {
 			inputs = append(inputs, nil)
 		}
+
 		res, err := test.gemm.Apply(inputs)
 		assert.Nil(t, err)
 
@@ -132,7 +134,7 @@ func TestInputValidationGemm(t *testing.T) {
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
 			nil,
-			fmt.Errorf("gemm operator: expected 2-3 input tensors, got 1"),
+			ops.ErrInvalidOptionalInputCount(1, &Gemm{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -142,7 +144,7 @@ func TestInputValidationGemm(t *testing.T) {
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 			},
 			nil,
-			fmt.Errorf("gemm operator: expected 2-3 input tensors, got 4"),
+			ops.ErrInvalidOptionalInputCount(4, &Gemm{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -150,7 +152,7 @@ func TestInputValidationGemm(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
 			nil,
-			fmt.Errorf("gemm operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Gemm{}),
 		},
 	}
 
@@ -159,6 +161,7 @@ func TestInputValidationGemm(t *testing.T) {
 		validated, err := gemm.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			if test.expected != nil {
 				assert.Equal(t, test.expected, validated)
@@ -169,11 +172,13 @@ func TestInputValidationGemm(t *testing.T) {
 	}
 }
 
-func GemmOnnxAttributeProtoFixture() []*onnx.AttributeProto {
-	return []*onnx.AttributeProto{
-		{Name: "alpha", F: 10.0},
-		{Name: "beta", F: 0.98},
-		{Name: "transA", I: 1},
-		{Name: "transB", I: 1},
+func GemmOnnxNodeProtoFixture() *onnx.NodeProto {
+	return &onnx.NodeProto{
+		Attribute: []*onnx.AttributeProto{
+			{Name: "alpha", F: 10.0},
+			{Name: "beta", F: 0.98},
+			{Name: "transA", I: 1},
+			{Name: "transB", I: 1},
+		},
 	}
 }

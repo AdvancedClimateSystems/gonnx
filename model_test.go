@@ -1,12 +1,10 @@
 package gonnx
 
 import (
-	"errors"
-	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
 	"gorgonia.org/tensor"
 )
 
@@ -39,9 +37,7 @@ func TestModel(t *testing.T) {
 				[][]float32{rangeFloat(16)},
 			),
 			nil,
-			errors.New(
-				"input shape does not match for data_input: expected [0 3] but got (2, 4, 2)",
-			),
+			ErrInvalidShape([]onnx.Dim{{IsDynamic: true, Name: "batch_size", Size: 0}, {IsDynamic: false, Name: "", Size: 3}}, []int{2, 4, 2}),
 		},
 		{
 			"./sample_models/onnx_models/mlp.onnx",
@@ -51,7 +47,7 @@ func TestModel(t *testing.T) {
 				[][]float32{rangeFloat(6)},
 			),
 			nil,
-			errors.New("tensor: data_input not found"),
+			ErrModel("tensor: %v not found", "data_input"),
 		},
 		{
 			"./sample_models/onnx_models/gru.onnx",
@@ -106,6 +102,7 @@ func TestModel(t *testing.T) {
 		outputs, err := model.Run(test.input)
 
 		assert.Equal(t, test.err, err)
+
 		if test.expected == nil {
 			assert.Nil(t, outputs)
 		} else {
@@ -128,6 +125,7 @@ func TestModelIOUtil(t *testing.T) {
 			{IsDynamic: false, Name: "", Size: 3},
 		},
 	}
+
 	assert.Equal(t, []string{"data_input"}, model.InputNames())
 	assert.Equal(t, expectedInputShapes, model.InputShapes())
 
@@ -137,6 +135,7 @@ func TestModelIOUtil(t *testing.T) {
 			{IsDynamic: false, Name: "", Size: 2},
 		},
 	}
+
 	assert.Equal(t, []string{"preds"}, model.OutputNames())
 	assert.Equal(t, expectedOutputShapes, model.OutputShapes())
 	assert.Equal(t, expectedOutputShapes["preds"], model.OutputShape("preds"))
@@ -165,11 +164,12 @@ func TestInputDimSizeInvalidInput(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, err = model.InputDimSize("swagger", 0)
-	assert.Equal(t, fmt.Errorf("input swagger does not exist"), err)
+
+	assert.Equal(t, ErrModel("input %v does not exist", "swagger"), err)
 }
 
 // tensorsFixture creates Tensors with the given names shapes and backings. This is useful for
-// providing a model with inputs and checking it's outputs
+// providing a model with inputs and checking it's outputs.
 func tensorsFixture(names []string, shapes [][]int, backing [][]float32) Tensors {
 	res := make(Tensors, len(names))
 	for i, name := range names {
@@ -178,6 +178,7 @@ func tensorsFixture(names []string, shapes [][]int, backing [][]float32) Tensors
 			tensor.WithBacking(backing[i]),
 		)
 	}
+
 	return res
 }
 
@@ -186,6 +187,7 @@ func rangeFloat(size int) []float32 {
 	for i := 0; i < size; i++ {
 		res[i] = float32(i)
 	}
+
 	return res
 }
 
@@ -194,6 +196,7 @@ func rangeZeros(size int) []float32 {
 	for i := range res {
 		res[i] = 0.0
 	}
+
 	return res
 }
 

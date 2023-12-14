@@ -1,11 +1,14 @@
 package opset13
 
 import (
-	"fmt"
-
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	MinGemmInputs = 2
+	MaxGemmInputs = 3
 )
 
 // Gemm represents the ONNX gemm operator.
@@ -27,8 +30,8 @@ func newGemm() ops.Operator {
 }
 
 // Init initializes the Gemm operator based on the ModelProto attributes.
-func (g *Gemm) Init(attributes []*onnx.AttributeProto) error {
-	for _, attr := range attributes {
+func (g *Gemm) Init(n *onnx.NodeProto) error {
+	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
 		case "alpha":
 			g.alpha = attr.GetF()
@@ -39,7 +42,7 @@ func (g *Gemm) Init(attributes []*onnx.AttributeProto) error {
 		case "transB":
 			g.transB = ops.Int64ToBool(attr.GetI())
 		default:
-			return fmt.Errorf(ops.UnknownAttributeErrTemplate, g, attr.GetName())
+			return ops.ErrInvalidAttribute(attr.GetName(), g)
 		}
 	}
 
@@ -49,6 +52,7 @@ func (g *Gemm) Init(attributes []*onnx.AttributeProto) error {
 // Apply applies the gemm operator on the given graph.
 func (g *Gemm) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var err error
+
 	a := inputs[0]
 	b := inputs[1]
 	c := inputs[2]
@@ -107,12 +111,12 @@ func (g *Gemm) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (g *Gemm) GetMinInputs() int {
-	return 2
+	return MinGemmInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (g *Gemm) GetMaxInputs() int {
-	return 3
+	return MaxGemmInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

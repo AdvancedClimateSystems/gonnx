@@ -1,19 +1,18 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
 func TestCastInit(t *testing.T) {
 	c := &Cast{}
 
-	err := c.Init([]*onnx.AttributeProto{{Name: "to", I: 1}})
+	err := c.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "to", I: 1}}})
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), c.to)
 }
@@ -64,7 +63,7 @@ func TestCast(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test.cast.Init([]*onnx.AttributeProto{{Name: "to", I: test.to}})
+		_ = test.cast.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "to", I: test.to}}})
 		inputs := []tensor.Tensor{ops.TensorWithBackingFixture(test.backing, test.shape...)}
 
 		res, err := test.cast.Apply(inputs)
@@ -93,13 +92,13 @@ func TestInputValidationCast(t *testing.T) {
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float64{3, 4}, 2),
 			},
-			fmt.Errorf("cast operator: expected 1 input tensors, got 2"),
+			ops.ErrInvalidInputCount(2, &Cast{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]bool{true, false}, 2),
 			},
-			fmt.Errorf("cast operator: input 0 does not allow type bool"),
+			ops.ErrInvalidInputType(0, "bool", &Cast{}),
 		},
 	}
 
@@ -108,6 +107,7 @@ func TestInputValidationCast(t *testing.T) {
 		validated, err := cast.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

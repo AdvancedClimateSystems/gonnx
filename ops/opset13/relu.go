@@ -1,8 +1,8 @@
 package opset13
 
 import (
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
@@ -15,25 +15,13 @@ func newRelu() ops.Operator {
 }
 
 // Init initializes the relu operator.
-func (r *Relu) Init(attributes []*onnx.AttributeProto) error {
+func (r *Relu) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the relu operator.
 func (r *Relu) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	t := inputs[0]
-
-	typedZero, err := ops.GetValueAsTensorType(0.0, t.Dtype())
-	if err != nil {
-		return nil, err
-	}
-
-	comparison, err := tensor.Gt(t, typedZero, tensor.AsSameType())
-	if err != nil {
-		return nil, err
-	}
-
-	out, err := tensor.Mul(t, comparison)
+	out, err := ops.ReLU(inputs[0])
 	if err != nil {
 		return nil, err
 	}

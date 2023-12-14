@@ -37,7 +37,7 @@ A simple example is shown below:
 package main
 
 import (
-    "github.com/AdvancedClimateSystems/gonnx"
+    "github.com/advancedclimatesystems/gonnx"
     "gorgonia.org/tensor"
 )
 

@@ -1,7 +1,6 @@
 package ops
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -106,7 +105,9 @@ func TestOffsetTensorIfNegative(t *testing.T) {
 	}
 	for _, test := range tests {
 		tIn := tensor.New(tensor.WithShape(len(test.in)), tensor.WithBacking(test.in))
-		OffsetTensorIfNegative(tIn, test.offset)
+		err := OffsetTensorIfNegative(tIn, test.offset)
+
+		assert.Nil(t, err)
 		assert.Equal(t, test.expected, tIn.Data())
 	}
 }
@@ -140,12 +141,13 @@ func TestAnyToIntSlice(t *testing.T) {
 		{
 			"some string",
 			nil,
-			fmt.Errorf("could not cast some string to int list"),
+			ErrCast,
 		},
 	}
 
 	for _, test := range tests {
 		res, err := AnyToIntSlice(test.in)
+
 		assert.Equal(t, test.expected, res)
 		assert.Equal(t, test.err, err)
 	}
@@ -204,7 +206,7 @@ func TestGetValueAsTensorType(t *testing.T) {
 			1.0,
 			tensor.Complex64,
 			nil,
-			fmt.Errorf("unknown type complex64, cannot cast constant to this type"),
+			ErrCast,
 		},
 	}
 
@@ -313,7 +315,7 @@ func TestPairwiseAssign(t *testing.T) {
 		{
 			tensor.New(tensor.WithShape(2, 2), tensor.WithBacking([]float32{1, 2, 3, 4})),
 			tensor.New(tensor.WithShape(1, 2), tensor.WithBacking([]float32{1, 1})),
-			fmt.Errorf("Shapes of tensors must be equal, were (2, 2) and (1, 2)"),
+			ErrInvalidShape,
 		},
 	}
 
@@ -321,6 +323,7 @@ func TestPairwiseAssign(t *testing.T) {
 		err := PairwiseAssign(test.t1, test.t2)
 
 		assert.Equal(t, err, test.err)
+
 		if err == nil {
 			assert.Equal(t, test.t2.Data(), test.t1.Data())
 		}

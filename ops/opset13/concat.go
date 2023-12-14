@@ -1,11 +1,13 @@
 package opset13
 
 import (
-	"fmt"
-
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	MinConcatInputs = 1
 )
 
 // Concat represents the ONNX concat operator.
@@ -21,12 +23,15 @@ func newConcat() ops.Operator {
 }
 
 // Init initializes the concat operator.
-func (c *Concat) Init(attributes []*onnx.AttributeProto) error {
+func (c *Concat) Init(n *onnx.NodeProto) error {
+	attributes := n.GetAttribute()
+
 	if len(attributes) != 1 {
-		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, c, 1, len(attributes))
+		return ops.ErrInvalidAttributeCount(1, len(attributes), c)
 	}
 
 	c.axis = int(attributes[0].GetI())
+
 	return nil
 }
 
@@ -56,6 +61,7 @@ func (c *Concat) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 	// of inputs dynamically, based on our inputs. Every input can have any type.
 	c.maxInputs = len(inputs)
 	c.inputTypeConstraints = make([][]tensor.Dtype, len(inputs))
+
 	for i := 0; i < len(inputs); i++ {
 		c.inputTypeConstraints[i] = ops.AllTypes
 	}
@@ -65,7 +71,7 @@ func (c *Concat) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (c *Concat) GetMinInputs() int {
-	return 1
+	return MinConcatInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.

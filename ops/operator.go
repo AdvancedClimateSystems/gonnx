@@ -1,7 +1,7 @@
 package ops
 
 import (
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/onnx"
 	"gorgonia.org/tensor"
 )
 
@@ -10,10 +10,11 @@ type Operator interface {
 	// String should return a simple string describing the operator
 	String() string
 
-	// Init should initialize the operator based on the given attributes. How these
+	// Init should initialize the operator based on the given node.
+	// This node contains attributes, which outputs are expected and more. How these
 	// attributes influence the operator is defined by the ONNX standard, and can be
 	// found in https://github.com/onnx/onnx/blob/main/docs/Operators.md
-	Init([]*onnx.AttributeProto) error
+	Init(*onnx.NodeProto) error
 
 	// Apply should apply the operator to the list of input tensors. It should return a
 	// list with output tensors, the result of the operator.

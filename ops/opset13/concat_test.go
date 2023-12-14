@@ -1,18 +1,17 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
 func TestConcatInit(t *testing.T) {
 	concat := &Concat{}
-	err := concat.Init([]*onnx.AttributeProto{{Name: "axis", I: 3}})
+	err := concat.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 3}}})
 
 	assert.Nil(t, err)
 	assert.Equal(t, 3, concat.axis)
@@ -20,9 +19,9 @@ func TestConcatInit(t *testing.T) {
 
 func TestConcatInitFail(t *testing.T) {
 	concat := &Concat{}
-	err := concat.Init([]*onnx.AttributeProto{})
+	err := concat.Init(ops.EmptyNodeProto())
 
-	expected := fmt.Errorf(ops.InvalidAttrCountErrTemplate, concat, 1, 0)
+	expected := ops.ErrInvalidAttributeCount(1, 0, concat)
 	assert.Equal(t, expected, err)
 }
 

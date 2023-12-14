@@ -1,11 +1,10 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
@@ -140,6 +139,7 @@ func TestConstructSlices(t *testing.T) {
 		)
 
 		assert.Equal(t, test.nSlices, len(slices))
+
 		for i := 0; i < test.nSlices; i++ {
 			if test.expectedSlices[i] == nil {
 				assert.Nil(t, slices[i])
@@ -199,7 +199,7 @@ func TestInputValidationSlice(t *testing.T) {
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
 			nil,
-			fmt.Errorf("slice operator: expected 3-5 input tensors, got 1"),
+			ops.ErrInvalidOptionalInputCount(1, &Slice{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -208,7 +208,7 @@ func TestInputValidationSlice(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
 			nil,
-			fmt.Errorf("slice operator: input 1 does not allow type int"),
+			ops.ErrInvalidInputType(1, "int", &Slice{}),
 		},
 	}
 
@@ -217,6 +217,7 @@ func TestInputValidationSlice(t *testing.T) {
 		validated, err := slice.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			if test.expected != nil {
 				assert.Equal(t, test.expected, validated)

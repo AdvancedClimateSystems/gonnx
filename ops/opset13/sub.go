@@ -1,9 +1,14 @@
 package opset13
 
 import (
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	MinSubInputs = 2
+	MaxSubInputs = 2
 )
 
 // Sub represents the ONNX sub operator.
@@ -15,23 +20,18 @@ func newSub() ops.Operator {
 }
 
 // Init initializes the sub operator.
-func (s *Sub) Init(attributes []*onnx.AttributeProto) error {
+func (s *Sub) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the sub operator.
 func (s *Sub) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	A, B, err := ops.MultidirectionalBroadcast(inputs[0], inputs[1])
-	if err != nil {
-		return nil, err
-	}
-
-	out, err := tensor.Sub(A, B)
-	if err != nil {
-		return nil, err
-	}
-
-	return []tensor.Tensor{out}, nil
+	return ops.ApplyBinaryOperation(
+		inputs[0],
+		inputs[1],
+		ops.Sub,
+		ops.MultidirectionalBroadcasting,
+	)
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
@@ -41,12 +41,12 @@ func (s *Sub) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (s *Sub) GetMinInputs() int {
-	return 2
+	return MinSubInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (s *Sub) GetMaxInputs() int {
-	return 2
+	return MaxSubInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

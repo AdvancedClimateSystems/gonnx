@@ -2,12 +2,11 @@ package opset13
 
 import (
 	"encoding/binary"
-	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
@@ -45,30 +44,30 @@ func TestConstantInit(t *testing.T) {
 		{
 			[]*onnx.AttributeProto{{Name: "sparse_value"}},
 			nil,
-			fmt.Errorf(ops.UnsupportedAttrErrTemplate, &Constant{}, "sparse_value"),
+			ops.ErrUnsupportedAttribute("sparse_value", &Constant{}),
 		},
 		{
 			[]*onnx.AttributeProto{{Name: "unknownAttribute"}},
 			nil,
-			fmt.Errorf(ops.UnknownAttributeErrTemplate, &Constant{}, "unknownAttribute"),
+			ops.ErrUnsupportedAttribute("unknownAttribute", &Constant{}),
 		},
 		{
 			[]*onnx.AttributeProto{},
 			nil,
-			fmt.Errorf(ops.InvalidAttrCountErrTemplate, &Constant{}, 1, 0),
+			ops.ErrInvalidAttributeCount(1, 0, &Constant{}),
 		},
 	}
 
 	for _, test := range tests {
 		constant := &Constant{}
-		err := constant.Init(test.initAttr)
+		err := constant.Init(&onnx.NodeProto{Attribute: test.initAttr})
 
 		assert.Equal(t, test.err, err)
+
 		if err != nil {
 			assert.Equal(t, test.expected, constant.value)
 		}
 	}
-
 }
 
 func TestConstant(t *testing.T) {
@@ -105,7 +104,7 @@ func TestConstant(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test.constant.Init(test.initAttr)
+		_ = test.constant.Init(&onnx.NodeProto{Attribute: test.initAttr})
 		res, err := test.constant.Apply([]tensor.Tensor{})
 		assert.Nil(t, err)
 
@@ -115,7 +114,7 @@ func TestConstant(t *testing.T) {
 
 func TestConstantSingleIntShapeTensor(t *testing.T) {
 	constant := &Constant{}
-	err := constant.Init([]*onnx.AttributeProto{{Name: "value_ints", Ints: []int64{2}}})
+	err := constant.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "value_ints", Ints: []int64{2}}}})
 
 	assert.Nil(t, err)
 	assert.False(t, constant.value.IsScalar())
@@ -134,7 +133,7 @@ func TestInputValidationConstant(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("constant operator: expected 0 input tensors, got 1"),
+			ops.ErrInvalidInputCount(1, &Constant{}),
 		},
 	}
 
@@ -143,6 +142,7 @@ func TestInputValidationConstant(t *testing.T) {
 		validated, err := constant.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}
@@ -158,6 +158,7 @@ func ConstantValueAttrProtoFixture() []*onnx.AttributeProto {
 	binary.LittleEndian.PutUint64(bValues[16:24], uint64(values[2]))
 
 	tp := &onnx.TensorProto{DataType: int32(7), Dims: []int64{3}, RawData: bValues}
+
 	return []*onnx.AttributeProto{{Name: "value", T: tp}}
 }
 

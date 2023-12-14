@@ -1,9 +1,14 @@
 package opset13
 
 import (
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	MinMulInputs = 2
+	MaxMulInputs = 2
 )
 
 // Mul represents the ONNX mul operator.
@@ -15,23 +20,18 @@ func newMul() ops.Operator {
 }
 
 // Init initializes the mul operator.
-func (m *Mul) Init(attributes []*onnx.AttributeProto) error {
+func (m *Mul) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the mul operator.
 func (m *Mul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	in1, in2, err := ops.MultidirectionalBroadcast(inputs[0], inputs[1])
-	if err != nil {
-		return nil, err
-	}
-
-	out, err := tensor.Mul(in1, in2)
-	if err != nil {
-		return nil, err
-	}
-
-	return []tensor.Tensor{out}, nil
+	return ops.ApplyBinaryOperation(
+		inputs[0],
+		inputs[1],
+		ops.Mul,
+		ops.MultidirectionalBroadcasting,
+	)
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
@@ -41,12 +41,12 @@ func (m *Mul) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (m *Mul) GetMinInputs() int {
-	return 2
+	return MinMulInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (m *Mul) GetMaxInputs() int {
-	return 2
+	return MaxMulInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes

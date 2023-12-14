@@ -6,6 +6,7 @@ package onnx
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -13,7 +14,7 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// InputNames returns the input names for a GraphProto
+// InputNames returns the input names for a GraphProto.
 func (g *GraphProto) InputNames() []string {
 	return getNamesFromValueProto(g.GetInput())
 }
@@ -51,6 +52,7 @@ func (g *GraphProto) Params() (map[string]tensor.Tensor, error) {
 
 		res[i.Name] = t
 	}
+
 	return res, nil
 }
 
@@ -62,12 +64,16 @@ type Shape []Dim
 
 // String prints a shape in a human-friendly matter.
 func (s Shape) String() string {
-	var dimSizes []int64
+	dimSizes := make([]int64, 0, len(s))
+
 	for _, dim := range s {
 		dimSizes = append(dimSizes, dim.Size)
 	}
+
 	return fmt.Sprintf("%d", dimSizes)
 }
+
+var ErrInvalidType = errors.New("invalid type")
 
 // Dim is a dimension.
 type Dim struct {
@@ -95,6 +101,7 @@ func getShapesFromValueProto(protos []*ValueInfoProto) Shapes {
 	if protos == nil {
 		return map[string]Shape{}
 	}
+
 	shapes := make(map[string]Shape, len(protos))
 
 	for _, p := range protos {
@@ -119,6 +126,7 @@ func getShapesFromValueProto(protos []*ValueInfoProto) Shapes {
 		}
 
 		shape := make([]Dim, len(dims))
+
 		for i, dim := range dims {
 			param := dim.GetDimParam()
 			v := dim.GetDimValue()
@@ -130,6 +138,7 @@ func getShapesFromValueProto(protos []*ValueInfoProto) Shapes {
 
 			shape[i] = Dim{IsDynamic: isDynamic, Name: param, Size: v}
 		}
+
 		shapes[p.GetName()] = shape
 	}
 
@@ -146,12 +155,15 @@ func getNamesFromTensorProto(protos []*TensorProto) []string {
 	return res
 }
 
-// TensorFromProto returns a tensor.Tensor from an onnx.TensorProto
+// TensorFromProto returns a tensor.Tensor from an onnx.TensorProto.
 func TensorFromProto(tp *TensorProto) (tensor.Tensor, error) {
-	var values interface{}
-	var err error
+	var (
+		values interface{}
+		err    error
+	)
 
 	typeMap := TensorProto_DataType_value
+
 	switch tp.DataType {
 	case typeMap["FLOAT"]:
 		values, err = getFloatData(tp)
@@ -173,6 +185,8 @@ func TensorFromProto(tp *TensorProto) (tensor.Tensor, error) {
 		values, err = getInt64Data(tp)
 	case typeMap["DOUBLE"]:
 		values, err = getDoubleData(tp)
+	case typeMap["BOOL"]:
+		values = getBoolData(tp)
 	default:
 		// At this moment the datatype is either UNDEFINED or some datatype we currently
 		// do not support.
@@ -188,7 +202,7 @@ func TensorFromProto(tp *TensorProto) (tensor.Tensor, error) {
 		case len(tp.Uint64Data) > 0:
 			values, err = getUint64Data(tp)
 		default:
-			return nil, fmt.Errorf("unsupported datatype for Tensor: %v", tp.DataType)
+			return nil, ErrInvalidType
 		}
 	}
 
@@ -279,8 +293,17 @@ func getDoubleData(tp *TensorProto) ([]float64, error) {
 	return ReadFloat64ArrayFromBytes(tp.RawData)
 }
 
+func getBoolData(tp *TensorProto) []bool {
+	if len(tp.Int32Data) > 0 {
+		return Int32ArrayToBoolArray(tp.GetInt32Data())
+	}
+
+	return ReadBoolArrayFromBytes(tp.RawData)
+}
+
 const (
 	float32Size int = 4
+	boolSize    int = 1
 	uint8Size   int = 1
 	int8Size    int = 1
 	uint16Size  int = 2
@@ -297,11 +320,14 @@ func ReadFloat32ArrayFromBytes(data []byte) ([]float32, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, float32Size)
 
-	var err error
-	var values []float32
+	var (
+		err    error
+		values []float32
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != float32Size || err != nil {
 			break
@@ -323,11 +349,14 @@ func ReadFloat64ArrayFromBytes(data []byte) ([]float64, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, float64Size)
 
-	var err error
-	var values []float64
+	var (
+		err    error
+		values []float64
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != float64Size || err != nil {
 			break
@@ -344,21 +373,37 @@ func ReadFloat64ArrayFromBytes(data []byte) ([]float64, error) {
 	return values, nil
 }
 
+// ReadBoolArrayFromBytes reads data and parses it to an array of bool.
+// The data is parsed to a bool by comparing the value to 0. If it is
+// greater than 0, the bool is considered to be true.
+func ReadBoolArrayFromBytes(data []byte) []bool {
+	values := make([]bool, len(data))
+	for i, b := range data {
+		values[i] = b > 0
+	}
+
+	return values
+}
+
 // ReadUint8ArrayFromBytes reads data and parses it to an array of uint8.
 func ReadUint8ArrayFromBytes(data []byte) ([]uint8, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, uint8Size)
 
-	var err error
-	var values []uint8
+	var (
+		err    error
+		values []uint8
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != uint8Size || err != nil {
 			break
 		}
-		values = append(values, uint8(element[0]))
+
+		values = append(values, element[0])
 	}
 
 	if err != io.EOF {
@@ -373,11 +418,14 @@ func ReadInt8ArrayFromBytes(data []byte) ([]int8, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, int8Size)
 
-	var err error
-	var values []int8
+	var (
+		err    error
+		values []int8
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != int8Size || err != nil {
 			break
@@ -398,11 +446,14 @@ func ReadUint16ArrayFromBytes(data []byte) ([]uint16, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, uint16Size)
 
-	var err error
-	var values []uint16
+	var (
+		err    error
+		values []uint16
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != uint16Size || err != nil {
 			break
@@ -423,11 +474,14 @@ func ReadInt16ArrayFromBytes(data []byte) ([]int16, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, uint16Size)
 
-	var err error
-	var values []int16
+	var (
+		err    error
+		values []int16
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != int16Size || err != nil {
 			break
@@ -448,11 +502,14 @@ func ReadUint32ArrayFromBytes(data []byte) ([]uint32, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, int32Size)
 
-	var err error
-	var values []uint32
+	var (
+		err    error
+		values []uint32
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != uint32Size || err != nil {
 			break
@@ -473,11 +530,14 @@ func ReadInt32ArrayFromBytes(data []byte) ([]int32, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, int32Size)
 
-	var err error
-	var values []int32
+	var (
+		err    error
+		values []int32
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != int32Size || err != nil {
 			break
@@ -498,11 +558,14 @@ func ReadUint64ArrayFromBytes(data []byte) ([]uint64, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, int32Size)
 
-	var err error
-	var values []uint64
+	var (
+		err    error
+		values []uint64
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != uint64Size || err != nil {
 			break
@@ -523,11 +586,14 @@ func ReadInt64ArrayFromBytes(data []byte) ([]int64, error) {
 	buffer := bytes.NewReader(data)
 	element := make([]byte, int64Size)
 
-	var err error
-	var values []int64
+	var (
+		err    error
+		values []int64
+	)
 
 	for {
 		var n int
+
 		n, err = buffer.Read(element)
 		if n != int64Size || err != nil {
 			break
@@ -541,6 +607,17 @@ func ReadInt64ArrayFromBytes(data []byte) ([]int64, error) {
 	}
 
 	return values, nil
+}
+
+// Int32ArrayToBoolArray converts an int32 array to a bool array.
+// When the value is equal to 1 the boolean is considered to be true.
+func Int32ArrayToBoolArray(arr []int32) []bool {
+	newArr := make([]bool, len(arr))
+	for i, value := range arr {
+		newArr[i] = value == 1
+	}
+
+	return newArr
 }
 
 // Int32ArrayToInt8Array converts an int32 array to an int8 array.

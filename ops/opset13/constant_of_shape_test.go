@@ -2,12 +2,11 @@ package opset13
 
 import (
 	"encoding/binary"
-	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 
 	"gorgonia.org/tensor"
 )
@@ -19,6 +18,7 @@ func TensorProtoFromNumber(n interface{}) *onnx.TensorProto {
 		size := 1
 		rawData := make([]byte, size)
 		rawData[0] = uint8(x)
+
 		return &onnx.TensorProto{
 			DataType: onnx.TensorProto_DataType_value["INT8"],
 			Dims:     []int64{1},
@@ -29,6 +29,7 @@ func TensorProtoFromNumber(n interface{}) *onnx.TensorProto {
 		size := 2
 		rawData := make([]byte, size)
 		binary.LittleEndian.PutUint16(rawData, uint16(x))
+
 		return &onnx.TensorProto{
 			DataType: onnx.TensorProto_DataType_value["INT16"],
 			Dims:     []int64{1},
@@ -85,11 +86,12 @@ func TestConstantOfShape(t *testing.T) {
 			// Make the input tensor
 			tp := TensorProtoFromNumber(test.input)
 			assert.NotNil(t, tp)
-			attr := []*onnx.AttributeProto{{Name: "value", T: tp}}
+
+			node := &onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "value", T: tp}}}
 
 			// Create operator
 			op := ConstantOfShape{}
-			err := op.Init(attr)
+			err := op.Init(node)
 			assert.NoError(t, err)
 			assert.Equal(t, test.input, op.value.Data())
 
@@ -108,7 +110,7 @@ func TestConstantOfShapeEmptyInit(t *testing.T) {
 	op := &ConstantOfShape{}
 
 	// No init value given
-	err := op.Init([]*onnx.AttributeProto{})
+	err := op.Init(ops.EmptyNodeProto())
 	assert.NoError(t, err)
 
 	assert.Equal(t, float32(0.0), op.value.Data())
@@ -120,7 +122,6 @@ func TestConstantOfShapeEmptyInit(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, []float32{0, 0, 0, 0}, res[0].Data())
-
 }
 
 func TestIncorrectInput(t *testing.T) {
@@ -129,22 +130,21 @@ func TestIncorrectInput(t *testing.T) {
 		Dims:      []int64{3},
 		Int32Data: []int32{1, 2, 3},
 	}
-	attr := []*onnx.AttributeProto{{Name: "value", T: tp}}
+	node := &onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "value", T: tp}}}
 
 	op := &ConstantOfShape{}
-	err := op.Init(attr)
+	err := op.Init(node)
 	assert.NotNil(t, err)
 	assert.Equal(
 		t,
-		"Value input tensor should be a single element tensor, but was [1  2  3]",
+		"constant of shape operator invalid tensor found, reason: expected tensor to have one element",
 		err.Error(),
 	)
-
 }
 
 func TestNegativeShapeNotAllowed(t *testing.T) {
 	op := &ConstantOfShape{}
-	op.Init([]*onnx.AttributeProto{})
+	_ = op.Init(ops.EmptyNodeProto())
 
 	shape := []int64{1, -1}
 
@@ -154,13 +154,13 @@ func TestNegativeShapeNotAllowed(t *testing.T) {
 
 	assert.Equal(
 		t,
-		"Non positive dimensions are not allowed (must be > 0). Given: [1 -1]",
+		"constant of shape operator invalid tensor found, reason: empty dimensions are not allowed",
 		err.Error())
 }
 
 func TestEmptyTensorNotAllowed(t *testing.T) {
 	op := &ConstantOfShape{}
-	op.Init([]*onnx.AttributeProto{})
+	_ = op.Init(ops.EmptyNodeProto())
 
 	shape := []int64{0}
 
@@ -170,13 +170,13 @@ func TestEmptyTensorNotAllowed(t *testing.T) {
 
 	assert.Equal(
 		t,
-		"Non positive dimensions are not allowed (must be > 0). Given: [0]",
+		"constant of shape operator invalid tensor found, reason: empty dimensions are not allowed",
 		err.Error())
 }
 
 func TestScalarShapeInput(t *testing.T) {
 	op := &ConstantOfShape{}
-	op.Init([]*onnx.AttributeProto{})
+	_ = op.Init(ops.EmptyNodeProto())
 
 	shape := []int64{6}
 	input := tensor.New(tensor.WithBacking(shape))
@@ -200,11 +200,11 @@ func TestInputValidationConstantOfShape(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("constant of shape operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &ConstantOfShape{}),
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			fmt.Errorf("constant of shape operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &ConstantOfShape{}),
 		},
 	}
 
@@ -213,6 +213,7 @@ func TestInputValidationConstantOfShape(t *testing.T) {
 		validated, err := constantOfShape.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

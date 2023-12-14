@@ -1,11 +1,10 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
@@ -68,11 +67,11 @@ func TestInputValidationRelu(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("relu operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &Relu{}),
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			fmt.Errorf("relu operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Relu{}),
 		},
 	}
 
@@ -81,6 +80,7 @@ func TestInputValidationRelu(t *testing.T) {
 		validated, err := relu.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

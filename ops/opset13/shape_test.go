@@ -1,11 +1,10 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
@@ -60,11 +59,11 @@ func TestInputValidationShape(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("shape operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &Shape{}),
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			fmt.Errorf("shape operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Shape{}),
 		},
 	}
 
@@ -73,6 +72,7 @@ func TestInputValidationShape(t *testing.T) {
 		validated, err := shape.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

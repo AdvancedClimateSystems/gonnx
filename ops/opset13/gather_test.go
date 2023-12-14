@@ -1,17 +1,18 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/onnx"
-	"gitlab.advancedclimate.nl/smartbase/software/core/airgo/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
-func makeAxisProto(n int) []*onnx.AttributeProto {
-	return []*onnx.AttributeProto{{Name: "axis", I: int64(n)}}
+func makeAxisProto(n int) *onnx.NodeProto {
+	return &onnx.NodeProto{
+		Attribute: []*onnx.AttributeProto{{Name: "axis", I: int64(n)}},
+	}
 }
 
 func TestGatherInit(t *testing.T) {
@@ -24,21 +25,21 @@ func TestGatherInit(t *testing.T) {
 
 func TestGatherInitDefault(t *testing.T) {
 	op := Gather{}
-	err := op.Init([]*onnx.AttributeProto{})
+	err := op.Init(ops.EmptyNodeProto())
 	assert.NoError(t, err)
 	assert.Equal(t, op.axis, 0)
 }
 
 func TestGatherInitTooManyAttrs(t *testing.T) {
 	op := Gather{}
-	err := op.Init([]*onnx.AttributeProto{{Name: "axis"}, {Name: "default"}})
-	assert.EqualError(t, err, "gather operator: expected 0 or 1 attributes, got 2")
+	err := op.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis"}, {Name: "default"}}})
+	assert.EqualError(t, err, "gather operator attribute error: invalid count 2 expected 1")
 }
 
 func TestGatherInitInvalidAttrName(t *testing.T) {
 	op := Gather{}
-	err := op.Init([]*onnx.AttributeProto{{Name: "axes"}}) // should be axis
-	assert.EqualError(t, err, "gather operator: unknown attribute: axes")
+	err := op.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axes"}}}) // should be axis
+	assert.EqualError(t, err, "gather operator attribute error: invalid attribute axes")
 }
 
 func TestGather(t *testing.T) {
@@ -63,53 +64,125 @@ func TestGather(t *testing.T) {
 		// >>> np.take(x, i, axis=0).shape
 		// Out: (1, 2)
 
-		{[]float32{1, 2, 3, 4}, []int{4},
-			[]int64{0}, []int{1}, 0,
-			[]float32{1}, tensor.Shape([]int{1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{4},
+			[]int64{0},
+			[]int{1},
+			0,
+			[]float32{1},
+			tensor.Shape([]int{1}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{2, 2},
-			[]int64{0}, []int{1}, 0,
-			[]float32{1, 2}, tensor.Shape([]int{1, 2})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{2, 2},
+			[]int64{0},
+			[]int{1},
+			0,
+			[]float32{1, 2},
+			tensor.Shape([]int{1, 2}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{2, 2},
-			[]int64{0}, []int{1}, 1,
-			[]float32{1, 3}, tensor.Shape([]int{2, 1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{2, 2},
+			[]int64{0},
+			[]int{1},
+			1,
+			[]float32{1, 3},
+			tensor.Shape([]int{2, 1}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{2, 2},
-			[]int64{0}, []int{1}, -1,
-			[]float32{1, 3}, tensor.Shape([]int{2, 1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{2, 2},
+			[]int64{0},
+			[]int{1},
+			-1,
+			[]float32{1, 3},
+			tensor.Shape([]int{2, 1}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{2, 2},
-			[]int64{1}, []int{1}, 1,
-			[]float32{2, 4}, tensor.Shape([]int{2, 1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{2, 2},
+			[]int64{1},
+			[]int{1},
+			1,
+			[]float32{2, 4},
+			tensor.Shape([]int{2, 1}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{2, 2},
-			[]int64{0}, []int{1, 1}, 1,
-			[]float32{1, 3}, tensor.Shape([]int{2, 1, 1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{2, 2},
+			[]int64{0},
+			[]int{1, 1},
+			1,
+			[]float32{1, 3},
+			tensor.Shape([]int{2, 1, 1}),
+		},
 
-		{[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, []int{3, 2, 2},
-			[]int64{0}, []int{1}, 2,
-			[]float32{1, 3, 5, 7, 9, 11}, tensor.Shape([]int{3, 2, 1})},
+		{
+			[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+			[]int{3, 2, 2},
+			[]int64{0},
+			[]int{1},
+			2,
+			[]float32{1, 3, 5, 7, 9, 11},
+			tensor.Shape([]int{3, 2, 1}),
+		},
 
-		{[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, []int{3, 2, 2},
-			[]int64{0}, []int{1}, 1,
-			[]float32{1, 2, 5, 6, 9, 10}, tensor.Shape([]int{3, 1, 2})},
+		{
+			[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+			[]int{3, 2, 2},
+			[]int64{0},
+			[]int{1},
+			1,
+			[]float32{1, 2, 5, 6, 9, 10},
+			tensor.Shape([]int{3, 1, 2}),
+		},
 
-		{[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9}, []int{3, 3},
-			[]int64{0, 2}, []int{1, 2}, 1,
-			[]float32{1, 3, 4, 6, 7, 9}, tensor.Shape([]int{3, 1, 2})},
+		{
+			[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9},
+			[]int{3, 3},
+			[]int64{0, 2},
+			[]int{1, 2},
+			1,
+			[]float32{1, 3, 4, 6, 7, 9},
+			tensor.Shape([]int{3, 1, 2}),
+		},
 
-		{[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, []int{3, 2, 2},
-			[]int64{-2}, []int{1}, 1,
-			[]float32{1, 2, 5, 6, 9, 10}, tensor.Shape([]int{3, 1, 2})},
+		{
+			[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+			[]int{3, 2, 2},
+			[]int64{-2},
+			[]int{1},
+			1,
+			[]float32{1, 2, 5, 6, 9, 10},
+			tensor.Shape([]int{3, 1, 2}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{4},
-			[]int64{-4}, []int{1}, 0,
-			[]float32{1}, tensor.Shape([]int{1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{4},
+			[]int64{-4},
+			[]int{1},
+			0,
+			[]float32{1},
+			tensor.Shape([]int{1}),
+		},
 
-		{[]float32{1, 2, 3, 4}, []int{2, 2},
-			[]int64{0}, []int{1}, -1,
-			[]float32{1, 3}, tensor.Shape([]int{2, 1})},
+		{
+			[]float32{1, 2, 3, 4},
+			[]int{2, 2},
+			[]int64{0},
+			[]int{1},
+			-1,
+			[]float32{1, 3},
+			tensor.Shape([]int{2, 1}),
+		},
 	}
 
 	for _, test := range tests {
@@ -130,7 +203,7 @@ func TestGather(t *testing.T) {
 
 func TestCombinedWithOtherOp(t *testing.T) {
 	concat := &Concat{}
-	err := concat.Init([]*onnx.AttributeProto{{Name: "axis", I: 0}})
+	err := concat.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 0}}})
 	assert.NoError(t, err)
 
 	data0 := tensor.New(tensor.WithBacking([]int64{1}), tensor.WithShape(1))
@@ -170,7 +243,7 @@ func TestGatherAxesIndexOutOfRange(t *testing.T) {
 
 	_, err = op.Apply([]tensor.Tensor{dataIn, indicesIn})
 	assert.Error(t, err)
-	assert.EqualError(t, err, "axis argument must be in the range -1 <= x < 1, was 1")
+	assert.EqualError(t, err, "axis out of range: axis argument must be in the range -1 <= x < 1, was 1")
 }
 
 func TestGatherIndexOutOfRange(t *testing.T) {
@@ -181,7 +254,7 @@ func TestGatherIndexOutOfRange(t *testing.T) {
 
 	_, err := op.Apply([]tensor.Tensor{dataIn, indicesIn})
 	assert.Error(t, err)
-	assert.EqualError(t, err, "all indices entries must be in the range -1 <= x < 1")
+	assert.EqualError(t, err, "axis out of range: all indices entries must be in the range -1 <= x < 1")
 }
 
 func TestInputValidationGather(t *testing.T) {
@@ -205,14 +278,14 @@ func TestInputValidationGather(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			fmt.Errorf("gather operator: expected 2 input tensors, got 1"),
+			ops.ErrInvalidInputCount(1, &Gather{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{3, 4}, 2),
 			},
-			fmt.Errorf("gather operator: input 1 does not allow type float32"),
+			ops.ErrInvalidInputType(1, "float32", &Gather{}),
 		},
 	}
 
@@ -221,6 +294,7 @@ func TestInputValidationGather(t *testing.T) {
 		validated, err := gather.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}
