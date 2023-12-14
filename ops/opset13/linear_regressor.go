@@ -11,6 +11,8 @@ const (
 	MaxLinearRegressorInputs = 1
 )
 
+// PostTransformOption describes all possible post transform options for the
+// linear regressor operator.
 type PostTransformOption string
 
 const (

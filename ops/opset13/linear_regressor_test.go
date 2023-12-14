@@ -42,8 +42,8 @@ func TestLinearRegressor(t *testing.T) {
 		backing         []float32
 		expectedShape   tensor.Shape
 		expectedBacking []float32
+		description     string
 	}{
-		// Simplest linear regressor with 1 input and 1 output variable.
 		{
 			[]*onnx.AttributeProto{
 				{Name: "coefficients", Floats: []float32{-0.45977323}},
@@ -54,8 +54,8 @@ func TestLinearRegressor(t *testing.T) {
 			[]float32{0.7777024},
 			[]int{1, 1},
 			[]float32{-0.14247058},
+			"linear regressor with 1 input and 1 output variable, 1 sample",
 		},
-		// Same regressor as above but batched input.
 		{
 			[]*onnx.AttributeProto{
 				{Name: "coefficients", Floats: []float32{-0.45977323}},
@@ -66,8 +66,8 @@ func TestLinearRegressor(t *testing.T) {
 			[]float32{0.7777024, 0.23754121, 0.82427853, 0.9657492, 0.9726011},
 			[]int{5, 1},
 			[]float32{-0.14247058, 0.105881065, -0.16388504, -0.22892947, -0.23207982},
+			"linear regressor with 1 input and 1 output variable, 5 samples",
 		},
-		// Linear regressor with 3 inputs and 1 output variable.
 		{
 			[]*onnx.AttributeProto{
 				{Name: "coefficients", Floats: []float32{0.24118852, 0.22617804, 0.27858477}},
@@ -78,8 +78,8 @@ func TestLinearRegressor(t *testing.T) {
 			[]float32{0.7777024, 0.23754121, 0.82427853},
 			[]int{1, 1},
 			[]float32{0.039368242},
+			"linear regressor with 3 inputs and 1 output variable, 1 sample",
 		},
-		// Same regressor as above but with multiple inputs.
 		{
 			[]*onnx.AttributeProto{
 				{Name: "coefficients", Floats: []float32{0.24118852, 0.22617804, 0.27858477}},
@@ -90,8 +90,8 @@ func TestLinearRegressor(t *testing.T) {
 			[]float32{0.7777024, 0.23754121, 0.82427853, 0.9657492, 0.9726011, 0.45344925},
 			[]int{2, 1},
 			[]float32{0.039368242, 0.14766997},
+			"linear regressor with 3 inputs and 1 output variable, 2 samples",
 		},
-		// Linear regressor with 4 inputs and 3 output variables.
 		{
 			[]*onnx.AttributeProto{
 				{Name: "coefficients", Floats: []float32{
@@ -106,8 +106,8 @@ func TestLinearRegressor(t *testing.T) {
 			[]float32{0.7777024, 0.23754121, 0.82427853, 0.9657492},
 			[]int{1, 3},
 			[]float32{0.20810121, 0.17951778, 0.16934107},
+			"linear regressor with 4 input and 3 output variables, 1 samples",
 		},
-		// Same regressor as above but with multiple inputs.
 		{
 			[]*onnx.AttributeProto{
 				{Name: "coefficients", Floats: []float32{
@@ -122,6 +122,7 @@ func TestLinearRegressor(t *testing.T) {
 			[]float32{0.7777024, 0.23754121, 0.82427853, 0.9657492, 0.9726011, 0.45344925, 0.60904247, 0.7755265},
 			[]int{2, 3},
 			[]float32{0.20810121, 0.17951778, 0.16934107, 0.37105185, 0.0784128, -0.20840444},
+			"linear regressor with 4 input and 3 output variables, 2 samples",
 		},
 	}
 
@@ -132,12 +133,12 @@ func TestLinearRegressor(t *testing.T) {
 
 		linearRegressor := newLinearRegressor()
 		err := linearRegressor.Init(test.attrs)
-		assert.Nil(t, err)
+		assert.Nil(t, err, test.description)
 
 		res, err := linearRegressor.Apply(inputs)
-		assert.Nil(t, err)
-		assert.Equal(t, test.expectedShape, res[0].Shape())
-		assert.Equal(t, test.expectedBacking, res[0].Data())
+		assert.Nil(t, err, test.description)
+		assert.Equal(t, test.expectedShape, res[0].Shape(), test.description)
+		assert.Equal(t, test.expectedBacking, res[0].Data(), test.description)
 	}
 }
 
