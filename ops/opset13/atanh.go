@@ -17,7 +17,7 @@ func newAtanh() ops.Operator {
 }
 
 // Init initializes the atanh operator.
-func (a *Atanh) Init(_ []*onnx.AttributeProto) error {
+func (a *Atanh) Init(*onnx.NodeProto) error {
 	return nil
 }
 

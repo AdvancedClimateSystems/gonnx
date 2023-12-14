@@ -26,10 +26,8 @@ import (
 var ignoredTests = []string{
 	"test_add_uint8",                    // Opset14
 	"test_div_uint8",                    // Opset14
-	"test_gru_defaults",                 // Opset14
 	"test_gru_batchwise",                // Opset14
-	"test_gru_seq_length",               // Opset14
-	"test_gru_with_initial_bias",        // Opset14
+	"test_lstm_batchwise",               // Opset14
 	"test_mul_uint8",                    // Opset14
 	"test_sub_uint8",                    // Opset14
 	"test_shape_clip_end",               // Opset15
@@ -48,6 +46,7 @@ var ignoredTests = []string{
 	"test_gemm_alpha",                           // For gemm in opset 11.
 	"test_gemm_default_no_bias",                 // For gemm in opset 11.
 	"test_gemm_default_scalar_bias",             // For gemm in opset 11.
+	"test_lstm_with_peepholes",                  // Sequence lens attribute is not supported yet.
 	"test_relu_expanded_ver18",                  // CastLike operator not implemented yet.
 	"test_softmax_default_axis_expanded_ver18",  // ReduceMax operator not implemented yet.
 	"test_softmax_axis_1_expanded_ver18",        // ReduceMax operator not implemented yet.
@@ -69,6 +68,8 @@ var ignoredTests = []string{
 	"test_slice_neg",                            // ONNX expects nil output, but we throw an error.
 	"test_transpose_default",                    // For transpose in opset 9.
 
+	"test_equal_string",                               // Unsupported datatype String.
+	"test_equal_string_broadcast",                     // Unsupported datatype String.
 	"test_cast_FLOAT_to_STRING",                       // Unsupported datatype STRING.
 	"test_cast_STRING_to_FLOAT",                       // Unsupported datatype STRING.
 	"test_cast_DOUBLE_to_FLOAT16",                     // Unsupported datatype FLOAT16.
@@ -129,7 +130,6 @@ func TestOps(t *testing.T) {
 		assert.Nil(t, err)
 
 		for _, test := range tests {
-			fmt.Println(test.inputs)
 			t.Run(test.name, func(t *testing.T) {
 				outputs, err := test.model.Run(test.inputs)
 				assert.Nil(t, err)
@@ -137,6 +137,7 @@ func TestOps(t *testing.T) {
 				for outputName := range test.outputs {
 					expectedTensor := test.outputs[outputName]
 					actualTensor := outputs[outputName]
+
 					if expectedTensor.Dtype() == tensor.Bool {
 						assert.ElementsMatch(t, expectedTensor.Data(), actualTensor.Data())
 					} else {
@@ -339,6 +340,8 @@ var expectedTests = []string{
 	"test_div",
 	"test_div_bcast",
 	"test_div_example",
+	"test_equal",
+	"test_equal_bcast",
 	"test_gather_0",
 	"test_gather_1",
 	"test_gather_2d_indices",
@@ -351,6 +354,23 @@ var expectedTests = []string{
 	"test_gemm_default_zero_bias",
 	"test_gemm_beta",
 	"test_gemm_transposeB",
+	"test_greater",
+	"test_greater_bcast",
+	"test_greater_equal",
+	"test_greater_equal_bcast",
+	"test_greater_equal_bcast_expanded",
+	"test_greater_equal_expanded",
+	"test_gru_defaults",
+	"test_gru_seq_length",
+	"test_gru_with_initial_bias",
+	"test_less",
+	"test_less_bcast",
+	"test_less_equal",
+	"test_less_equal_bcast",
+	"test_less_equal_bcast_expanded",
+	"test_less_equal_expanded",
+	"test_lstm_defaults",
+	"test_lstm_with_initial_bias",
 	"test_matmul_4d",
 	"test_matmul_3d",
 	"test_matmul_2d",
@@ -377,6 +397,7 @@ var expectedTests = []string{
 	"test_reshape_reordered_last_dims",
 	"test_reshape_zero_and_negative_dim",
 	"test_reshape_zero_dim",
+	"test_rnn_seq_length",
 	"test_shape",
 	"test_sin",
 	"test_sin_example",

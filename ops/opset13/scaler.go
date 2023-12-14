@@ -24,7 +24,8 @@ func newScaler() ops.Operator {
 }
 
 // Init initializes the scaler operator.
-func (s *Scaler) Init(attributes []*onnx.AttributeProto) error {
+func (s *Scaler) Init(n *onnx.NodeProto) error {
+	attributes := n.GetAttribute()
 	if len(attributes) != ScalerExpectedAttributes {
 		return ops.ErrInvalidAttributeCount(ScalerExpectedAttributes, len(attributes), s)
 	}

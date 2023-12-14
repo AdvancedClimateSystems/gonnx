@@ -11,7 +11,7 @@ import (
 
 func TestLinearRegressorInit(t *testing.T) {
 	linearRegressor := &LinearRegressor{}
-	err := linearRegressor.Init(LinearRegressorOnnxAttributeProtoFixture())
+	err := linearRegressor.Init(LinearRegressorOnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
 	assert.Equal(t, []float32{1.5, 2.5, 3.5}, linearRegressor.coefficients.Data())
@@ -21,7 +21,7 @@ func TestLinearRegressorInit(t *testing.T) {
 
 func TestLinearRegressorInitFailUnsupportedAttribute(t *testing.T) {
 	linearRegressor := &LinearRegressor{}
-	err := linearRegressor.Init([]*onnx.AttributeProto{{Name: "post_transform"}, {Name: "Another"}})
+	err := linearRegressor.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "post_transform"}, {Name: "Another"}}})
 
 	expected := ops.ErrUnsupportedAttribute("post_transform", linearRegressor)
 	assert.Equal(t, expected, err)
@@ -29,7 +29,7 @@ func TestLinearRegressorInitFailUnsupportedAttribute(t *testing.T) {
 
 func TestLinearRegressorInitFailInvalidAttribute(t *testing.T) {
 	linearRegressor := &LinearRegressor{}
-	err := linearRegressor.Init([]*onnx.AttributeProto{{Name: "much_invalid"}})
+	err := linearRegressor.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "much_invalid"}}})
 
 	expected := ops.ErrInvalidAttribute("much_invalid", linearRegressor)
 	assert.Equal(t, expected, err)
@@ -132,7 +132,7 @@ func TestLinearRegressor(t *testing.T) {
 		}
 
 		linearRegressor := newLinearRegressor()
-		err := linearRegressor.Init(test.attrs)
+		err := linearRegressor.Init(&onnx.NodeProto{Attribute: test.attrs})
 		assert.Nil(t, err, test.description)
 
 		res, err := linearRegressor.Apply(inputs)
@@ -185,10 +185,12 @@ func TestInputValidationLinearRegressor(t *testing.T) {
 	}
 }
 
-func LinearRegressorOnnxAttributeProtoFixture() []*onnx.AttributeProto {
-	return []*onnx.AttributeProto{
-		{Name: "coefficients", Floats: []float32{1.5, 2.5, 3.5}},
-		{Name: "intercepts", Floats: []float32{0.5}},
-		{Name: "targets", I: 1},
+func LinearRegressorOnnxNodeProtoFixture() *onnx.NodeProto {
+	return &onnx.NodeProto{
+		Attribute: []*onnx.AttributeProto{
+			{Name: "coefficients", Floats: []float32{1.5, 2.5, 3.5}},
+			{Name: "intercepts", Floats: []float32{0.5}},
+			{Name: "targets", I: 1},
+		},
 	}
 }

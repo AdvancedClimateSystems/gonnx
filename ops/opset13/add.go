@@ -20,7 +20,7 @@ func newAdd() ops.Operator {
 }
 
 // Init initializes the add operator.
-func (a *Add) Init(_ []*onnx.AttributeProto) error {
+func (a *Add) Init(*onnx.NodeProto) error {
 	return nil
 }
 

@@ -1,6 +1,9 @@
 package ops
 
 import (
+	"math/rand"
+
+	"github.com/advancedclimatesystems/gonnx/onnx"
 	"gorgonia.org/tensor"
 )
 
@@ -13,6 +16,18 @@ func Float32TensorFixture(shp ...int) tensor.Tensor {
 	return tensor.New(
 		tensor.WithShape(shp...),
 		tensor.WithBacking(tensor.Range(tensor.Float32, 0, NElements(shp...))),
+	)
+}
+
+func RandomFloat32TensorFixture(shp ...int) tensor.Tensor {
+	rands := make([]float32, NElements(shp...))
+	for i := 0; i < NElements(shp...); i++ {
+		rands[i] = rand.Float32()
+	}
+
+	return tensor.New(
+		tensor.WithShape(shp...),
+		tensor.WithBacking(rands),
 	)
 }
 
@@ -29,4 +44,9 @@ func TensorInputsFixture(nTensors int) []tensor.Tensor {
 	}
 
 	return result
+}
+
+// EmptyNodeProto returns a node proto with no attributes.
+func EmptyNodeProto() *onnx.NodeProto {
+	return &onnx.NodeProto{Attribute: []*onnx.AttributeProto{}}
 }

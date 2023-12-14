@@ -17,7 +17,7 @@ func newSinh() ops.Operator {
 }
 
 // Init initializes the sinh operator.
-func (s *Sinh) Init(_ []*onnx.AttributeProto) error {
+func (s *Sinh) Init(*onnx.NodeProto) error {
 	return nil
 }
 

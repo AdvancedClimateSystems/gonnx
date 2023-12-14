@@ -62,6 +62,31 @@ func Or(A, B tensor.Tensor) (tensor.Tensor, error) {
 	)
 }
 
+// Gt applies the greater than (>) operator on 2 tensors.
+func Gt(A, B tensor.Tensor) (tensor.Tensor, error) {
+	return tensor.Gt(A, B)
+}
+
+// Gte applies the greater or equal than (>=) operator on 2 tensors.
+func Gte(A, B tensor.Tensor) (tensor.Tensor, error) {
+	return tensor.Gte(A, B)
+}
+
+// Lt applies the less than (<) operator on 2 tensors.
+func Lt(A, B tensor.Tensor) (tensor.Tensor, error) {
+	return tensor.Lt(A, B)
+}
+
+// Lte applies the less or equal than (<=) operator on 2 tensors.
+func Lte(A, B tensor.Tensor) (tensor.Tensor, error) {
+	return tensor.Lte(A, B)
+}
+
+// Equal applies the equal operator (=) operator on 2 tensors.
+func Equal(A, B tensor.Tensor) (tensor.Tensor, error) {
+	return tensor.ElEq(A, B)
+}
+
 // And applies the boolean 'and' operation on 2 tensors.
 func And(A, B tensor.Tensor) (tensor.Tensor, error) {
 	return applyBooleanBinaryOperator(

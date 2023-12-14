@@ -20,7 +20,7 @@ func newPRelu() ops.Operator {
 }
 
 // Init initializes the prelu operator.
-func (op *PRelu) Init(_ []*onnx.AttributeProto) error {
+func (op *PRelu) Init(*onnx.NodeProto) error {
 	return nil
 }
 

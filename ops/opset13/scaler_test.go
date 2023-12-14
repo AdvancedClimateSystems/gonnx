@@ -11,7 +11,7 @@ import (
 
 func TestScalerInit(t *testing.T) {
 	scaler := &Scaler{}
-	err := scaler.Init(ScalerOnnxAttributeProtoFixture())
+	err := scaler.Init(ScalerOnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
 	assert.Equal(t, []float32{1.5, 2.5, 3.5}, scaler.offset.Data())
@@ -20,7 +20,7 @@ func TestScalerInit(t *testing.T) {
 
 func TestScalerInitFailWrongAttribute(t *testing.T) {
 	scaler := &Scaler{}
-	err := scaler.Init([]*onnx.AttributeProto{{Name: "unknownAttribute"}, {Name: "Another"}})
+	err := scaler.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "unknownAttribute"}, {Name: "Another"}}})
 
 	expected := ops.ErrInvalidAttribute("unknownAttribute", scaler)
 	assert.Equal(t, expected, err)
@@ -28,7 +28,7 @@ func TestScalerInitFailWrongAttribute(t *testing.T) {
 
 func TestScalerInitFailAttrCount(t *testing.T) {
 	scaler := &Scaler{}
-	err := scaler.Init([]*onnx.AttributeProto{})
+	err := scaler.Init(ops.EmptyNodeProto())
 
 	expected := ops.ErrInvalidAttributeCount(2, 0, scaler)
 	assert.Equal(t, expected, err)
@@ -128,9 +128,11 @@ func TestInputValidationScaler(t *testing.T) {
 	}
 }
 
-func ScalerOnnxAttributeProtoFixture() []*onnx.AttributeProto {
-	return []*onnx.AttributeProto{
-		{Name: "offset", Floats: []float32{1.5, 2.5, 3.5}},
-		{Name: "scale", Floats: []float32{0.5, 1.0, 2.0}},
+func ScalerOnnxNodeProtoFixture() *onnx.NodeProto {
+	return &onnx.NodeProto{
+		Attribute: []*onnx.AttributeProto{
+			{Name: "offset", Floats: []float32{1.5, 2.5, 3.5}},
+			{Name: "scale", Floats: []float32{0.5, 1.0, 2.0}},
+		},
 	}
 }

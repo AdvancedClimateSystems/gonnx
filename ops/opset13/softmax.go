@@ -20,8 +20,10 @@ func newSoftmax() ops.Operator {
 }
 
 // Init initializes the softmax operator.
-func (s *Softmax) Init(attributes []*onnx.AttributeProto) error {
+func (s *Softmax) Init(n *onnx.NodeProto) error {
+	attributes := n.GetAttribute()
 	nAttributes := len(attributes)
+
 	if nAttributes > 1 {
 		return ops.ErrInvalidAttributeCount(1, nAttributes, s)
 	}

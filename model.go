@@ -187,7 +187,7 @@ func (m *Model) Run(inputs Tensors) (Tensors, error) {
 
 // applyOp applies the operation to the graph.
 func (m *Model) applyOp(op ops.Operator, n *onnx.NodeProto, tensors Tensors) error {
-	if err := op.Init(n.GetAttribute()); err != nil {
+	if err := op.Init(n); err != nil {
 		return err
 	}
 

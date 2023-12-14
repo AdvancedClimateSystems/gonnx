@@ -155,7 +155,7 @@ type MockOp struct {
 	inputTypeConstraints [][]tensor.Dtype
 }
 
-func (m *MockOp) Init(_ []*onnx.AttributeProto) error {
+func (m *MockOp) Init(*onnx.NodeProto) error {
 	return nil
 }
 

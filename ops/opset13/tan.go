@@ -17,7 +17,7 @@ func newTan() ops.Operator {
 }
 
 // Init initializes the tan operator.
-func (t *Tan) Init(_ []*onnx.AttributeProto) error {
+func (t *Tan) Init(*onnx.NodeProto) error {
 	return nil
 }
 

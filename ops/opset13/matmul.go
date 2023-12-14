@@ -20,7 +20,7 @@ func newMatMul() ops.Operator {
 }
 
 // Init initializes the matmul operator.
-func (m *MatMul) Init(_ []*onnx.AttributeProto) error {
+func (m *MatMul) Init(*onnx.NodeProto) error {
 	return nil
 }
 

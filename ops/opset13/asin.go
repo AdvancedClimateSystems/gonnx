@@ -17,7 +17,7 @@ func newAsin() ops.Operator {
 }
 
 // Init initializes the asin operator.
-func (s *Asin) Init(_ []*onnx.AttributeProto) error {
+func (s *Asin) Init(*onnx.NodeProto) error {
 	return nil
 }
 

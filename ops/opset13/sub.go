@@ -20,7 +20,7 @@ func newSub() ops.Operator {
 }
 
 // Init initializes the sub operator.
-func (s *Sub) Init(_ []*onnx.AttributeProto) error {
+func (s *Sub) Init(*onnx.NodeProto) error {
 	return nil
 }
 

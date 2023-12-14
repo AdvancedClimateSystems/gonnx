@@ -17,7 +17,7 @@ func newCos() ops.Operator {
 }
 
 // Init initializes the cos operator.
-func (c *Cos) Init(_ []*onnx.AttributeProto) error {
+func (c *Cos) Init(*onnx.NodeProto) error {
 	return nil
 }
 

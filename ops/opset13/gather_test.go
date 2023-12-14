@@ -9,8 +9,10 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func makeAxisProto(n int) []*onnx.AttributeProto {
-	return []*onnx.AttributeProto{{Name: "axis", I: int64(n)}}
+func makeAxisProto(n int) *onnx.NodeProto {
+	return &onnx.NodeProto{
+		Attribute: []*onnx.AttributeProto{{Name: "axis", I: int64(n)}},
+	}
 }
 
 func TestGatherInit(t *testing.T) {
@@ -23,20 +25,20 @@ func TestGatherInit(t *testing.T) {
 
 func TestGatherInitDefault(t *testing.T) {
 	op := Gather{}
-	err := op.Init([]*onnx.AttributeProto{})
+	err := op.Init(ops.EmptyNodeProto())
 	assert.NoError(t, err)
 	assert.Equal(t, op.axis, 0)
 }
 
 func TestGatherInitTooManyAttrs(t *testing.T) {
 	op := Gather{}
-	err := op.Init([]*onnx.AttributeProto{{Name: "axis"}, {Name: "default"}})
+	err := op.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis"}, {Name: "default"}}})
 	assert.EqualError(t, err, "gather operator attribute error: invalid count 2 expected 1")
 }
 
 func TestGatherInitInvalidAttrName(t *testing.T) {
 	op := Gather{}
-	err := op.Init([]*onnx.AttributeProto{{Name: "axes"}}) // should be axis
+	err := op.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axes"}}}) // should be axis
 	assert.EqualError(t, err, "gather operator attribute error: invalid attribute axes")
 }
 
@@ -201,7 +203,7 @@ func TestGather(t *testing.T) {
 
 func TestCombinedWithOtherOp(t *testing.T) {
 	concat := &Concat{}
-	err := concat.Init([]*onnx.AttributeProto{{Name: "axis", I: 0}})
+	err := concat.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 0}}})
 	assert.NoError(t, err)
 
 	data0 := tensor.New(tensor.WithBacking([]int64{1}), tensor.WithShape(1))

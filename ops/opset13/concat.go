@@ -23,7 +23,9 @@ func newConcat() ops.Operator {
 }
 
 // Init initializes the concat operator.
-func (c *Concat) Init(attributes []*onnx.AttributeProto) error {
+func (c *Concat) Init(n *onnx.NodeProto) error {
+	attributes := n.GetAttribute()
+
 	if len(attributes) != 1 {
 		return ops.ErrInvalidAttributeCount(1, len(attributes), c)
 	}

@@ -20,7 +20,7 @@ func newAbs() ops.Operator {
 }
 
 // Init initializes the abs operator.
-func (a *Abs) Init([]*onnx.AttributeProto) error {
+func (a *Abs) Init(*onnx.NodeProto) error {
 	return nil
 }
 

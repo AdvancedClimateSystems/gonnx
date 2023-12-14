@@ -40,8 +40,8 @@ func newLinearRegressor() ops.Operator {
 }
 
 // Init initializes the linearRegressor operator.
-func (l *LinearRegressor) Init(attributes []*onnx.AttributeProto) error {
-	for _, attr := range attributes {
+func (l *LinearRegressor) Init(n *onnx.NodeProto) error {
+	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
 		case "coefficients":
 			floats := attr.GetFloats()

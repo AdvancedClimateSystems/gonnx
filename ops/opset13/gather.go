@@ -24,7 +24,9 @@ func newGather() ops.Operator {
 }
 
 // Init initializes the gather operator.
-func (g *Gather) Init(attributes []*onnx.AttributeProto) error {
+func (g *Gather) Init(n *onnx.NodeProto) error {
+	attributes := n.GetAttribute()
+
 	if len(attributes) == 1 {
 		attr := attributes[0]
 

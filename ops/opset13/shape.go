@@ -20,7 +20,7 @@ func newShape() ops.Operator {
 }
 
 // Init initializes the shape operator.
-func (s *Shape) Init(_ []*onnx.AttributeProto) error {
+func (s *Shape) Init(*onnx.NodeProto) error {
 	return nil
 }
 
