@@ -30,6 +30,7 @@ var operators13 = map[string]func() ops.Operator{
 	"GRU":             newGRU,
 	"Less":            newLess,
 	"LessOrEqual":     newLessOrEqual,
+	"LSTM":            newLSTM,
 	"MatMul":          newMatMul,
 	"Mul":             newMul,
 	"Not":             newNot,

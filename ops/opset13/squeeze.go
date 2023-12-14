@@ -20,7 +20,7 @@ func newSqueeze() ops.Operator {
 }
 
 // Init initializes the squeeze operator.
-func (s *Squeeze) Init(_ []*onnx.AttributeProto) error {
+func (s *Squeeze) Init(*onnx.NodeProto) error {
 	return nil
 }
 

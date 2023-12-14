@@ -22,7 +22,9 @@ func newCast() ops.Operator {
 }
 
 // Init initializes the cast operator.
-func (c *Cast) Init(attributes []*onnx.AttributeProto) error {
+func (c *Cast) Init(n *onnx.NodeProto) error {
+	attributes := n.GetAttribute()
+
 	if len(attributes) != 1 {
 		return ops.ErrInvalidAttributeCount(1, len(attributes), c)
 	}

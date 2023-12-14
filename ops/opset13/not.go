@@ -15,7 +15,7 @@ func newNot() ops.Operator {
 }
 
 // Init initializes the not operator.
-func (n *Not) Init(_ []*onnx.AttributeProto) error {
+func (n *Not) Init(*onnx.NodeProto) error {
 	return nil
 }
 

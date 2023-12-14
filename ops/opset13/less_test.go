@@ -13,7 +13,7 @@ func TestLessInit(t *testing.T) {
 
 	// since 'less' does not have any attributes we pass in nil. This should not
 	// fail initializing the less.
-	err := l.Init(nil)
+	err := l.Init(ops.EmptyNodeProto())
 	assert.Nil(t, err)
 }
 

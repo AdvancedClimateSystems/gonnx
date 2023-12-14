@@ -13,7 +13,7 @@ func TestGreaterInit(t *testing.T) {
 
 	// since 'greater' does not have any attributes we pass in nil. This should not
 	// fail initializing the greater.
-	err := g.Init(nil)
+	err := g.Init(ops.EmptyNodeProto())
 	assert.Nil(t, err)
 }
 

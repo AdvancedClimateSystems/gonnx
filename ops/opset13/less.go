@@ -20,7 +20,7 @@ func newLess() ops.Operator {
 }
 
 // Init initializes the less operator.
-func (l *Less) Init(_ []*onnx.AttributeProto) error {
+func (l *Less) Init(*onnx.NodeProto) error {
 	return nil
 }
 

@@ -12,7 +12,7 @@ import (
 func TestCastInit(t *testing.T) {
 	c := &Cast{}
 
-	err := c.Init([]*onnx.AttributeProto{{Name: "to", I: 1}})
+	err := c.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "to", I: 1}}})
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), c.to)
 }
@@ -63,7 +63,7 @@ func TestCast(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		_ = test.cast.Init([]*onnx.AttributeProto{{Name: "to", I: test.to}})
+		_ = test.cast.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "to", I: test.to}}})
 		inputs := []tensor.Tensor{ops.TensorWithBackingFixture(test.backing, test.shape...)}
 
 		res, err := test.cast.Apply(inputs)

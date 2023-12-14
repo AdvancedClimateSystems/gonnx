@@ -22,7 +22,7 @@ func newUnsqueeze() ops.Operator {
 }
 
 // Init initializes the unsqueeze operator.
-func (u *Unsqueeze) Init(_ []*onnx.AttributeProto) error {
+func (u *Unsqueeze) Init(*onnx.NodeProto) error {
 	return nil
 }
 

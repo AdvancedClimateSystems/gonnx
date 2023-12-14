@@ -129,6 +129,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"LSTM",
+			newLSTM(),
+			nil,
+		},
+		{
 			"MatMul",
 			newMatMul(),
 			nil,

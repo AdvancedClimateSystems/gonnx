@@ -13,7 +13,7 @@ func TestLessOrEqualInit(t *testing.T) {
 
 	// since 'lessOrEqual' does not have any attributes we pass in nil. This should not
 	// fail initializing the lessOrEqual.
-	err := l.Init(nil)
+	err := l.Init(ops.EmptyNodeProto())
 	assert.Nil(t, err)
 }
 

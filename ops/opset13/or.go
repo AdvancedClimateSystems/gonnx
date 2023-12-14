@@ -20,7 +20,7 @@ func newOr() ops.Operator {
 }
 
 // Init initializes the or operator.
-func (o *Or) Init(_ []*onnx.AttributeProto) error {
+func (o *Or) Init(*onnx.NodeProto) error {
 	return nil
 }
 

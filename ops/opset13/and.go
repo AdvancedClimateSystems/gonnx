@@ -20,7 +20,7 @@ func newAnd() ops.Operator {
 }
 
 // Init initializes the and operator.
-func (a *And) Init(_ []*onnx.AttributeProto) error {
+func (a *And) Init(*onnx.NodeProto) error {
 	return nil
 }
 

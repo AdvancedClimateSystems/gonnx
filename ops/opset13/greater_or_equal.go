@@ -20,7 +20,7 @@ func newGreaterOrEqual() ops.Operator {
 }
 
 // Init initializes the greaterOrEqual operator.
-func (g *GreaterOrEqual) Init(_ []*onnx.AttributeProto) error {
+func (g *GreaterOrEqual) Init(*onnx.NodeProto) error {
 	return nil
 }
 

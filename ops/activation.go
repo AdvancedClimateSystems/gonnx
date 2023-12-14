@@ -7,7 +7,8 @@ import (
 // Activation is an activation function.
 type Activation func(n tensor.Tensor) (tensor.Tensor, error)
 
-// These activations are supported in operator calculations.
+// activations maps strings to the activation function. This is
+// used by operators like LSTM, GRU and RNN.
 var activations = map[string]Activation{
 	"tanh":    Tanh,
 	"sigmoid": Sigmoid,

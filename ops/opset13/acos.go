@@ -17,7 +17,7 @@ func newAcos() ops.Operator {
 }
 
 // Init initializes the acos operator.
-func (c *Acos) Init(_ []*onnx.AttributeProto) error {
+func (c *Acos) Init(*onnx.NodeProto) error {
 	return nil
 }
 

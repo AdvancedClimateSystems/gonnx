@@ -20,7 +20,7 @@ func newXor() ops.Operator {
 }
 
 // Init initializes the xor operator.
-func (x *Xor) Init(_ []*onnx.AttributeProto) error {
+func (x *Xor) Init(*onnx.NodeProto) error {
 	return nil
 }
 

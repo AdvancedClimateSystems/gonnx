@@ -20,7 +20,7 @@ func newEqual() ops.Operator {
 }
 
 // Init initializes the equal operator.
-func (e *Equal) Init(_ []*onnx.AttributeProto) error {
+func (e *Equal) Init(*onnx.NodeProto) error {
 	return nil
 }
 

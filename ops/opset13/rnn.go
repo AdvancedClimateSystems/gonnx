@@ -11,23 +11,12 @@ const (
 	MaxRNNInputs = 6
 )
 
-// RNNDirection is the direction of the RNN. RNNs process sequences. We can process
-// those forward (from first to last), in reverse (from last to first) or
-// bidirectional (which is both forward and reverse added together).
-type RNNDirection string
-
-const (
-	forward       RNNDirection = "forward"
-	reverse       RNNDirection = "reverse"
-	bidirectional RNNDirection = "bidirectional"
-)
-
 // RNN represents the ONNX rnn operator.
 type RNN struct {
 	activationAlpha []float32
 	activationBeta  []float32
 	activations     []string
-	direction       RNNDirection
+	direction       ops.SequenceProcessDirection
 	hiddenSize      int
 }
 
@@ -35,33 +24,33 @@ type RNN struct {
 func newRNN() ops.Operator {
 	return &RNN{
 		activations: []string{"tanh"},
-		direction:   forward,
+		direction:   ops.Forward,
 	}
 }
 
 // Init initializes the rnn operator.
-func (r *RNN) Init(attributes []*onnx.AttributeProto) error {
-	for _, attr := range attributes {
+func (r *RNN) Init(n *onnx.NodeProto) error {
+	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
-		case "activation_alpha":
+		case ops.ActivationAlphaAttr:
 			r.activationAlpha = attr.GetFloats()
-		case "activation_beta":
+		case ops.ActivationBetaAttr:
 			r.activationBeta = attr.GetFloats()
-		case "activations":
+		case ops.ActivationsAttr:
 			activations := []string{}
 			for _, activation := range attr.GetStrings() {
 				activations = append(activations, string(activation))
 			}
 
 			r.activations = activations
-		case "clip":
+		case ops.ClipAttr:
 			return ops.ErrUnsupportedAttribute(attr.GetName(), r)
-		case "direction":
-			r.direction = RNNDirection(attr.GetS())
-			if r.direction != forward {
+		case ops.DirectionAttr:
+			r.direction = ops.SequenceProcessDirection(attr.GetS())
+			if r.direction != ops.Forward {
 				return ops.ErrUnsupportedAttribute(attr.GetName(), r)
 			}
-		case "hidden_size":
+		case ops.HiddenSizeAttr:
 			r.hiddenSize = int(attr.GetI())
 		default:
 			return ops.ErrInvalidAttribute(attr.GetName(), r)
@@ -78,6 +67,8 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	}
 
 	X := inputs[0]
+	seqLength := X.Shape()[0]
+	batchSize := X.Shape()[1]
 
 	Wi, err := r.getWeights(inputs[1])
 	if err != nil {
@@ -91,7 +82,9 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	B := inputs[3]
 	if B == nil {
-		B = r.getDefaultB()
+		// 2 is the number of bias matrices required by ONNX definition.
+		nBiasMatrices := 2
+		B = ops.ZeroTensor(1, nBiasMatrices*r.hiddenSize)
 	}
 
 	Wbi, Rbi, err := r.getBiases(B)
@@ -99,12 +92,9 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	seqLength := X.Shape()[0]
-	batchSize := X.Shape()[1]
-
 	Ht := inputs[5]
 	if Ht == nil {
-		Ht = r.getInitialH(batchSize)
+		Ht = ops.ZeroTensor(1, batchSize, r.hiddenSize)
 	}
 
 	// Reshape the hidden tensor without the bidirectional dimension, as
@@ -150,12 +140,9 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, ops.ErrTypeAssert("tensor.Tensor", Ht.Clone())
 	}
 
-	// Reshape the outputs so it adds the num_directions as specified by onnx.
-	// The output shape as specified by ONNX is:
-	//   (sequence_length, num_directions, batch_size, hidden_size)
-	// 'num_directions' is only '2' if the RNNDirection is 'bidirectional'.
-	// We do not support this, so for this implementation it should always be '1'.
-	// Here, we reshape our output to include this 'num_directions' dimension.
+	// Reshape the hidden tensor without the bidirectional dimension, as
+	// we do not support bidirectional RNN yet. This is the dimension at
+	// index 0.
 	if err = Y.Reshape(seqLength, 1, batchSize, r.hiddenSize); err != nil {
 		return nil, err
 	}
@@ -200,69 +187,6 @@ func (r *RNN) String() string {
 	return "rnn operator"
 }
 
-// getWeights returns the weights from a concatenated weight tensor. The result is
-// a single weight matrix. W has shape (num_directions, hidden_size, ...).
-// We do not support bidirectional layers, so we can simply index the first element
-// of W to get the weights for either the input or the recurrence.
-func (r *RNN) getWeights(X tensor.Tensor) (tensor.Tensor, error) {
-	weights, err := X.Slice(ops.NewSlicer(0), nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return weights, nil
-}
-
-// getBiases splits an input bias tensor B into its subparts. The B input for the
-// RNN operator consists of two biases, Wbi and Rbi. These biases are concatenated
-// in the second dimension, where B has shape (num_directions, 2 * hiddenSize).
-// This function slices the B tensor to return 2 bias tensors. We disregard the
-// num_directions axis as we do not support the bidirectional direction.
-func (r *RNN) getBiases(B tensor.Tensor) (tensor.Tensor, tensor.Tensor, error) {
-	Wbi, err := B.Slice(ops.NewSlicer(0), ops.NewSlicer(0, r.hiddenSize))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	nBiasMatrices := 2
-
-	Rbi, err := B.Slice(ops.NewSlicer(0), ops.NewSlicer(r.hiddenSize, nBiasMatrices*r.hiddenSize))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return Wbi, Rbi, nil
-}
-
-// getDefaultB returns the default bias tensor if no bias tensor is provided.
-// The bias tensor for RNN consists of two concatenated bias tensors, one for
-// the input calculation and one for the hidden calculation. It has shape:
-//
-//	(num_directions, 2*hiddenSize).
-//
-// By default all values are 0. Note that we do not support the bidirectional
-// option so the first dim always has size 1.
-func (r *RNN) getDefaultB() tensor.Tensor {
-	nBiasMatrices := 2
-
-	return tensor.New(
-		tensor.WithShape(1, nBiasMatrices*r.hiddenSize),
-		tensor.WithBacking(ops.Zeros(nBiasMatrices*r.hiddenSize)),
-	)
-}
-
-// getInitialH can be used to construct an initial hidden tensor when it is not
-// specified by the inputs of the operator. In this case it is assumed to be 0.
-// It has shape (num_directions, batch_size, hidden_size).
-// As we do not support the birectional option, the num_directions dim size is
-// always 1.
-func (r *RNN) getInitialH(batchSize int) tensor.Tensor {
-	return tensor.New(
-		tensor.WithShape(1, batchSize, r.hiddenSize),
-		tensor.WithBacking(ops.Zeros(batchSize*r.hiddenSize)),
-	)
-}
-
 // layerCalculation performs the actual RNN calculation. By ONNX definition
 // this is:
 //
@@ -291,4 +215,35 @@ func (r *RNN) layerCalculation(
 	}
 
 	return activation(result)
+}
+
+// getWeights returns the weights from a concatenated weight tensor. The result is
+// a single weight matrix. W has shape (num_directions, hidden_size, ...).
+// The W tensor, by GONNX definition, has 3 dimensions with 1 weight
+// tensor in it (2 if bidirectional, but that is not supported).
+func (r *RNN) getWeights(W tensor.Tensor) (tensor.Tensor, error) {
+	nWeightMatrices := 1
+	nWeightDimensions := 3
+
+	weights, err := ops.ExtractMatrices(W, nWeightMatrices, nWeightDimensions, r.hiddenSize)
+	if err != nil {
+		return nil, err
+	}
+
+	return weights[0], nil
+}
+
+// getBiases splits tensor B into 2 bias matrices.
+// The B tensor, by GONNX definition, has 2 dimensions with 2 bias
+// tensors in it (4 if bidirectional, but that is not supported).
+func (r *RNN) getBiases(B tensor.Tensor) (Wbi, Rbi tensor.Tensor, err error) {
+	nBiasMatrices := 2
+	nBiasDimensions := 2
+
+	b, err := ops.ExtractMatrices(B, nBiasMatrices, nBiasDimensions, r.hiddenSize)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return b[0], b[1], nil
 }

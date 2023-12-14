@@ -12,25 +12,25 @@ import (
 
 func TestRNNInit(t *testing.T) {
 	rnn := &RNN{}
-	err := rnn.Init(RNNOnnxAttributeProtoFixture())
+	err := rnn.Init(RNNOnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
 	assert.Equal(t, []float32{1.0}, rnn.activationAlpha)
 	assert.Equal(t, []float32{2.0}, rnn.activationBeta)
 	assert.Equal(t, []string{"sigmoid"}, rnn.activations)
-	assert.Equal(t, RNNDirection("forward"), rnn.direction)
+	assert.Equal(t, ops.SequenceProcessDirection("forward"), rnn.direction)
 	assert.Equal(t, 5, rnn.hiddenSize)
 }
 
 func TestRNNInitUnsupportedAttr(t *testing.T) {
 	rnn := RNN{}
-	err := rnn.Init([]*onnx.AttributeProto{{Name: "clip"}})
+	err := rnn.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "clip"}}})
 	assert.Equal(t, err, ops.ErrUnsupportedAttribute("clip", &rnn))
 }
 
 func TestRNNInitUnknownAttr(t *testing.T) {
 	rnn := RNN{}
-	err := rnn.Init([]*onnx.AttributeProto{{Name: "unknown"}})
+	err := rnn.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "unknown"}}})
 	assert.Equal(t, err, ops.ErrInvalidAttribute("unknown", &rnn))
 }
 
@@ -46,7 +46,7 @@ func TestRNN(t *testing.T) {
 				activationAlpha: []float32{},
 				activationBeta:  []float32{},
 				activations:     []string{"tanh"},
-				direction:       forward,
+				direction:       ops.Forward,
 				hiddenSize:      4,
 			},
 			rnnInput0,
@@ -58,7 +58,7 @@ func TestRNN(t *testing.T) {
 				activationAlpha: []float32{},
 				activationBeta:  []float32{},
 				activations:     []string{"sigmoid"},
-				direction:       forward,
+				direction:       ops.Forward,
 				hiddenSize:      4,
 			},
 			rnnInput0,
@@ -70,7 +70,7 @@ func TestRNN(t *testing.T) {
 				activationAlpha: []float32{},
 				activationBeta:  []float32{},
 				activations:     []string{"relu"},
-				direction:       forward,
+				direction:       ops.Forward,
 				hiddenSize:      4,
 			},
 			rnnInput0,
@@ -82,7 +82,7 @@ func TestRNN(t *testing.T) {
 				activationAlpha: []float32{},
 				activationBeta:  []float32{},
 				activations:     []string{"tanh"},
-				direction:       forward,
+				direction:       ops.Forward,
 				hiddenSize:      10,
 			},
 			rnnInput1,
@@ -94,7 +94,7 @@ func TestRNN(t *testing.T) {
 				activationAlpha: []float32{},
 				activationBeta:  []float32{},
 				activations:     []string{"tanh"},
-				direction:       forward,
+				direction:       ops.Forward,
 				hiddenSize:      4,
 			},
 			rnnInputNoB,
@@ -107,7 +107,7 @@ func TestRNN(t *testing.T) {
 				activationAlpha: []float32{},
 				activationBeta:  []float32{},
 				activations:     []string{"tanh"},
-				direction:       forward,
+				direction:       ops.Forward,
 				hiddenSize:      4,
 			},
 			rnnInputNoBNoH,
@@ -321,12 +321,14 @@ func rnnInputNoBNoH() []tensor.Tensor {
 	}
 }
 
-func RNNOnnxAttributeProtoFixture() []*onnx.AttributeProto {
-	return []*onnx.AttributeProto{
-		{Name: "activation_alpha", Floats: []float32{1.0}},
-		{Name: "activation_beta", Floats: []float32{2.0}},
-		{Name: "activations", Strings: [][]byte{[]byte("sigmoid")}},
-		{Name: "direction", S: []byte("forward")},
-		{Name: "hidden_size", I: 5},
+func RNNOnnxNodeProtoFixture() *onnx.NodeProto {
+	return &onnx.NodeProto{
+		Attribute: []*onnx.AttributeProto{
+			{Name: "activation_alpha", Floats: []float32{1.0}},
+			{Name: "activation_beta", Floats: []float32{2.0}},
+			{Name: "activations", Strings: [][]byte{[]byte("sigmoid")}},
+			{Name: "direction", S: []byte("forward")},
+			{Name: "hidden_size", I: 5},
+		},
 	}
 }

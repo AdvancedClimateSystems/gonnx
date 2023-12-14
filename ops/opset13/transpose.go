@@ -22,7 +22,9 @@ func newTranspose() ops.Operator {
 }
 
 // Init initializes the transpose operator.
-func (t *Transpose) Init(attributes []*onnx.AttributeProto) error {
+func (t *Transpose) Init(n *onnx.NodeProto) error {
+	attributes := n.GetAttribute()
+
 	if len(attributes) != 1 {
 		return ops.ErrInvalidAttributeCount(1, len(attributes), t)
 	}

@@ -60,7 +60,7 @@ func TestConstantInit(t *testing.T) {
 
 	for _, test := range tests {
 		constant := &Constant{}
-		err := constant.Init(test.initAttr)
+		err := constant.Init(&onnx.NodeProto{Attribute: test.initAttr})
 
 		assert.Equal(t, test.err, err)
 
@@ -104,7 +104,7 @@ func TestConstant(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		_ = test.constant.Init(test.initAttr)
+		_ = test.constant.Init(&onnx.NodeProto{Attribute: test.initAttr})
 		res, err := test.constant.Apply([]tensor.Tensor{})
 		assert.Nil(t, err)
 
@@ -114,7 +114,7 @@ func TestConstant(t *testing.T) {
 
 func TestConstantSingleIntShapeTensor(t *testing.T) {
 	constant := &Constant{}
-	err := constant.Init([]*onnx.AttributeProto{{Name: "value_ints", Ints: []int64{2}}})
+	err := constant.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "value_ints", Ints: []int64{2}}}})
 
 	assert.Nil(t, err)
 	assert.False(t, constant.value.IsScalar())

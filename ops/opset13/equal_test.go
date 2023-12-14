@@ -13,7 +13,7 @@ func TestEqualInit(t *testing.T) {
 
 	// since 'equal' does not have any attributes we pass in nil. This should not
 	// fail initializing the equal.
-	err := e.Init(nil)
+	err := e.Init(ops.EmptyNodeProto())
 	assert.Nil(t, err)
 }
 

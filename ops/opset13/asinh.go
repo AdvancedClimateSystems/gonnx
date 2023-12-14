@@ -17,7 +17,7 @@ func newAsinh() ops.Operator {
 }
 
 // Init initializes the asinh operator.
-func (a *Asinh) Init(_ []*onnx.AttributeProto) error {
+func (a *Asinh) Init(*onnx.NodeProto) error {
 	return nil
 }
 

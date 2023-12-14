@@ -20,7 +20,7 @@ func newGreater() ops.Operator {
 }
 
 // Init initializes the greater operator.
-func (g *Greater) Init(_ []*onnx.AttributeProto) error {
+func (g *Greater) Init(*onnx.NodeProto) error {
 	return nil
 }
 

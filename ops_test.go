@@ -26,10 +26,8 @@ import (
 var ignoredTests = []string{
 	"test_add_uint8",                    // Opset14
 	"test_div_uint8",                    // Opset14
-	"test_gru_defaults",                 // Opset14
 	"test_gru_batchwise",                // Opset14
-	"test_gru_seq_length",               // Opset14
-	"test_gru_with_initial_bias",        // Opset14
+	"test_lstm_batchwise",               // Opset14
 	"test_mul_uint8",                    // Opset14
 	"test_sub_uint8",                    // Opset14
 	"test_shape_clip_end",               // Opset15
@@ -48,6 +46,7 @@ var ignoredTests = []string{
 	"test_gemm_alpha",                           // For gemm in opset 11.
 	"test_gemm_default_no_bias",                 // For gemm in opset 11.
 	"test_gemm_default_scalar_bias",             // For gemm in opset 11.
+	"test_lstm_with_peepholes",                  // Sequence lens attribute is not supported yet.
 	"test_relu_expanded_ver18",                  // CastLike operator not implemented yet.
 	"test_softmax_default_axis_expanded_ver18",  // ReduceMax operator not implemented yet.
 	"test_softmax_axis_1_expanded_ver18",        // ReduceMax operator not implemented yet.
@@ -361,12 +360,17 @@ var expectedTests = []string{
 	"test_greater_equal_bcast",
 	"test_greater_equal_bcast_expanded",
 	"test_greater_equal_expanded",
+	"test_gru_defaults",
+	"test_gru_seq_length",
+	"test_gru_with_initial_bias",
 	"test_less",
 	"test_less_bcast",
 	"test_less_equal",
 	"test_less_equal_bcast",
 	"test_less_equal_bcast_expanded",
 	"test_less_equal_expanded",
+	"test_lstm_defaults",
+	"test_lstm_with_initial_bias",
 	"test_matmul_4d",
 	"test_matmul_3d",
 	"test_matmul_2d",

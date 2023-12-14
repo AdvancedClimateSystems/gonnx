@@ -20,7 +20,7 @@ func newLessOrEqual() ops.Operator {
 }
 
 // Init initializes the lessOrEqual operator.
-func (l *LessOrEqual) Init(_ []*onnx.AttributeProto) error {
+func (l *LessOrEqual) Init(*onnx.NodeProto) error {
 	return nil
 }
 

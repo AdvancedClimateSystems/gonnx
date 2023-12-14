@@ -20,7 +20,7 @@ func newSlice() ops.Operator {
 }
 
 // Init initializes the slice operator.
-func (s *Slice) Init(_ []*onnx.AttributeProto) error {
+func (s *Slice) Init(*onnx.NodeProto) error {
 	return nil
 }
 

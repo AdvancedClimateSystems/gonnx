@@ -17,7 +17,7 @@ func newAcosh() ops.Operator {
 }
 
 // Init initializes the acosh operator.
-func (c *Acosh) Init(_ []*onnx.AttributeProto) error {
+func (c *Acosh) Init(*onnx.NodeProto) error {
 	return nil
 }
 
