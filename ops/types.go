@@ -2,6 +2,7 @@ package ops
 
 import "gorgonia.org/tensor"
 
+// FloatType is a type that describes a float value. Can be either float32 or float64.
 type FloatType interface {
 	float32 | float64
 }
