@@ -17,9 +17,9 @@ const (
 type RNNDirection string
 
 const (
-	Forward       RNNDirection = "forward"
-	Reverse       RNNDirection = "reverse"
-	Bidirectional RNNDirection = "bidirectional"
+	forward       RNNDirection = "forward"
+	reverse       RNNDirection = "reverse"
+	bidirectional RNNDirection = "bidirectional"
 )
 
 // RNN represents the ONNX rnn operator.
@@ -35,7 +35,7 @@ type RNN struct {
 func newRNN() ops.Operator {
 	return &RNN{
 		activations: []string{"tanh"},
-		direction:   Forward,
+		direction:   forward,
 	}
 }
 
@@ -58,7 +58,7 @@ func (r *RNN) Init(attributes []*onnx.AttributeProto) error {
 			return ops.ErrUnsupportedAttribute(attr.GetName(), r)
 		case "direction":
 			r.direction = RNNDirection(attr.GetS())
-			if r.direction != Forward {
+			if r.direction != forward {
 				return ops.ErrUnsupportedAttribute(attr.GetName(), r)
 			}
 		case "hidden_size":
