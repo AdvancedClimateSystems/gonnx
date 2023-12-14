@@ -69,6 +69,8 @@ var ignoredTests = []string{
 	"test_slice_neg",                            // ONNX expects nil output, but we throw an error.
 	"test_transpose_default",                    // For transpose in opset 9.
 
+	"test_equal_string",                               // Unsupported datatype String.
+	"test_equal_string_broadcast",                     // Unsupported datatype String.
 	"test_cast_FLOAT_to_STRING",                       // Unsupported datatype STRING.
 	"test_cast_STRING_to_FLOAT",                       // Unsupported datatype STRING.
 	"test_cast_DOUBLE_to_FLOAT16",                     // Unsupported datatype FLOAT16.
@@ -136,6 +138,7 @@ func TestOps(t *testing.T) {
 				for outputName := range test.outputs {
 					expectedTensor := test.outputs[outputName]
 					actualTensor := outputs[outputName]
+
 					if expectedTensor.Dtype() == tensor.Bool {
 						assert.ElementsMatch(t, expectedTensor.Data(), actualTensor.Data())
 					} else {
@@ -338,6 +341,8 @@ var expectedTests = []string{
 	"test_div",
 	"test_div_bcast",
 	"test_div_example",
+	"test_equal",
+	"test_equal_bcast",
 	"test_gather_0",
 	"test_gather_1",
 	"test_gather_2d_indices",
@@ -350,6 +355,18 @@ var expectedTests = []string{
 	"test_gemm_default_zero_bias",
 	"test_gemm_beta",
 	"test_gemm_transposeB",
+	"test_greater",
+	"test_greater_bcast",
+	"test_greater_equal",
+	"test_greater_equal_bcast",
+	"test_greater_equal_bcast_expanded",
+	"test_greater_equal_expanded",
+	"test_less",
+	"test_less_bcast",
+	"test_less_equal",
+	"test_less_equal_bcast",
+	"test_less_equal_bcast_expanded",
+	"test_less_equal_expanded",
 	"test_matmul_4d",
 	"test_matmul_3d",
 	"test_matmul_2d",
