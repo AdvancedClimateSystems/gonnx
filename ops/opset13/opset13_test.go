@@ -164,6 +164,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"RNN",
+			newRNN(),
+			nil,
+		},
+		{
 			"Scaler",
 			newScaler(),
 			nil,

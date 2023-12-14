@@ -393,6 +393,7 @@ var expectedTests = []string{
 	"test_reshape_reordered_last_dims",
 	"test_reshape_zero_and_negative_dim",
 	"test_reshape_zero_dim",
+	"test_rnn_seq_length",
 	"test_shape",
 	"test_sin",
 	"test_sin_example",
