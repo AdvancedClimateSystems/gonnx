@@ -140,12 +140,9 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, ops.ErrTypeAssert("tensor.Tensor", Ht.Clone())
 	}
 
-	// Reshape the outputs so it adds the num_directions as specified by onnx.
-	// The output shape as specified by ONNX is:
-	//   (sequence_length, num_directions, batch_size, hidden_size)
-	// 'num_directions' is only '2' if the ops.SequenceProcessDirection is 'bidirectional'.
-	// We do not support this, so for this implementation it should always be '1'.
-	// Here, we reshape our output to include this 'num_directions' dimension.
+	// Reshape the hidden tensor without the bidirectional dimension, as
+	// we do not support bidirectional RNN yet. This is the dimension at
+	// index 0.
 	if err = Y.Reshape(seqLength, 1, batchSize, r.hiddenSize); err != nil {
 		return nil, err
 	}
