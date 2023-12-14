@@ -13,28 +13,28 @@ const (
 
 // PostTransformOption describes all possible post transform options for the
 // linear regressor operator.
-type PostTransformOption string
+type postTransformOption string
 
 const (
-	NoTransform          PostTransformOption = "NONE"
-	SoftmaxTransform     PostTransformOption = "SOFTMAX"
-	LogisticTransform    PostTransformOption = "LOGISTIC"
-	SoftmaxZeroTransform PostTransformOption = "SOFTMAX_ZERO"
-	ProbitTransform      PostTransformOption = "PROBIT"
+	noTransform          postTransformOption = "NONE"
+	softmaxTransform     postTransformOption = "SOFTMAX"
+	logisticTransform    postTransformOption = "LOGISTIC"
+	softmaxZeroTransform postTransformOption = "SOFTMAX_ZERO"
+	probitTransform      postTransformOption = "PROBIT"
 )
 
 // LinearRegressor represents the ONNX-ml linearRegressor operator.
 type LinearRegressor struct {
 	coefficients  tensor.Tensor
 	intercepts    tensor.Tensor
-	postTransform PostTransformOption
+	postTransform postTransformOption
 	targets       int
 }
 
 // newLinearRegressor creates a new linearRegressor operator.
 func newLinearRegressor() ops.Operator {
 	return &LinearRegressor{
-		postTransform: NoTransform,
+		postTransform: noTransform,
 		targets:       1,
 	}
 }
