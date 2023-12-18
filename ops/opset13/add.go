@@ -20,23 +20,18 @@ func newAdd() ops.Operator {
 }
 
 // Init initializes the add operator.
-func (a *Add) Init(_ []*onnx.AttributeProto) error {
+func (a *Add) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the add operator.
 func (a *Add) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	in1, in2, err := ops.MultidirectionalBroadcast(inputs[0], inputs[1])
-	if err != nil {
-		return nil, err
-	}
-
-	out, err := tensor.Add(in1, in2)
-	if err != nil {
-		return nil, err
-	}
-
-	return []tensor.Tensor{out}, nil
+	return ops.ApplyBinaryOperation(
+		inputs[0],
+		inputs[1],
+		ops.Add,
+		ops.MultidirectionalBroadcasting,
+	)
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.

@@ -11,7 +11,7 @@ import (
 
 func TestGemmInit(t *testing.T) {
 	gemm := Gemm{}
-	err := gemm.Init(GemmOnnxAttributeProtoFixture())
+	err := gemm.Init(GemmOnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
 	assert.Equal(t, float32(10.0), gemm.alpha)
@@ -22,7 +22,7 @@ func TestGemmInit(t *testing.T) {
 
 func TestGemmInitFail(t *testing.T) {
 	gemm := &Gemm{}
-	err := gemm.Init([]*onnx.AttributeProto{{Name: "unknownAttribute"}})
+	err := gemm.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "unknownAttribute"}}})
 
 	expected := ops.ErrInvalidAttribute("unknownAttribute", gemm)
 	assert.Equal(t, expected, err)
@@ -172,11 +172,13 @@ func TestInputValidationGemm(t *testing.T) {
 	}
 }
 
-func GemmOnnxAttributeProtoFixture() []*onnx.AttributeProto {
-	return []*onnx.AttributeProto{
-		{Name: "alpha", F: 10.0},
-		{Name: "beta", F: 0.98},
-		{Name: "transA", I: 1},
-		{Name: "transB", I: 1},
+func GemmOnnxNodeProtoFixture() *onnx.NodeProto {
+	return &onnx.NodeProto{
+		Attribute: []*onnx.AttributeProto{
+			{Name: "alpha", F: 10.0},
+			{Name: "beta", F: 0.98},
+			{Name: "transA", I: 1},
+			{Name: "transB", I: 1},
+		},
 	}
 }

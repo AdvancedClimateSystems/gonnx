@@ -18,7 +18,8 @@ func newConstant() ops.Operator {
 
 // Init initializes the constant operator. It supports all constant types except
 // `sparse_value`, `value_string`, and `value_strings`.
-func (c *Constant) Init(attributes []*onnx.AttributeProto) error {
+func (c *Constant) Init(n *onnx.NodeProto) error {
+	attributes := n.GetAttribute()
 	if len(attributes) != 1 {
 		return ops.ErrInvalidAttributeCount(1, len(attributes), c)
 	}

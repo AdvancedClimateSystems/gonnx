@@ -24,7 +24,9 @@ func newConstantOfShape() ops.Operator {
 }
 
 // Init initializes the constant of shape operator.
-func (c *ConstantOfShape) Init(attributes []*onnx.AttributeProto) error {
+func (c *ConstantOfShape) Init(n *onnx.NodeProto) error {
+	attributes := n.GetAttribute()
+
 	if len(attributes) > 1 {
 		return ops.ErrInvalidAttributeCount(1, len(attributes), c)
 	}

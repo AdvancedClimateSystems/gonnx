@@ -4,6 +4,14 @@ import (
 	"gorgonia.org/tensor"
 )
 
+type BroadcastType int
+
+const (
+	NoBroadcasting               BroadcastType = 0
+	UnidirectionalBroadcasting   BroadcastType = 1
+	MultidirectionalBroadcasting BroadcastType = 2
+)
+
 // UnidirectionalBroadcast tries to broadcast tensor B to tensor A according to the ONNX standards.
 func UnidirectionalBroadcast(A, B tensor.Tensor) (tensor.Tensor, tensor.Tensor, error) {
 	reshapedB, err := reshapeTensorsForUnidirBroadcast(A, B)

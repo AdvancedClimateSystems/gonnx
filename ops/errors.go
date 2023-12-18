@@ -266,3 +266,9 @@ func ErrConversionInvalidType(dType tensor.Dtype, newType int32) error {
 func ErrConversionNotSupported(dType int32) error {
 	return fmt.Errorf("%w: to %v is not supported yet", ErrConversion, dType)
 }
+
+var ErrActivationNotImplementedBase = errors.New("the given activation function is not implemented")
+
+func ErrActivationNotImplemented(activation string) error {
+	return fmt.Errorf("%w: %s", ErrActivationNotImplementedBase, activation)
+}

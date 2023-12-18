@@ -15,7 +15,7 @@ func newTanh() ops.Operator {
 }
 
 // Init initializes the sigmoid operator.
-func (t *Tanh) Init(_ []*onnx.AttributeProto) error {
+func (t *Tanh) Init(*onnx.NodeProto) error {
 	return nil
 }
 

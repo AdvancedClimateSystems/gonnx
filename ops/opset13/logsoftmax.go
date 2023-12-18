@@ -20,7 +20,9 @@ func newLogSoftmax() ops.Operator {
 }
 
 // Init initializes the logsoftmax operator.
-func (l *LogSoftmax) Init(attributes []*onnx.AttributeProto) error {
+func (l *LogSoftmax) Init(n *onnx.NodeProto) error {
+	attributes := n.GetAttribute()
+
 	nAttributes := len(attributes)
 	if nAttributes > 1 {
 		return ops.ErrInvalidAttributeCount(1, nAttributes, l)

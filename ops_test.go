@@ -12,6 +12,7 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops/opset13"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
+	"gorgonia.org/tensor"
 )
 
 // Currently we ignore some of tests provided by ONNX. This has to do with the
@@ -25,10 +26,8 @@ import (
 var ignoredTests = []string{
 	"test_add_uint8",                    // Opset14
 	"test_div_uint8",                    // Opset14
-	"test_gru_defaults",                 // Opset14
 	"test_gru_batchwise",                // Opset14
-	"test_gru_seq_length",               // Opset14
-	"test_gru_with_initial_bias",        // Opset14
+	"test_lstm_batchwise",               // Opset14
 	"test_mul_uint8",                    // Opset14
 	"test_sub_uint8",                    // Opset14
 	"test_shape_clip_end",               // Opset15
@@ -42,18 +41,35 @@ var ignoredTests = []string{
 	"test_shape_start_negative_1",       // Opset15
 	"test_reshape_allowzero_reordered",  // Opset14
 
-	"test_constant_pad",              // Pad is not implemented yet.
-	"test_constant_pad_axes",         // Pad is not implemented yet.
-	"test_gemm_alpha",                // For gemm in opset 11.
-	"test_gemm_default_no_bias",      // For gemm in opset 11.
-	"test_gemm_default_scalar_bias",  // For gemm in opset 11.
-	"test_relu_expanded_ver18",       // CastLike operator not implemented yet.
-	"test_slice_start_out_of_bounds", // ONNX expects nil output, but we throw an error.
-	"test_slice_end_out_of_bounds",   // ONNX expects nil output, but we throw an error.
-	"test_slice_neg_steps",           // ONNX expects nil output, but we throw an error.
-	"test_slice_neg",                 // ONNX expects nil output, but we throw an error.
-	"test_transpose_default",         // For transpose in opset 9.
+	"test_constant_pad",                         // Pad is not implemented yet.
+	"test_constant_pad_axes",                    // Pad is not implemented yet.
+	"test_gemm_alpha",                           // For gemm in opset 11.
+	"test_gemm_default_no_bias",                 // For gemm in opset 11.
+	"test_gemm_default_scalar_bias",             // For gemm in opset 11.
+	"test_lstm_with_peepholes",                  // Sequence lens attribute is not supported yet.
+	"test_relu_expanded_ver18",                  // CastLike operator not implemented yet.
+	"test_softmax_default_axis_expanded_ver18",  // ReduceMax operator not implemented yet.
+	"test_softmax_axis_1_expanded_ver18",        // ReduceMax operator not implemented yet.
+	"test_softmax_negative_axis_expanded_ver18", // ReduceMax operator not implemented yet.
+	"test_softmax_example_expanded_ver18",       // ReduceMax operator not implemented yet.
+	"test_softmax_axis_0_expanded_ver18",        // ReduceMax operator not implemented yet.
+	"test_softmax_large_number_expanded_ver18",  // ReduceMax operator not implemented yet.
+	"test_softmax_axis_2_expanded_ver18",        // ReduceMax operator not implemented yet.
+	"test_softmax_axis_0_expanded",              // ReduceMax operator not implemented yet.
+	"test_softmax_negative_axis_expanded",       // ReduceMax operator not implemented yet.
+	"test_softmax_large_number_expanded",        // ReduceMax operator not implemented yet.
+	"test_softmax_axis_1_expanded",              // ReduceMax operator not implemented yet.
+	"test_softmax_example_expanded",             // ReduceMax operator not implemented yet.
+	"test_softmax_axis_2_expanded",              // ReduceMax operator not implemented yet.
+	"test_softmax_default_axis_expanded",        // ReduceMax operator not implemented yet.
+	"test_slice_start_out_of_bounds",            // ONNX expects nil output, but we throw an error.
+	"test_slice_end_out_of_bounds",              // ONNX expects nil output, but we throw an error.
+	"test_slice_neg_steps",                      // ONNX expects nil output, but we throw an error.
+	"test_slice_neg",                            // ONNX expects nil output, but we throw an error.
+	"test_transpose_default",                    // For transpose in opset 9.
 
+	"test_equal_string",                               // Unsupported datatype String.
+	"test_equal_string_broadcast",                     // Unsupported datatype String.
 	"test_cast_FLOAT_to_STRING",                       // Unsupported datatype STRING.
 	"test_cast_STRING_to_FLOAT",                       // Unsupported datatype STRING.
 	"test_cast_DOUBLE_to_FLOAT16",                     // Unsupported datatype FLOAT16.
@@ -121,7 +137,12 @@ func TestOps(t *testing.T) {
 				for outputName := range test.outputs {
 					expectedTensor := test.outputs[outputName]
 					actualTensor := outputs[outputName]
-					assert.InDeltaSlice(t, expectedTensor.Data(), actualTensor.Data(), 0.00001)
+
+					if expectedTensor.Dtype() == tensor.Bool {
+						assert.ElementsMatch(t, expectedTensor.Data(), actualTensor.Data())
+					} else {
+						assert.InDeltaSlice(t, expectedTensor.Data(), actualTensor.Data(), 0.00001)
+					}
 				}
 			})
 
@@ -272,8 +293,25 @@ func readTestTensors(basePath, baseFile string, inputs []*onnx.ValueInfoProto) (
 // With this we check if we truly run all tests we expected from the integration test.
 var expectedTests = []string{
 	"test_abs",
+	"test_acos",
+	"test_acos_example",
+	"test_acosh",
+	"test_acosh_example",
 	"test_add",
 	"test_add_bcast",
+	"test_and_bcast3v1d",
+	"test_and_bcast3v2d",
+	"test_and_bcast4v2d",
+	"test_and_bcast4v3d",
+	"test_and_bcast4v4d",
+	"test_asin",
+	"test_asin_example",
+	"test_asinh",
+	"test_asinh_example",
+	"test_atan",
+	"test_atan_example",
+	"test_atanh",
+	"test_atanh_example",
 	"test_cast_DOUBLE_to_FLOAT",
 	"test_cast_FLOAT_to_DOUBLE",
 	"test_concat_1d_axis_0",
@@ -291,9 +329,19 @@ var expectedTests = []string{
 	"test_constant",
 	"test_constantofshape_float_ones",
 	"test_constantofshape_int_zeros",
+	"test_conv_with_autopad_same",
+	"test_conv_with_strides_and_asymmetric_padding",
+	"test_conv_with_strides_no_padding",
+	"test_conv_with_strides_padding",
+	"test_cos",
+	"test_cos_example",
+	"test_cosh",
+	"test_cosh_example",
 	"test_div",
 	"test_div_bcast",
 	"test_div_example",
+	"test_equal",
+	"test_equal_bcast",
 	"test_gather_0",
 	"test_gather_1",
 	"test_gather_2d_indices",
@@ -306,12 +354,37 @@ var expectedTests = []string{
 	"test_gemm_default_zero_bias",
 	"test_gemm_beta",
 	"test_gemm_transposeB",
+	"test_greater",
+	"test_greater_bcast",
+	"test_greater_equal",
+	"test_greater_equal_bcast",
+	"test_greater_equal_bcast_expanded",
+	"test_greater_equal_expanded",
+	"test_gru_defaults",
+	"test_gru_seq_length",
+	"test_gru_with_initial_bias",
+	"test_less",
+	"test_less_bcast",
+	"test_less_equal",
+	"test_less_equal_bcast",
+	"test_less_equal_bcast_expanded",
+	"test_less_equal_expanded",
+	"test_lstm_defaults",
+	"test_lstm_with_initial_bias",
 	"test_matmul_4d",
 	"test_matmul_3d",
 	"test_matmul_2d",
 	"test_mul",
 	"test_mul_bcast",
 	"test_mul_example",
+	"test_not_2d",
+	"test_not_3d",
+	"test_not_4d",
+	"test_or_bcast3v1d",
+	"test_or_bcast3v2d",
+	"test_or_bcast4v2d",
+	"test_or_bcast4v3d",
+	"test_or_bcast4v4d",
 	"test_prelu_broadcast",
 	"test_prelu_example",
 	"test_relu",
@@ -324,18 +397,32 @@ var expectedTests = []string{
 	"test_reshape_reordered_last_dims",
 	"test_reshape_zero_and_negative_dim",
 	"test_reshape_zero_dim",
+	"test_rnn_seq_length",
 	"test_shape",
+	"test_sin",
+	"test_sin_example",
 	"test_sigmoid_example",
 	"test_sigmoid",
+	"test_sinh",
+	"test_sinh_example",
 	"test_slice_negative_axes",
 	"test_slice_default_steps",
 	"test_slice",
 	"test_slice_default_axes",
+	"test_softmax_axis_0",
+	"test_softmax_axis_1",
+	"test_softmax_axis_2",
+	"test_softmax_default_axis",
 	"test_squeeze_negative_axes",
+	"test_softmax_example",
+	"test_softmax_large_number",
+	"test_softmax_negative_axis",
 	"test_squeeze",
 	"test_sub",
 	"test_sub_bcast",
 	"test_sub_example",
+	"test_tan",
+	"test_tan_example",
 	"test_tanh",
 	"test_tanh_example",
 	"test_transpose_all_permutations_2",
@@ -351,4 +438,9 @@ var expectedTests = []string{
 	"test_unsqueeze_three_axes",
 	"test_unsqueeze_two_axes",
 	"test_unsqueeze_unsorted_axes",
+	"test_xor_bcast3v1d",
+	"test_xor_bcast3v2d",
+	"test_xor_bcast4v2d",
+	"test_xor_bcast4v3d",
+	"test_xor_bcast4v4d",
 }

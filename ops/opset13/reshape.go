@@ -20,7 +20,7 @@ func newReshape() ops.Operator {
 }
 
 // Init initializes the reshape operator.
-func (r *Reshape) Init(_ []*onnx.AttributeProto) error {
+func (r *Reshape) Init(*onnx.NodeProto) error {
 	return nil
 }
 

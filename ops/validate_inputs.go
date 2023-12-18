@@ -4,16 +4,6 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// AllTypes is a type constraint which allows all types.
-var AllTypes = []tensor.Dtype{
-	tensor.Uint8, tensor.Uint16, tensor.Uint32, tensor.Uint64,
-	tensor.Int8, tensor.Int16, tensor.Int32, tensor.Int64,
-	tensor.Float32, tensor.Float64,
-	tensor.Complex64, tensor.Complex128,
-	tensor.String,
-	tensor.Bool,
-}
-
 // ValidateInputs validates if a list of nodes has enough (not too few or too many) nodes.
 // When there are fewer input nodes then the given max, the list is padded with nils.
 // Expects either 1 requirement ==> the expected number of inputs, or 2 requirements,
@@ -37,6 +27,7 @@ func ValidateInputs(op Operator, inputs []tensor.Tensor) ([]tensor.Tensor, error
 func checkNInputs(op Operator, inputs []tensor.Tensor) (int, error) {
 	nInputs := len(inputs)
 	padLength := 0
+
 	min := op.GetMinInputs()
 	max := op.GetMaxInputs()
 

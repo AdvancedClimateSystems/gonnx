@@ -15,7 +15,7 @@ func newSigmoid() ops.Operator {
 }
 
 // Init initializes the sigmoid operator.
-func (s *Sigmoid) Init(_ []*onnx.AttributeProto) error {
+func (s *Sigmoid) Init(*onnx.NodeProto) error {
 	return nil
 }
 
