@@ -82,6 +82,7 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	B := inputs[3]
 	if B == nil {
+		// 2 is the number of bias matrices required by ONNX definition.
 		nBiasMatrices := 2
 		B = ops.ZeroTensor(1, nBiasMatrices*r.hiddenSize)
 	}
@@ -103,9 +104,9 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	activation := ops.Activations[r.activations[0]]
-	if activation == nil {
-		return nil, ops.ErrUnsupportedAttribute("activations", r)
+	activation, err := ops.GetActivation(r.activations[0])
+	if err != nil {
+		return nil, err
 	}
 
 	outputs := []tensor.Tensor{}
@@ -139,12 +140,9 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, ops.ErrTypeAssert("tensor.Tensor", Ht.Clone())
 	}
 
-	// Reshape the outputs so it adds the num_directions as specified by onnx.
-	// The output shape as specified by ONNX is:
-	//   (sequence_length, num_directions, batch_size, hidden_size)
-	// 'num_directions' is only '2' if the RNNDirection is 'bidirectional'.
-	// We do not support this, so for this implementation it should always be '1'.
-	// Here, we reshape our output to include this 'num_directions' dimension.
+	// Reshape the hidden tensor without the bidirectional dimension, as
+	// we do not support bidirectional RNN yet. This is the dimension at
+	// index 0.
 	if err = Y.Reshape(seqLength, 1, batchSize, r.hiddenSize); err != nil {
 		return nil, err
 	}
@@ -222,6 +220,8 @@ func (r *RNN) layerCalculation(
 // getWeights returns the weights from a concatenated weight tensor. The result is
 // a single weight matrix. W has shape (num_directions, hidden_size, ...).
 // This function extracts 1 weight matrix from tensor W.
+// The W tensor, by GONNX definition, has 3 dimensions with 1 weight
+// tensor in it (2 if bidirectional, but that is not supported).
 func (r *RNN) getWeights(W tensor.Tensor) (tensor.Tensor, error) {
 	nWeightMatrices := 1
 	nWeightDimensions := 3
@@ -235,6 +235,8 @@ func (r *RNN) getWeights(W tensor.Tensor) (tensor.Tensor, error) {
 }
 
 // getBiases splits tensor B into 2 bias matrices.
+// The B tensor, by GONNX definition, has 2 dimensions with 2 bias
+// tensors in it (4 if bidirectional, but that is not supported).
 func (r *RNN) getBiases(B tensor.Tensor) (Wbi, Rbi tensor.Tensor, err error) {
 	nBiasMatrices := 2
 	nBiasDimensions := 2

@@ -3,6 +3,7 @@ package ops
 import (
 	"math/rand"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
 	"gorgonia.org/tensor"
 )
 
@@ -43,4 +44,9 @@ func TensorInputsFixture(nTensors int) []tensor.Tensor {
 	}
 
 	return result
+}
+
+// EmptyNodeProto returns a node proto with no attributes.
+func EmptyNodeProto() *onnx.NodeProto {
+	return &onnx.NodeProto{Attribute: []*onnx.AttributeProto{}}
 }

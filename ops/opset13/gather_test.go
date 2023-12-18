@@ -25,7 +25,7 @@ func TestGatherInit(t *testing.T) {
 
 func TestGatherInitDefault(t *testing.T) {
 	op := Gather{}
-	err := op.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{}})
+	err := op.Init(ops.EmptyNodeProto())
 	assert.NoError(t, err)
 	assert.Equal(t, op.axis, 0)
 }

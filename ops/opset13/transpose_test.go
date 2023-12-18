@@ -27,7 +27,7 @@ func TestTransposeInitFailWrongAttribute(t *testing.T) {
 
 func TestTransposeInitFailAttrCount(t *testing.T) {
 	trans := &Transpose{}
-	err := trans.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{}})
+	err := trans.Init(ops.EmptyNodeProto())
 
 	expected := ops.ErrInvalidAttributeCount(1, 0, trans)
 	assert.Equal(t, expected, err)

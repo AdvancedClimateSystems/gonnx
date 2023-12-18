@@ -19,7 +19,7 @@ func TestConcatInit(t *testing.T) {
 
 func TestConcatInitFail(t *testing.T) {
 	concat := &Concat{}
-	err := concat.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{}})
+	err := concat.Init(ops.EmptyNodeProto())
 
 	expected := ops.ErrInvalidAttributeCount(1, 0, concat)
 	assert.Equal(t, expected, err)

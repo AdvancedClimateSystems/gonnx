@@ -91,6 +91,7 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	B := inputs[3]
 	if B == nil {
+		// 8 is the number of bias matrices required by ONNX definition.
 		nBiasMatrices := 8
 		B = ops.ZeroTensor(1, nBiasMatrices*l.hiddenSize)
 	}
@@ -131,19 +132,19 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	fActivation := ops.Activations[l.activations[0]]
-	if fActivation == nil {
-		return nil, ops.ErrUnsupportedAttribute("activations", l)
+	fActivation, err := ops.GetActivation(l.activations[0])
+	if err != nil {
+		return nil, err
 	}
 
-	gActivation := ops.Activations[l.activations[1]]
+	gActivation, err := ops.GetActivation(l.activations[1])
 	if gActivation == nil {
-		return nil, ops.ErrUnsupportedAttribute("activations", l)
+		return nil, err
 	}
 
-	hActivation := ops.Activations[l.activations[2]]
-	if hActivation == nil {
-		return nil, ops.ErrUnsupportedAttribute("activations", l)
+	hActivation, err := ops.GetActivation(l.activations[2])
+	if err != nil {
+		return nil, err
 	}
 
 	outputs := []tensor.Tensor{}
@@ -207,12 +208,9 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, ops.ErrTypeAssert("tensor.Tensor", Ct.Clone())
 	}
 
-	// Reshape the outputs so it adds the num_directions as specified by onnx.
-	// The output shape as specified by ONNX is:
-	//   (sequence_length, num_directions, batch_size, hidden_size)
-	// 'num_directions' is only '2' if the LSTMDirection is 'bidirectional'.
-	// We do not support this, so for this implementation it should always be '1'.
-	// Here, we reshape our output to include this 'num_directions' dimension.
+	// Reshape the hidden tensor without the bidirectional dimension, as
+	// we do not support bidirectional RNN yet. This is the dimension at
+	// index 0.
 	if err = Y.Reshape(seqLength, 1, batchSize, l.hiddenSize); err != nil {
 		return nil, err
 	}
@@ -370,6 +368,8 @@ func (l *LSTM) hiddenCalculation(ot, Ct tensor.Tensor, activation ops.Activation
 }
 
 // getWeights splits tensor W into 4 weight matrices.
+// The W tensor, by GONNX definition, has 3 dimensions with 4 weight
+// tensors in it (8 if bidirectional, but that is not supported).
 func (l *LSTM) getWeights(W tensor.Tensor) (Wi, Wo, Wf, Wh tensor.Tensor, err error) {
 	nWeightMatrices := 4
 	nWeightDimensions := 3
@@ -383,6 +383,8 @@ func (l *LSTM) getWeights(W tensor.Tensor) (Wi, Wo, Wf, Wh tensor.Tensor, err er
 }
 
 // getBiases splits tensor B into 8 bias matrices.
+// The B tensor, by GONNX definition, has 2 dimensions with 8 bias
+// tensors in it (16 if bidirectional, but that is not supported).
 func (l *LSTM) getBiases(B tensor.Tensor) (Wbi, Wbo, Wbf, Wbc, Rbi, Rbo, Rbf, Rbc tensor.Tensor, err error) {
 	nBiasMatrices := 8
 	nBiasDimensions := 2
@@ -396,6 +398,8 @@ func (l *LSTM) getBiases(B tensor.Tensor) (Wbi, Wbo, Wbf, Wbc, Rbi, Rbo, Rbf, Rb
 }
 
 // getPeepholes splits tensor P into 3 bias matrices.
+// The P tensor, by GONNX definition, has 2 dimensions with 3 peephole
+// tensors in it (6 if bidirectional, but that is not supported).
 func (l *LSTM) getPeepholes(P tensor.Tensor) (Pi, Po, Pf tensor.Tensor, err error) {
 	nPeepholeMatrices := 3
 	nPeepholeDimensions := 2

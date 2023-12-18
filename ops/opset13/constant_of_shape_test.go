@@ -110,7 +110,7 @@ func TestConstantOfShapeEmptyInit(t *testing.T) {
 	op := &ConstantOfShape{}
 
 	// No init value given
-	err := op.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{}})
+	err := op.Init(ops.EmptyNodeProto())
 	assert.NoError(t, err)
 
 	assert.Equal(t, float32(0.0), op.value.Data())
@@ -144,7 +144,7 @@ func TestIncorrectInput(t *testing.T) {
 
 func TestNegativeShapeNotAllowed(t *testing.T) {
 	op := &ConstantOfShape{}
-	_ = op.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{}})
+	_ = op.Init(ops.EmptyNodeProto())
 
 	shape := []int64{1, -1}
 
@@ -160,7 +160,7 @@ func TestNegativeShapeNotAllowed(t *testing.T) {
 
 func TestEmptyTensorNotAllowed(t *testing.T) {
 	op := &ConstantOfShape{}
-	_ = op.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{}})
+	_ = op.Init(ops.EmptyNodeProto())
 
 	shape := []int64{0}
 
@@ -176,7 +176,7 @@ func TestEmptyTensorNotAllowed(t *testing.T) {
 
 func TestScalarShapeInput(t *testing.T) {
 	op := &ConstantOfShape{}
-	_ = op.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{}})
+	_ = op.Init(ops.EmptyNodeProto())
 
 	shape := []int64{6}
 	input := tensor.New(tensor.WithBacking(shape))
