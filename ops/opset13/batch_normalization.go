@@ -1,8 +1,6 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
@@ -168,7 +166,6 @@ func (b *BatchNormalization) reshapeTensors(X, scale, bias, mean, variance tenso
 }
 
 func (b *BatchNormalization) testModeCalculation(X, scale, bias, mean, variance tensor.Tensor) (tensor.Tensor, error) {
-	fmt.Println("joe")
 	newScale, newBias, newMean, newVariance, err := b.reshapeTensors(X, scale, bias, mean, variance)
 	if err != nil {
 		return nil, err

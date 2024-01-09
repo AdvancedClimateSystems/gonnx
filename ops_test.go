@@ -195,6 +195,8 @@ func shouldRunTest(folder, opFilter string) bool {
 		}
 	}
 
+	// For some reason ONNX decided to not let these testcases match the operator name.
+	// Here we manually replace the filter with the name ONNX uses for this test case.
 	if opFilter == "test_batchnormalization" {
 		opFilter = "test_batchnorm"
 	}
