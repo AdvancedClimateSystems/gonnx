@@ -1,6 +1,8 @@
 package opset13
 
 import (
+	"fmt"
+
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
@@ -16,8 +18,6 @@ type BatchNormalization struct {
 	epsilon  float32
 	momentum float32
 	testMode bool
-
-	outputs []string
 }
 
 // newBatchNormalization creates a new batchNormalization operator.
@@ -47,8 +47,6 @@ func (b *BatchNormalization) Init(n *onnx.NodeProto) error {
 		b.testMode = true
 	}
 
-	b.outputs = n.GetOutput()
-
 	return nil
 }
 
@@ -60,7 +58,17 @@ func (b *BatchNormalization) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, err
 	mean := inputs[3]
 	variance := inputs[4]
 
-	return []tensor.Tensor{}, nil
+	// We only support test mode, as this is by far the most common for inference models.
+	if !b.testMode {
+		return nil, ops.ErrUnsupportedAttribute("momentum", b)
+	}
+
+	out, err := b.testModeCalculation(X, scale, B, mean, variance)
+	if err != nil {
+		return nil, err
+	}
+
+	return []tensor.Tensor{out}, nil
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
@@ -160,6 +168,7 @@ func (b *BatchNormalization) reshapeTensors(X, scale, bias, mean, variance tenso
 }
 
 func (b *BatchNormalization) testModeCalculation(X, scale, bias, mean, variance tensor.Tensor) (tensor.Tensor, error) {
+	fmt.Println("joe")
 	newScale, newBias, newMean, newVariance, err := b.reshapeTensors(X, scale, bias, mean, variance)
 	if err != nil {
 		return nil, err
@@ -216,7 +225,4 @@ func (b *BatchNormalization) testModeCalculation(X, scale, bias, mean, variance 
 	}
 
 	return outputs[0], nil
-}
-
-func (b *BatchNormalization) trainModeCalculation(X, scale, bias, mean, variance tensor.Tensor) (y, saved_mean, saved_var, output_mean, output_var tensor.Tensor, err error) {
 }

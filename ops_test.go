@@ -24,22 +24,24 @@ import (
 // Another reason is that some tests require an opset version higher than we have currently
 // implemented, or lower, which we also haven't implemented yet.
 var ignoredTests = []string{
-	"test_add_uint8",                    // Opset14
-	"test_div_uint8",                    // Opset14
-	"test_gru_batchwise",                // Opset14
-	"test_lstm_batchwise",               // Opset14
-	"test_mul_uint8",                    // Opset14
-	"test_sub_uint8",                    // Opset14
-	"test_shape_clip_end",               // Opset15
-	"test_shape_clip_start",             // Opset15
-	"test_shape_end_1",                  // Opset15
-	"test_shape_end_negative_1",         // Opset15
-	"test_shape_example",                // Opset15
-	"test_shape_start_1",                // Opset15
-	"test_shape_start_1_end_2",          // Opset15
-	"test_shape_start_1_end_negative_1", // Opset15
-	"test_shape_start_negative_1",       // Opset15
-	"test_reshape_allowzero_reordered",  // Opset14
+	"test_add_uint8",                       // Opset14
+	"test_batchnorm_epsilon_training_mode", // Opset14
+	"test_batchnorm_example_training_mode", // Opset14
+	"test_div_uint8",                       // Opset14
+	"test_gru_batchwise",                   // Opset14
+	"test_lstm_batchwise",                  // Opset14
+	"test_mul_uint8",                       // Opset14
+	"test_sub_uint8",                       // Opset14
+	"test_shape_clip_end",                  // Opset15
+	"test_shape_clip_start",                // Opset15
+	"test_shape_end_1",                     // Opset15
+	"test_shape_end_negative_1",            // Opset15
+	"test_shape_example",                   // Opset15
+	"test_shape_start_1",                   // Opset15
+	"test_shape_start_1_end_2",             // Opset15
+	"test_shape_start_1_end_negative_1",    // Opset15
+	"test_shape_start_negative_1",          // Opset15
+	"test_reshape_allowzero_reordered",     // Opset14
 
 	"test_constant_pad",                         // Pad is not implemented yet.
 	"test_constant_pad_axes",                    // Pad is not implemented yet.
@@ -193,6 +195,10 @@ func shouldRunTest(folder, opFilter string) bool {
 		}
 	}
 
+	if opFilter == "test_batchnormalization" {
+		opFilter = "test_batchnorm"
+	}
+
 	if strings.Contains(folder, opFilter) {
 		remaining := strings.ReplaceAll(folder, opFilter, "")
 		if len(remaining) == 0 || remaining[:1] == "_" {
@@ -312,6 +318,8 @@ var expectedTests = []string{
 	"test_atan_example",
 	"test_atanh",
 	"test_atanh_example",
+	"test_batchnorm_epsilon",
+	"test_batchnorm_example",
 	"test_cast_DOUBLE_to_FLOAT",
 	"test_cast_FLOAT_to_DOUBLE",
 	"test_concat_1d_axis_0",

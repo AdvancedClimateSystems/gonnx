@@ -59,6 +59,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"BatchNormalization",
+			newBatchNormalization(),
+			nil,
+		},
+		{
 			"Cast",
 			newCast(),
 			nil,
