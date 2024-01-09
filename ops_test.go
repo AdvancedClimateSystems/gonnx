@@ -185,7 +185,6 @@ func getTestCasesForOp(opName string) ([]*ONNXTestCase, error) {
 
 	for _, testFolder := range testFolders {
 		if shouldRunTest(testFolder, opFilter) {
-			fmt.Println(testFolder)
 			testcase, err := getTestCase(fmt.Sprintf("./test_data/%v", testFolder))
 			if err != nil {
 				return nil, err
