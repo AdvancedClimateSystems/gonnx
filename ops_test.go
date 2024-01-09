@@ -72,6 +72,16 @@ var ignoredTests = []string{
 
 	"test_equal_string",                               // Unsupported datatype String.
 	"test_equal_string_broadcast",                     // Unsupported datatype String.
+	"test_cast_INT4_to_INT8",                          // Unsupported datatype INT4.
+	"test_cast_INT4_to_FLOAT",                         // Unsupported datatype INT4.
+	"test_cast_FLOAT_to_INT4",                         // Unsupported datatype INT4.
+	"test_cast_FLOAT_to_UINT4",                        // Unsupported datatype UINT4.
+	"test_cast_INT4_to_FLOAT16",                       // Unsupported datatype INT4/FLOAT16.
+	"test_cast_FLOAT16_to_UINT4",                      // Unsupported datatype FLOAT16.
+	"test_cast_FLOAT16_to_INT4",                       // Unsupported datatype FLOAT16.
+	"test_cast_UINT4_to_UINT8",                        // Unsupported datatype UINT4.
+	"test_cast_UINT4_to_FLOAT",                        // Unsupported datatype UINT4.
+	"test_cast_UINT4_to_FLOAT16",                      // Unsupported datatype UINT4.
 	"test_cast_FLOAT_to_STRING",                       // Unsupported datatype STRING.
 	"test_cast_STRING_to_FLOAT",                       // Unsupported datatype STRING.
 	"test_cast_DOUBLE_to_FLOAT16",                     // Unsupported datatype FLOAT16.
@@ -175,6 +185,7 @@ func getTestCasesForOp(opName string) ([]*ONNXTestCase, error) {
 
 	for _, testFolder := range testFolders {
 		if shouldRunTest(testFolder, opFilter) {
+			fmt.Println(testFolder)
 			testcase, err := getTestCase(fmt.Sprintf("./test_data/%v", testFolder))
 			if err != nil {
 				return nil, err
