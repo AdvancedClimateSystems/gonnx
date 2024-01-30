@@ -70,6 +70,16 @@ var ignoredTests = []string{
 
 	"test_equal_string",                               // Unsupported datatype String.
 	"test_equal_string_broadcast",                     // Unsupported datatype String.
+	"test_cast_INT4_to_INT8",                          // Unsupported datatype INT4.
+	"test_cast_INT4_to_FLOAT",                         // Unsupported datatype INT4.
+	"test_cast_FLOAT_to_INT4",                         // Unsupported datatype INT4.
+	"test_cast_FLOAT_to_UINT4",                        // Unsupported datatype UINT4.
+	"test_cast_INT4_to_FLOAT16",                       // Unsupported datatype INT4/FLOAT16.
+	"test_cast_FLOAT16_to_UINT4",                      // Unsupported datatype FLOAT16.
+	"test_cast_FLOAT16_to_INT4",                       // Unsupported datatype FLOAT16.
+	"test_cast_UINT4_to_UINT8",                        // Unsupported datatype UINT4.
+	"test_cast_UINT4_to_FLOAT",                        // Unsupported datatype UINT4.
+	"test_cast_UINT4_to_FLOAT16",                      // Unsupported datatype UINT4.
 	"test_cast_FLOAT_to_STRING",                       // Unsupported datatype STRING.
 	"test_cast_STRING_to_FLOAT",                       // Unsupported datatype STRING.
 	"test_cast_DOUBLE_to_FLOAT16",                     // Unsupported datatype FLOAT16.
@@ -342,6 +352,15 @@ var expectedTests = []string{
 	"test_div_example",
 	"test_equal",
 	"test_equal_bcast",
+	"test_flatten_axis0",
+	"test_flatten_axis1",
+	"test_flatten_axis2",
+	"test_flatten_axis3",
+	"test_flatten_default_axis",
+	"test_flatten_negative_axis1",
+	"test_flatten_negative_axis2",
+	"test_flatten_negative_axis3",
+	"test_flatten_negative_axis4",
 	"test_gather_0",
 	"test_gather_1",
 	"test_gather_2d_indices",

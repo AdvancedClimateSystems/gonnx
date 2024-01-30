@@ -4,8 +4,7 @@ VERSION=$(shell git describe --always --tags --dirty)
 LDFLAGS=-ldflags "-s -w -X main.Version=${VERSION}"
 TEST=$(shell go list ./... | grep -v /onnx/)
 
-BUILD_PARAMS=CGO_ENABLED=0
-GO1.19=ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.19
+BUILD_PARAMS=CGO_ENABLED=0 ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.21
 
 
 define echotask
@@ -33,19 +32,19 @@ lint: ## Run various linters.
 	@golangci-lint run --timeout=1m --config .golangci.yml
 
 test: ## Run tests using gotestsum.
-	@ ${GO1.19} gotestsum \
+	@ ${BUILD_PARAMS} gotestsum \
 	    --format=dots -- \
 	    -timeout=30000ms \
 	    -covermode=set \
 	    -coverprofile=.coverage.out ${TEST}
 
 test_ci: ## Run tests using normal test runner for ci output.
-	@ ${GO1.19} go test  \
+	@ ${BUILD_PARAMS} go test  \
 	    -coverprofile .coverage.out ${TEST} && go tool cover -func=.coverage.out
 
 test_data:  ## Creates test data from the ONNX test module.
 	rm -R ./test_data; mkdir ./test_data; touch ./test_data/
-	git clone https://github.com/onnx/onnx.git temp_onnx
+	git clone --depth 1 --branch v1.15.0 https://github.com/onnx/onnx.git temp_onnx
 	cp -r temp_onnx/onnx/backend/test/data/node/* ./test_data
 	rm -Rf temp_onnx
 
