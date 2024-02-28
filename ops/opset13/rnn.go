@@ -219,6 +219,7 @@ func (r *RNN) layerCalculation(
 
 // getWeights returns the weights from a concatenated weight tensor. The result is
 // a single weight matrix. W has shape (num_directions, hidden_size, ...).
+// This function extracts 1 weight matrix from tensor W.
 // The W tensor, by GONNX definition, has 3 dimensions with 1 weight
 // tensor in it (2 if bidirectional, but that is not supported).
 func (r *RNN) getWeights(W tensor.Tensor) (tensor.Tensor, error) {
