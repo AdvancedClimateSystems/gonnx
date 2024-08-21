@@ -246,15 +246,15 @@ func TestInputValidationRNN(t *testing.T) {
 }
 
 func rnnInput0() []tensor.Tensor {
-	rand.Seed(13)
+	r := rand.New(rand.NewSource(13))
 
 	return []tensor.Tensor{
 		// Input X: (sequence_length, batch_size, input_size).
-		ops.RandomFloat32TensorFixture(2, 1, 3),
+		ops.RandomFloat32TensorFixture(r, 2, 1, 3),
 		// Input W: (num_directions, hidden_size, input_size).
-		ops.RandomFloat32TensorFixture(1, 4, 3),
+		ops.RandomFloat32TensorFixture(r, 1, 4, 3),
 		// Input R: (num_directions, hidden_size, hidden_size).
-		ops.RandomFloat32TensorFixture(1, 4, 4),
+		ops.RandomFloat32TensorFixture(r, 1, 4, 4),
 		// Input B: (num_directions, 2 * hidden_size)
 		ops.TensorWithBackingFixture(ops.Zeros(ops.NElements(1, 8)), 1, 8),
 		// Input sequence_lens: not supported
@@ -265,15 +265,15 @@ func rnnInput0() []tensor.Tensor {
 }
 
 func rnnInput1() []tensor.Tensor {
-	rand.Seed(13)
+	r := rand.New(rand.NewSource(13))
 
 	return []tensor.Tensor{
 		// Input X: (sequence_length, batch_size, input_size).
-		ops.RandomFloat32TensorFixture(10, 3, 4),
+		ops.RandomFloat32TensorFixture(r, 10, 3, 4),
 		// Input W: (num_directions, hidden_size, input_size).
-		ops.RandomFloat32TensorFixture(1, 10, 4),
+		ops.RandomFloat32TensorFixture(r, 1, 10, 4),
 		// Input R: (num_directions, hidden_size, hidden_size).
-		ops.RandomFloat32TensorFixture(1, 10, 10),
+		ops.RandomFloat32TensorFixture(r, 1, 10, 10),
 		// Input B: (num_directions, 2 * hidden_size)
 		ops.TensorWithBackingFixture(ops.Zeros(ops.NElements(1, 20)), 1, 20),
 		// Input sequence_lens: not supported
@@ -284,15 +284,15 @@ func rnnInput1() []tensor.Tensor {
 }
 
 func rnnInputNoB() []tensor.Tensor {
-	rand.Seed(13)
+	r := rand.New(rand.NewSource(13))
 
 	return []tensor.Tensor{
 		// Input X: (sequence_length, batch_size, input_size).
-		ops.RandomFloat32TensorFixture(2, 1, 3),
+		ops.RandomFloat32TensorFixture(r, 2, 1, 3),
 		// Input W: (num_directions, hidden_size, input_size).
-		ops.RandomFloat32TensorFixture(1, 4, 3),
+		ops.RandomFloat32TensorFixture(r, 1, 4, 3),
 		// Input R: (num_directions, hidden_size, hidden_size).
-		ops.RandomFloat32TensorFixture(1, 4, 4),
+		ops.RandomFloat32TensorFixture(r, 1, 4, 4),
 		// Input B: not provided.
 		nil,
 		// Input sequence_lens: not supported
@@ -303,15 +303,15 @@ func rnnInputNoB() []tensor.Tensor {
 }
 
 func rnnInputNoBNoH() []tensor.Tensor {
-	rand.Seed(13)
+	r := rand.New(rand.NewSource(13))
 
 	return []tensor.Tensor{
 		// Input X: (sequence_length, batch_size, input_size).
-		ops.RandomFloat32TensorFixture(2, 1, 3),
+		ops.RandomFloat32TensorFixture(r, 2, 1, 3),
 		// Input W: (num_directions, hidden_size, input_size).
-		ops.RandomFloat32TensorFixture(1, 4, 3),
+		ops.RandomFloat32TensorFixture(r, 1, 4, 3),
 		// Input R: (num_directions, hidden_size, hidden_size).
-		ops.RandomFloat32TensorFixture(1, 4, 4),
+		ops.RandomFloat32TensorFixture(r, 1, 4, 4),
 		// Input B: not provided.
 		nil,
 		// Input sequence_lens: not supported
