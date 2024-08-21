@@ -48,7 +48,9 @@ func (r *ReduceMax) Init(attributes []*onnx.AttributeProto) error {
 
 // Apply applies the reduceMax operator.
 func (r *ReduceMax) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	out, err := tensor.Max(inputs[0], r.axes...)
+	input := tensor.New(tensor.WithBacking(inputs[0].Data()))
+
+	out, err := input.Max(r.axes...)
 	if err != nil {
 		return nil, err
 	}
