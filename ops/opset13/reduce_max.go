@@ -1,11 +1,14 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	MinReduceMaxAttributes = 1
+	MaxReduceMaxAttributes = 1
 )
 
 // ReduceMax represents the ONNX reduceMax operator.
@@ -23,9 +26,10 @@ func newReduceMax() ops.Operator {
 }
 
 // Init initializes the reduceMax operator.
-func (r *ReduceMax) Init(attributes []*onnx.AttributeProto) error {
-	if len(attributes) == 0 || len(attributes) > 2 {
-		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, r, "1 or 2", len(attributes))
+func (r *ReduceMax) Init(n *onnx.NodeProto) error {
+	attributes := n.GetAttribute()
+	if len(attributes) == 0 || len(attributes) > MaxReduceMaxAttributes {
+		return ops.ErrInvalidOptionalAttributeCount(MinReduceMaxAttributes, MaxReduceMaxAttributes, len(attributes), r)
 	}
 
 	for _, attr := range attributes {
@@ -35,11 +39,12 @@ func (r *ReduceMax) Init(attributes []*onnx.AttributeProto) error {
 			if err != nil {
 				return err
 			}
+
 			r.axes = axes
 		case "keepdims":
 			r.keepdims = int(attr.GetI())
 		default:
-			return fmt.Errorf(ops.UnknownAttributeErrTemplate, r, attr.GetName())
+			return ops.ErrInvalidAttribute(attr.GetName(), r)
 		}
 	}
 
