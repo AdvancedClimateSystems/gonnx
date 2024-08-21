@@ -1,11 +1,14 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	PReluMinInputs = 2
+	PReluMaxInputs = 2
 )
 
 // PRelu represents the ONNX prelu operator.
@@ -17,15 +20,16 @@ func newPRelu() ops.Operator {
 }
 
 // Init initializes the prelu operator.
-func (op *PRelu) Init(attributes []*onnx.AttributeProto) error {
+func (op *PRelu) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the prelu operator.
 func (op *PRelu) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+	var err error
+
 	x, slope := inputs[0], inputs[1]
 
-	var err error
 	x, slope, err = ops.UnidirectionalBroadcast(x, slope)
 	if err != nil {
 		return nil, err
@@ -35,19 +39,23 @@ func (op *PRelu) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	switch x.Dtype() {
 	case tensor.Float32:
-		calcPRelu(y.Data().([]float32), x.Data().([]float32), slope.Data().([]float32))
+		err = calcPRelu[float32](y.Data(), x.Data(), slope.Data())
 	case tensor.Float64:
-		calcPRelu(y.Data().([]float64), x.Data().([]float64), slope.Data().([]float64))
+		err = calcPRelu[float64](y.Data(), x.Data(), slope.Data())
 	case tensor.Uint32:
-		calcPRelu(y.Data().([]uint32), x.Data().([]uint32), slope.Data().([]uint32))
+		err = calcPRelu[uint32](y.Data(), x.Data(), slope.Data())
 	case tensor.Uint64:
-		calcPRelu(y.Data().([]uint64), x.Data().([]uint64), slope.Data().([]uint64))
+		err = calcPRelu[uint64](y.Data(), x.Data(), slope.Data())
 	case tensor.Int32:
-		calcPRelu(y.Data().([]int32), x.Data().([]int32), slope.Data().([]int32))
+		err = calcPRelu[int32](y.Data(), x.Data(), slope.Data())
 	case tensor.Int64:
-		calcPRelu(y.Data().([]int64), x.Data().([]int64), slope.Data().([]int64))
+		err = calcPRelu[int64](y.Data(), x.Data(), slope.Data())
 	default:
-		return nil, fmt.Errorf("%v: unsupported type %v", op, x.Dtype())
+		return nil, ops.ErrInvalidInputType(0, x.Dtype().String(), op)
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	return []tensor.Tensor{y}, nil
@@ -62,7 +70,7 @@ func (op *PRelu) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 
 	x, slope := inputs[0], inputs[1]
 	if x.Dtype() != slope.Dtype() {
-		return nil, fmt.Errorf("%v: type of slope (%s) does not match type of X (%s)", op, slope.Dtype(), x.Dtype())
+		return nil, ops.ErrInvalidTensor("DType of 'slope' does not match DType of 'x'", op)
 	}
 
 	return inputs, nil
@@ -70,12 +78,12 @@ func (op *PRelu) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (op *PRelu) GetMinInputs() int {
-	return 2
+	return PReluMinInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (op *PRelu) GetMaxInputs() int {
-	return 2
+	return PReluMaxInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
@@ -92,11 +100,35 @@ func (op *PRelu) String() string {
 	return "prelu operator"
 }
 
-func calcPRelu[T float32 | float64 | uint32 | uint64 | int32 | int64](result []T, input []T, slope []T) {
-	for i, v := range input {
-		if v < 0 {
-			v = slope[i] * v
-		}
-		result[i] = v
+func calcPRelu[T float32 | float64 | uint32 | uint64 | int32 | int64](result any, input any, slope any) error {
+	var convertedResult []T
+
+	var convertedInput []T
+
+	var convertedSlope []T
+
+	convertedResult, ok := result.([]T)
+	if !ok {
+		return ops.ErrTypeAssert("numeric list", result)
 	}
+
+	convertedInput, ok = input.([]T)
+	if !ok {
+		return ops.ErrTypeAssert("numeric list", input)
+	}
+
+	convertedSlope, ok = slope.([]T)
+	if !ok {
+		return ops.ErrTypeAssert("numeric list", slope)
+	}
+
+	for i, v := range convertedInput {
+		if v < 0 {
+			v = convertedSlope[i] * v
+		}
+
+		convertedResult[i] = v
+	}
+
+	return nil
 }

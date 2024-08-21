@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -20,8 +19,43 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Acos",
+			newAcos(),
+			nil,
+		},
+		{
+			"Acosh",
+			newAcosh(),
+			nil,
+		},
+		{
 			"Add",
 			newAdd(),
+			nil,
+		},
+		{
+			"And",
+			newAnd(),
+			nil,
+		},
+		{
+			"Atan",
+			newAtan(),
+			nil,
+		},
+		{
+			"Atanh",
+			newAtanh(),
+			nil,
+		},
+		{
+			"Asin",
+			newAsin(),
+			nil,
+		},
+		{
+			"Asinh",
+			newAsinh(),
 			nil,
 		},
 		{
@@ -45,8 +79,33 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Conv",
+			newConv(),
+			nil,
+		},
+		{
+			"Cos",
+			newCos(),
+			nil,
+		},
+		{
+			"Cosh",
+			newCosh(),
+			nil,
+		},
+		{
 			"Div",
 			newDiv(),
+			nil,
+		},
+		{
+			"Equal",
+			newEqual(),
+			nil,
+		},
+		{
+			"Flatten",
+			newFlatten(),
 			nil,
 		},
 		{
@@ -60,8 +119,23 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Greater",
+			newGreater(),
+			nil,
+		},
+		{
+			"GreaterOrEqual",
+			newGreaterOrEqual(),
+			nil,
+		},
+		{
 			"GRU",
 			newGRU(),
+			nil,
+		},
+		{
+			"LSTM",
+			newLSTM(),
 			nil,
 		},
 		{
@@ -75,6 +149,21 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Not",
+			newNot(),
+			nil,
+		},
+		{
+			"Or",
+			newOr(),
+			nil,
+		},
+		{
+			"PRelu",
+			newPRelu(),
+			nil,
+		},
+		{
 			"Relu",
 			newRelu(),
 			nil,
@@ -82,6 +171,11 @@ func TestGetOperator(t *testing.T) {
 		{
 			"Reshape",
 			newReshape(),
+			nil,
+		},
+		{
+			"RNN",
+			newRNN(),
 			nil,
 		},
 		{
@@ -100,8 +194,23 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Sin",
+			newSin(),
+			nil,
+		},
+		{
+			"Sinh",
+			newSinh(),
+			nil,
+		},
+		{
 			"Slice",
 			newSlice(),
+			nil,
+		},
+		{
+			"Softmax",
+			newSoftmax(),
 			nil,
 		},
 		{
@@ -112,6 +221,11 @@ func TestGetOperator(t *testing.T) {
 		{
 			"Sub",
 			newSub(),
+			nil,
+		},
+		{
+			"Tan",
+			newTan(),
 			nil,
 		},
 		{
@@ -130,9 +244,14 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Xor",
+			newXor(),
+			nil,
+		},
+		{
 			"NotYetImplemented",
 			nil,
-			fmt.Errorf(ops.UnknowOpTypeErrTemplate, "NotYetImplemented"),
+			ops.ErrUnknownOperatorType("NotYetImplemented"),
 		},
 	}
 

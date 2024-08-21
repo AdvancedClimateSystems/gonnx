@@ -15,13 +15,14 @@ func newSigmoid() ops.Operator {
 }
 
 // Init initializes the sigmoid operator.
-func (s *Sigmoid) Init(attributes []*onnx.AttributeProto) error {
+func (s *Sigmoid) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply the sigmoid operator to the input node.
 func (s *Sigmoid) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	out, err := ops.Sigmoid(inputs[0])
+
 	return []tensor.Tensor{out}, err
 }
 

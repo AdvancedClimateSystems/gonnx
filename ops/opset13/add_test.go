@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -54,7 +53,6 @@ func TestAdd(t *testing.T) {
 		res, err := test.add.Apply(inputs)
 		assert.Nil(t, err)
 
-		assert.Nil(t, err)
 		assert.Equal(t, test.expected, res[0].Data())
 	}
 }
@@ -67,16 +65,7 @@ func TestAddFail(t *testing.T) {
 
 	add := &Add{}
 	_, err := add.Apply(inputs)
-	assert.Equal(
-		t,
-		err,
-		fmt.Errorf(
-			ops.MultidirBroadcastErrTemplate,
-			[]int{2, 2},
-			[]int{3},
-			"incompatible dimensions",
-		),
-	)
+	assert.Equal(t, err, ops.ErrMultidirBroadcast(inputs[0].Shape(), inputs[1].Shape(), ops.ErrIncompatibleDimensions()))
 }
 
 func TestInputValidationAdd(t *testing.T) {
@@ -130,14 +119,14 @@ func TestInputValidationAdd(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			fmt.Errorf("add operator: expected 2 input tensors, got 1"),
+			ops.ErrInvalidInputCount(1, &Add{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			fmt.Errorf("add operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Add{}),
 		},
 	}
 
@@ -146,6 +135,7 @@ func TestInputValidationAdd(t *testing.T) {
 		validated, err := add.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}

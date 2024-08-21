@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -12,7 +11,7 @@ import (
 
 func TestScalerInit(t *testing.T) {
 	scaler := &Scaler{}
-	err := scaler.Init(ScalerOnnxAttributeProtoFixture())
+	err := scaler.Init(ScalerOnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
 	assert.Equal(t, []float32{1.5, 2.5, 3.5}, scaler.offset.Data())
@@ -21,17 +20,17 @@ func TestScalerInit(t *testing.T) {
 
 func TestScalerInitFailWrongAttribute(t *testing.T) {
 	scaler := &Scaler{}
-	err := scaler.Init([]*onnx.AttributeProto{{Name: "unknownAttribute"}, {Name: "Another"}})
+	err := scaler.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "unknownAttribute"}, {Name: "Another"}}})
 
-	expected := fmt.Errorf(ops.UnknownAttributeErrTemplate, scaler, "unknownAttribute")
+	expected := ops.ErrInvalidAttribute("unknownAttribute", scaler)
 	assert.Equal(t, expected, err)
 }
 
 func TestScalerInitFailAttrCount(t *testing.T) {
 	scaler := &Scaler{}
-	err := scaler.Init([]*onnx.AttributeProto{})
+	err := scaler.Init(ops.EmptyNodeProto())
 
-	expected := fmt.Errorf(ops.InvalidAttrCountErrTemplate, scaler, 2, 0)
+	expected := ops.ErrInvalidAttributeCount(2, 0, scaler)
 	assert.Equal(t, expected, err)
 }
 
@@ -109,11 +108,11 @@ func TestInputValidationScaler(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			fmt.Errorf("scaler operator: expected 1 input tensors, got 0"),
+			ops.ErrInvalidInputCount(0, &Scaler{}),
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			fmt.Errorf("scaler operator: input 0 does not allow type int"),
+			ops.ErrInvalidInputType(0, "int", &Scaler{}),
 		},
 	}
 
@@ -122,15 +121,18 @@ func TestInputValidationScaler(t *testing.T) {
 		validated, err := scaler.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
+
 		if test.err == nil {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
 }
 
-func ScalerOnnxAttributeProtoFixture() []*onnx.AttributeProto {
-	return []*onnx.AttributeProto{
-		{Name: "offset", Floats: []float32{1.5, 2.5, 3.5}},
-		{Name: "scale", Floats: []float32{0.5, 1.0, 2.0}},
+func ScalerOnnxNodeProtoFixture() *onnx.NodeProto {
+	return &onnx.NodeProto{
+		Attribute: []*onnx.AttributeProto{
+			{Name: "offset", Floats: []float32{1.5, 2.5, 3.5}},
+			{Name: "scale", Floats: []float32{0.5, 1.0, 2.0}},
+		},
 	}
 }

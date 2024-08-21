@@ -1,11 +1,14 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
+)
+
+const (
+	ReshapeMinInputs = 2
+	ReshapeMaxInputs = 2
 )
 
 // Reshape represents the ONNX reshape operator.
@@ -17,13 +20,14 @@ func newReshape() ops.Operator {
 }
 
 // Init initializes the reshape operator.
-func (r *Reshape) Init(attributes []*onnx.AttributeProto) error {
+func (r *Reshape) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the reshape operator.
 func (r *Reshape) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	t := inputs[0]
+
 	newShape, err := ops.AnyToIntSlice(ops.IfScalarToSlice(inputs[1].Data().([]int64)))
 	if err != nil {
 		return nil, err
@@ -34,8 +38,13 @@ func (r *Reshape) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	out := t.Clone().(tensor.Tensor)
+	out, ok := t.Clone().(tensor.Tensor)
+	if !ok {
+		return nil, ops.ErrTypeAssert("tensor.Tensor", t.Clone())
+	}
+
 	err = out.Reshape(newShape...)
+
 	return []tensor.Tensor{out}, err
 }
 
@@ -46,12 +55,12 @@ func (r *Reshape) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
 func (r *Reshape) GetMinInputs() int {
-	return 2
+	return ReshapeMinInputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
 func (r *Reshape) GetMaxInputs() int {
-	return 2
+	return ReshapeMaxInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
@@ -69,8 +78,9 @@ func processShape(newShape, currentShape []int) error {
 	for i := 0; i < len(newShape); i++ {
 		if newShape[i] == 0 {
 			if i >= len(currentShape) {
-				return fmt.Errorf("could not infer dim size")
+				return ops.ErrDimension("could not infer dim size")
 			}
+
 			newShape[i] = currentShape[i]
 		}
 	}
@@ -82,19 +92,21 @@ func processShape(newShape, currentShape []int) error {
 		// When encountering a -1 dim size, calculate which size this should be.
 		if newShape[i] == -1 {
 			remainingSize := totalSize
+
 			for j := 0; j < len(newShape); j++ {
 				if j == i {
 					continue
 				}
 
 				if newShape[j] == -1 {
-					return fmt.Errorf("At most one -1 dim size is allowed")
+					return ops.ErrDimension("at most one -1 dim size is allowed")
 				}
 
 				remainingSize /= newShape[j]
 			}
 
 			newShape[i] = remainingSize
+
 			break
 		}
 	}

@@ -1,8 +1,6 @@
 package opset13
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
@@ -20,20 +18,23 @@ func newConstant() ops.Operator {
 
 // Init initializes the constant operator. It supports all constant types except
 // `sparse_value`, `value_string`, and `value_strings`.
-func (c *Constant) Init(attributes []*onnx.AttributeProto) error {
+func (c *Constant) Init(n *onnx.NodeProto) error {
+	attributes := n.GetAttribute()
 	if len(attributes) != 1 {
-		return fmt.Errorf(ops.InvalidAttrCountErrTemplate, c, 1, len(attributes))
+		return ops.ErrInvalidAttributeCount(1, len(attributes), c)
 	}
+
 	attr := attributes[0]
 
 	switch attr.GetName() {
 	case "sparse_value", "value_string", "value_strings":
-		return fmt.Errorf(ops.UnsupportedAttrErrTemplate, c, attr.GetName())
+		return ops.ErrUnsupportedAttribute(attr.GetName(), c)
 	case "value":
 		t, err := onnx.TensorFromProto(attr.GetT())
 		if err != nil {
 			return err
 		}
+
 		c.value = t
 	case "value_float":
 		c.value = tensor.New(tensor.FromScalar(attr.GetF()))
@@ -46,14 +47,14 @@ func (c *Constant) Init(attributes []*onnx.AttributeProto) error {
 		ints := attr.GetInts()
 		c.value = tensor.New(tensor.WithShape(len(ints)), tensor.WithBacking(ints))
 	default:
-		return fmt.Errorf(ops.UnknownAttributeErrTemplate, c, attr.GetName())
+		return ops.ErrUnsupportedAttribute(attr.GetName(), c)
 	}
 
 	return nil
 }
 
 // Apply applies the constant operator.
-func (c *Constant) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *Constant) Apply(_ []tensor.Tensor) ([]tensor.Tensor, error) {
 	return []tensor.Tensor{c.value}, nil
 }
 
