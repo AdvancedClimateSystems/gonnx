@@ -280,17 +280,17 @@ func TestInputValidationLSTM(t *testing.T) {
 }
 
 func lstmInput0() []tensor.Tensor {
-	rand.Seed(10)
+	r := rand.New(rand.NewSource(10))
 
 	return []tensor.Tensor{
 		// Input X: (sequence_length, batch_size, input_size).
-		ops.RandomFloat32TensorFixture(2, 1, 3),
+		ops.RandomFloat32TensorFixture(r, 2, 1, 3),
 		// Input W: (num_directions, 4 * hidden_size, input_size).
-		ops.RandomFloat32TensorFixture(1, 16, 3),
+		ops.RandomFloat32TensorFixture(r, 1, 16, 3),
 		// Input R: (num_directions, 4 * hidden_size, hidden_size).
-		ops.RandomFloat32TensorFixture(1, 16, 4),
+		ops.RandomFloat32TensorFixture(r, 1, 16, 4),
 		// Input B: (num_directions, 8 * hidden_size).
-		ops.RandomFloat32TensorFixture(1, 32),
+		ops.RandomFloat32TensorFixture(r, 1, 32),
 		// Input sequence_lens: not supported.
 		nil,
 		// Input initial_h: (num_directions, batch_size, hidden_size).
@@ -303,38 +303,38 @@ func lstmInput0() []tensor.Tensor {
 }
 
 func lstmInput1() []tensor.Tensor {
-	rand.Seed(11)
+	r := rand.New(rand.NewSource(11))
 
 	return []tensor.Tensor{
 		// Input X: (sequence_length, batch_size, input_size).
-		ops.RandomFloat32TensorFixture(10, 1, 3),
+		ops.RandomFloat32TensorFixture(r, 10, 1, 3),
 		// Input W: (num_directions, 4 * hidden_size, input_size).
-		ops.RandomFloat32TensorFixture(1, 16, 3),
+		ops.RandomFloat32TensorFixture(r, 1, 16, 3),
 		// Input R: (num_directions, 4 * hidden_size, hidden_size).
-		ops.RandomFloat32TensorFixture(1, 16, 4),
+		ops.RandomFloat32TensorFixture(r, 1, 16, 4),
 		// Input B: (num_directions, 8 * hidden_size).
-		ops.RandomFloat32TensorFixture(1, 32),
+		ops.RandomFloat32TensorFixture(r, 1, 32),
 		// Input sequence_lens: not supported.
 		nil,
 		// Input initial_h: (num_directions, batch_size, hidden_size).
-		ops.RandomFloat32TensorFixture(1, 1, 4),
+		ops.RandomFloat32TensorFixture(r, 1, 1, 4),
 		// Input initial_c: (num_directions, batch_size, hidden_size).
-		ops.RandomFloat32TensorFixture(1, 1, 4),
+		ops.RandomFloat32TensorFixture(r, 1, 1, 4),
 		// Input P: peephole weights.
 		nil,
 	}
 }
 
 func lstmInputNoBNoH() []tensor.Tensor {
-	rand.Seed(12)
+	r := rand.New(rand.NewSource(12))
 
 	return []tensor.Tensor{
 		// Input X: (sequence_length, batch_size, input_size).
-		ops.RandomFloat32TensorFixture(10, 1, 3),
+		ops.RandomFloat32TensorFixture(r, 10, 1, 3),
 		// Input W: (num_directions, 4 * hidden_size, input_size).
-		ops.RandomFloat32TensorFixture(1, 16, 3),
+		ops.RandomFloat32TensorFixture(r, 1, 16, 3),
 		// Input R: (num_directions, 4 * hidden_size, hidden_size).
-		ops.RandomFloat32TensorFixture(1, 16, 4),
+		ops.RandomFloat32TensorFixture(r, 1, 16, 4),
 		// Input B.
 		nil,
 		// Input sequence_lens: not supported.
@@ -349,15 +349,15 @@ func lstmInputNoBNoH() []tensor.Tensor {
 }
 
 func lstmInputPeepholes() []tensor.Tensor {
-	rand.Seed(13)
+	r := rand.New(rand.NewSource(13))
 
 	return []tensor.Tensor{
 		// Input X: (sequence_length, batch_size, input_size).
-		ops.RandomFloat32TensorFixture(10, 1, 3),
+		ops.RandomFloat32TensorFixture(r, 10, 1, 3),
 		// Input W: (num_directions, 4 * hidden_size, input_size).
-		ops.RandomFloat32TensorFixture(1, 16, 3),
+		ops.RandomFloat32TensorFixture(r, 1, 16, 3),
 		// Input R: (num_directions, 4 * hidden_size, hidden_size).
-		ops.RandomFloat32TensorFixture(1, 16, 4),
+		ops.RandomFloat32TensorFixture(r, 1, 16, 4),
 		// Input B.
 		nil,
 		// Input sequence_lens: not supported.
@@ -367,7 +367,7 @@ func lstmInputPeepholes() []tensor.Tensor {
 		// Input initial_c.
 		nil,
 		// Input P: (num_directions, 3 * hidden_size).
-		ops.RandomFloat32TensorFixture(1, 12),
+		ops.RandomFloat32TensorFixture(r, 1, 12),
 	}
 }
 
