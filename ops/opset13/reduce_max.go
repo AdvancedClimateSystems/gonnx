@@ -55,14 +55,24 @@ func (r *ReduceMax) Init(n *onnx.NodeProto) error {
 func (r *ReduceMax) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	input := tensor.New(tensor.WithBacking(inputs[0].Data()), tensor.WithShape(inputs[0].Shape()...))
 
-	out, err := input.Max(r.axes...)
+	axes := make([]int, len(r.axes))
+	for i, axis := range r.axes {
+		// Convert negative dimensions.
+		if axis < 0 {
+			axis = len(input.Shape()) + axis
+		}
+
+		axes[i] = axis
+	}
+
+	out, err := input.Max(axes...)
 	if err != nil {
 		return nil, err
 	}
 
 	if r.keepdims {
 		newShape := input.Shape()
-		for _, axes := range r.axes {
+		for _, axes := range axes {
 			newShape[axes] = 1
 		}
 

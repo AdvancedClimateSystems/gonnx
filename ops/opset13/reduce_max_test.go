@@ -129,6 +129,13 @@ func TestReduceMax(t *testing.T) {
 			[]float32{5, 11},
 			[]int{2, 1, 1},
 		},
+		{
+			&ReduceMax{axes: []int{-1}, keepdims: true},
+			[]float32{0, 1, 2, 3},
+			[]int{2, 2},
+			[]float32{1, 3},
+			[]int{2, 1},
+		},
 	}
 
 	for _, test := range tests {
