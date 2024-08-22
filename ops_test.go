@@ -24,22 +24,31 @@ import (
 // Another reason is that some tests require an opset version higher than we have currently
 // implemented, or lower, which we also haven't implemented yet.
 var ignoredTests = []string{
-	"test_add_uint8",                    // Opset14
-	"test_div_uint8",                    // Opset14
-	"test_gru_batchwise",                // Opset14
-	"test_lstm_batchwise",               // Opset14
-	"test_mul_uint8",                    // Opset14
-	"test_sub_uint8",                    // Opset14
-	"test_shape_clip_end",               // Opset15
-	"test_shape_clip_start",             // Opset15
-	"test_shape_end_1",                  // Opset15
-	"test_shape_end_negative_1",         // Opset15
-	"test_shape_example",                // Opset15
-	"test_shape_start_1",                // Opset15
-	"test_shape_start_1_end_2",          // Opset15
-	"test_shape_start_1_end_negative_1", // Opset15
-	"test_shape_start_negative_1",       // Opset15
-	"test_reshape_allowzero_reordered",  // Opset14
+	"test_add_uint8",                                 // Opset14
+	"test_div_uint8",                                 // Opset14
+	"test_gru_batchwise",                             // Opset14
+	"test_lstm_batchwise",                            // Opset14
+	"test_mul_uint8",                                 // Opset14
+	"test_reduce_max_do_not_keepdims_random",         // Opset18
+	"test_reduce_max_keepdims_random",                // Opset18
+	"test_reduce_max_default_axes_keepdims_random",   // Opset18
+	"test_reduce_max_do_not_keepdims_example",        // Opset18
+	"test_reduce_max_default_axes_keepdim_example",   // Opset18
+	"test_reduce_max_negative_axes_keepdims_random",  // Opset18
+	"test_reduce_max_negative_axes_keepdims_example", // Opset18
+	"test_reduce_max_bool_inputs",                    // Opset20
+	"test_reduce_max_keepdims_example",               // Opset18
+	"test_sub_uint8",                                 // Opset14
+	"test_shape_clip_end",                            // Opset15
+	"test_shape_clip_start",                          // Opset15
+	"test_shape_end_1",                               // Opset15
+	"test_shape_end_negative_1",                      // Opset15
+	"test_shape_example",                             // Opset15
+	"test_shape_start_1",                             // Opset15
+	"test_shape_start_1_end_2",                       // Opset15
+	"test_shape_start_1_end_negative_1",              // Opset15
+	"test_shape_start_negative_1",                    // Opset15
+	"test_reshape_allowzero_reordered",               // Opset14
 
 	"test_constant_pad",                         // Pad is not implemented yet.
 	"test_constant_pad_axes",                    // Pad is not implemented yet.
@@ -167,7 +176,14 @@ func TestOps(t *testing.T) {
 }
 
 func getTestCasesForOp(opName string) ([]*ONNXTestCase, error) {
-	opFilter := fmt.Sprintf("test_%v", strings.ToLower(opName))
+	testOpName := strings.ToLower(opName)
+	// Because the naming of the ONNX test cases are not fully consistent, we need
+	// to map some operator names to insert some '_' in the filter.
+	if mappedFilter, ok := opNameMap[testOpName]; ok {
+		testOpName = mappedFilter
+	}
+
+	opFilter := fmt.Sprintf("test_%v", testOpName)
 
 	testDir, err := os.Open("./test_data")
 	if err != nil {
@@ -258,6 +274,8 @@ func readTestModel(folder string) (*Model, error) {
 
 	// Currently we only implemented Opset13, hence we enforce this in our tests. All
 	// tests that fail because of this are ignored.
+	fmt.Println(folder)
+	fmt.Println(mp.OpsetImport[0].Version)
 	mp.OpsetImport[0].Version = 13
 
 	model, err := NewModel(mp)
@@ -462,4 +480,8 @@ var expectedTests = []string{
 	"test_xor_bcast4v2d",
 	"test_xor_bcast4v3d",
 	"test_xor_bcast4v4d",
+}
+
+var opNameMap = map[string]string{
+	"reducemax": "reduce_max",
 }

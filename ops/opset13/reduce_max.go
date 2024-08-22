@@ -8,20 +8,20 @@ import (
 
 const (
 	MinReduceMaxAttributes = 1
-	MaxReduceMaxAttributes = 1
+	MaxReduceMaxAttributes = 2
 )
 
 // ReduceMax represents the ONNX reduceMax operator.
 type ReduceMax struct {
 	axes     []int
-	keepdims int
+	keepdims bool
 }
 
 // newReduceMax creates a new reduceMax operator.
 func newReduceMax() ops.Operator {
 	return &ReduceMax{
 		axes:     []int{},
-		keepdims: 1,
+		keepdims: true,
 	}
 }
 
@@ -42,7 +42,7 @@ func (r *ReduceMax) Init(n *onnx.NodeProto) error {
 
 			r.axes = axes
 		case "keepdims":
-			r.keepdims = int(attr.GetI())
+			r.keepdims = attr.GetI() == 1
 		default:
 			return ops.ErrInvalidAttribute(attr.GetName(), r)
 		}
@@ -53,11 +53,23 @@ func (r *ReduceMax) Init(n *onnx.NodeProto) error {
 
 // Apply applies the reduceMax operator.
 func (r *ReduceMax) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	input := tensor.New(tensor.WithBacking(inputs[0].Data()))
+	input := tensor.New(tensor.WithBacking(inputs[0].Data()), tensor.WithShape(inputs[0].Shape()...))
 
 	out, err := input.Max(r.axes...)
 	if err != nil {
 		return nil, err
+	}
+
+	if r.keepdims {
+		newShape := input.Shape()
+		for _, axes := range r.axes {
+			newShape[axes] = 1
+		}
+
+		err := out.Reshape(newShape...)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return []tensor.Tensor{out}, nil
