@@ -274,8 +274,6 @@ func readTestModel(folder string) (*Model, error) {
 
 	// Currently we only implemented Opset13, hence we enforce this in our tests. All
 	// tests that fail because of this are ignored.
-	fmt.Println(folder)
-	fmt.Println(mp.OpsetImport[0].Version)
 	mp.OpsetImport[0].Version = 13
 
 	model, err := NewModel(mp)
