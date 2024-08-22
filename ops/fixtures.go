@@ -19,10 +19,10 @@ func Float32TensorFixture(shp ...int) tensor.Tensor {
 	)
 }
 
-func RandomFloat32TensorFixture(shp ...int) tensor.Tensor {
+func RandomFloat32TensorFixture(r *rand.Rand, shp ...int) tensor.Tensor {
 	rands := make([]float32, NElements(shp...))
 	for i := 0; i < NElements(shp...); i++ {
-		rands[i] = rand.Float32()
+		rands[i] = r.Float32()
 	}
 
 	return tensor.New(

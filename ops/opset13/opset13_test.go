@@ -104,6 +104,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Flatten",
+			newFlatten(),
+			nil,
+		},
+		{
 			"Gather",
 			newGather(),
 			nil,
@@ -176,6 +181,11 @@ func TestGetOperator(t *testing.T) {
 		{
 			"PRelu",
 			newPRelu(),
+			nil,
+		},
+		{
+			"ReduceMax",
+			newReduceMax(),
 			nil,
 		},
 		{
