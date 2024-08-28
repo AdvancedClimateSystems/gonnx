@@ -38,6 +38,16 @@ var ignoredTests = []string{
 	"test_reduce_max_negative_axes_keepdims_example", // Opset18
 	"test_reduce_max_bool_inputs",                    // Opset20
 	"test_reduce_max_keepdims_example",               // Opset18
+	"test_reduce_min_keepdims_random",                // Opset18
+	"test_reduce_min_keepdims_example",               // Opset18
+	"test_reduce_min_do_not_keepdims_example",        // Opset18
+	"test_reduce_min_negative_axes_keepdims_example", // Opset18
+	"test_reduce_min_bool_inputs",                    // Opset18
+	"test_reduce_min_do_not_keepdims_random",         // Opset18
+	"test_reduce_min_default_axes_keepdims_example",  // Opset18
+	"test_reduce_min_empty_set",                      // Opset18
+	"test_reduce_min_default_axes_keepdims_random",   // Opset18
+	"test_reduce_min_negative_axes_keepdims_random",  // Opset18
 	"test_sub_uint8",                                 // Opset14
 	"test_shape_clip_end",                            // Opset15
 	"test_shape_clip_start",                          // Opset15
@@ -482,4 +492,5 @@ var expectedTests = []string{
 
 var opNameMap = map[string]string{
 	"reducemax": "reduce_max",
+	"reducemin": "reduce_min",
 }

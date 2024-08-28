@@ -169,6 +169,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"ReduceMin",
+			newReduceMin(),
+			nil,
+		},
+		{
 			"Relu",
 			newRelu(),
 			nil,
