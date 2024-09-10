@@ -164,6 +164,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"ReduceMax",
+			newReduceMax(),
+			nil,
+		},
+		{
 			"Relu",
 			newRelu(),
 			nil,
