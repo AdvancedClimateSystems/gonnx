@@ -20,7 +20,7 @@ func TestReduceMinInit(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, []int{1, 3}, r.axes)
-	assert.Equal(t, false, r.keepdims)
+	assert.Equal(t, false, r.keepDims)
 }
 
 func TestReduceMin(t *testing.T) {
@@ -32,105 +32,105 @@ func TestReduceMin(t *testing.T) {
 		expectedShape   tensor.Shape
 	}{
 		{
-			&ReduceMin{axes: []int{0}, keepdims: false},
+			&ReduceMin{axes: []int{0}, keepDims: false},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]float32{0, 1},
 			[]int{2},
 		},
 		{
-			&ReduceMin{axes: []int{0}, keepdims: true},
+			&ReduceMin{axes: []int{0}, keepDims: true},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]float32{0, 1},
 			[]int{1, 2},
 		},
 		{
-			&ReduceMin{axes: []int{1}, keepdims: false},
+			&ReduceMin{axes: []int{1}, keepDims: false},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]float32{0, 2},
 			[]int{2},
 		},
 		{
-			&ReduceMin{axes: []int{1}, keepdims: true},
+			&ReduceMin{axes: []int{1}, keepDims: true},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]float32{0, 2},
 			[]int{2, 1},
 		},
 		{
-			&ReduceMin{axes: []int{0}, keepdims: false},
+			&ReduceMin{axes: []int{0}, keepDims: false},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
 			[]float32{0, 1, 2},
 			[]int{3},
 		},
 		{
-			&ReduceMin{axes: []int{0}, keepdims: true},
+			&ReduceMin{axes: []int{0}, keepDims: true},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
 			[]float32{0, 1, 2},
 			[]int{1, 3},
 		},
 		{
-			&ReduceMin{axes: []int{1}, keepdims: false},
+			&ReduceMin{axes: []int{1}, keepDims: false},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
 			[]float32{0, 3},
 			[]int{2},
 		},
 		{
-			&ReduceMin{axes: []int{1}, keepdims: true},
+			&ReduceMin{axes: []int{1}, keepDims: true},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
 			[]float32{0, 3},
 			[]int{2, 1},
 		},
 		{
-			&ReduceMin{axes: []int{1}, keepdims: false},
+			&ReduceMin{axes: []int{1}, keepDims: false},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
 			[]float32{0, 1, 2, 6, 7, 8},
 			[]int{2, 3},
 		},
 		{
-			&ReduceMin{axes: []int{1}, keepdims: true},
+			&ReduceMin{axes: []int{1}, keepDims: true},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
 			[]float32{0, 1, 2, 6, 7, 8},
 			[]int{2, 1, 3},
 		},
 		{
-			&ReduceMin{axes: []int{0, 1}, keepdims: false},
+			&ReduceMin{axes: []int{0, 1}, keepDims: false},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
 			[]float32{0, 1, 2},
 			[]int{3},
 		},
 		{
-			&ReduceMin{axes: []int{0, 1}, keepdims: true},
+			&ReduceMin{axes: []int{0, 1}, keepDims: true},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
 			[]float32{0, 1, 2},
 			[]int{1, 1, 3},
 		},
 		{
-			&ReduceMin{axes: []int{1, 2}, keepdims: false},
+			&ReduceMin{axes: []int{1, 2}, keepDims: false},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
 			[]float32{0, 6},
 			[]int{2},
 		},
 		{
-			&ReduceMin{axes: []int{1, 2}, keepdims: true},
+			&ReduceMin{axes: []int{1, 2}, keepDims: true},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
 			[]float32{0, 6},
 			[]int{2, 1, 1},
 		},
 		{
-			&ReduceMin{axes: []int{-1}, keepdims: true},
+			&ReduceMin{axes: []int{-1}, keepDims: true},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]float32{0, 2},
