@@ -9,8 +9,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestReduceMaxInit(t *testing.T) {
-	r := &ReduceMax{}
+func TestReduceMinInit(t *testing.T) {
+	r := &ReduceMin{}
 	err := r.Init(&onnx.NodeProto{
 		Attribute: []*onnx.AttributeProto{
 			{Name: "axes", Ints: []int64{1, 3}},
@@ -23,117 +23,117 @@ func TestReduceMaxInit(t *testing.T) {
 	assert.Equal(t, false, r.keepDims)
 }
 
-func TestReduceMax(t *testing.T) {
+func TestReduceMin(t *testing.T) {
 	tests := []struct {
-		reduceMax       *ReduceMax
+		reduceMin       *ReduceMin
 		backing         []float32
 		shape           []int
 		expectedBacking []float32
 		expectedShape   tensor.Shape
 	}{
 		{
-			&ReduceMax{axes: []int{0}, keepDims: false},
+			&ReduceMin{axes: []int{0}, keepDims: false},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
-			[]float32{2, 3},
+			[]float32{0, 1},
 			[]int{2},
 		},
 		{
-			&ReduceMax{axes: []int{0}, keepDims: true},
+			&ReduceMin{axes: []int{0}, keepDims: true},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
-			[]float32{2, 3},
+			[]float32{0, 1},
 			[]int{1, 2},
 		},
 		{
-			&ReduceMax{axes: []int{1}, keepDims: false},
+			&ReduceMin{axes: []int{1}, keepDims: false},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
-			[]float32{1, 3},
+			[]float32{0, 2},
 			[]int{2},
 		},
 		{
-			&ReduceMax{axes: []int{1}, keepDims: true},
+			&ReduceMin{axes: []int{1}, keepDims: true},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
-			[]float32{1, 3},
+			[]float32{0, 2},
 			[]int{2, 1},
 		},
 		{
-			&ReduceMax{axes: []int{0}, keepDims: false},
+			&ReduceMin{axes: []int{0}, keepDims: false},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
-			[]float32{3, 4, 5},
+			[]float32{0, 1, 2},
 			[]int{3},
 		},
 		{
-			&ReduceMax{axes: []int{0}, keepDims: true},
+			&ReduceMin{axes: []int{0}, keepDims: true},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
-			[]float32{3, 4, 5},
+			[]float32{0, 1, 2},
 			[]int{1, 3},
 		},
 		{
-			&ReduceMax{axes: []int{1}, keepDims: false},
+			&ReduceMin{axes: []int{1}, keepDims: false},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
-			[]float32{2, 5},
+			[]float32{0, 3},
 			[]int{2},
 		},
 		{
-			&ReduceMax{axes: []int{1}, keepDims: true},
+			&ReduceMin{axes: []int{1}, keepDims: true},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
-			[]float32{2, 5},
+			[]float32{0, 3},
 			[]int{2, 1},
 		},
 		{
-			&ReduceMax{axes: []int{1}, keepDims: false},
+			&ReduceMin{axes: []int{1}, keepDims: false},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
-			[]float32{3, 4, 5, 9, 10, 11},
+			[]float32{0, 1, 2, 6, 7, 8},
 			[]int{2, 3},
 		},
 		{
-			&ReduceMax{axes: []int{1}, keepDims: true},
+			&ReduceMin{axes: []int{1}, keepDims: true},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
-			[]float32{3, 4, 5, 9, 10, 11},
+			[]float32{0, 1, 2, 6, 7, 8},
 			[]int{2, 1, 3},
 		},
 		{
-			&ReduceMax{axes: []int{0, 1}, keepDims: false},
+			&ReduceMin{axes: []int{0, 1}, keepDims: false},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
-			[]float32{9, 10, 11},
+			[]float32{0, 1, 2},
 			[]int{3},
 		},
 		{
-			&ReduceMax{axes: []int{0, 1}, keepDims: true},
+			&ReduceMin{axes: []int{0, 1}, keepDims: true},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
-			[]float32{9, 10, 11},
+			[]float32{0, 1, 2},
 			[]int{1, 1, 3},
 		},
 		{
-			&ReduceMax{axes: []int{1, 2}, keepDims: false},
+			&ReduceMin{axes: []int{1, 2}, keepDims: false},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
-			[]float32{5, 11},
+			[]float32{0, 6},
 			[]int{2},
 		},
 		{
-			&ReduceMax{axes: []int{1, 2}, keepDims: true},
+			&ReduceMin{axes: []int{1, 2}, keepDims: true},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
-			[]float32{5, 11},
+			[]float32{0, 6},
 			[]int{2, 1, 1},
 		},
 		{
-			&ReduceMax{axes: []int{-1}, keepDims: true},
+			&ReduceMin{axes: []int{-1}, keepDims: true},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
-			[]float32{1, 3},
+			[]float32{0, 2},
 			[]int{2, 1},
 		},
 	}
@@ -143,7 +143,7 @@ func TestReduceMax(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		res, err := test.reduceMax.Apply(inputs)
+		res, err := test.reduceMin.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Equal(t, test.expectedShape, res[0].Shape())
@@ -151,7 +151,7 @@ func TestReduceMax(t *testing.T) {
 	}
 }
 
-func TestInputValidationReduceMax(t *testing.T) {
+func TestInputValidationReduceMin(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -197,19 +197,19 @@ func TestInputValidationReduceMax(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			ops.ErrInvalidInputCount(2, &ReduceMax{}),
+			ops.ErrInvalidInputCount(2, &ReduceMin{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &ReduceMax{}),
+			ops.ErrInvalidInputType(0, "int", &ReduceMin{}),
 		},
 	}
 
 	for _, test := range tests {
-		reduceMax := &ReduceMax{}
-		validated, err := reduceMax.ValidateInputs(test.inputs)
+		reduceMin := &ReduceMin{}
+		validated, err := reduceMin.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
 

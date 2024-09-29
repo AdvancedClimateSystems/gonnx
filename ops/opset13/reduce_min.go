@@ -7,29 +7,29 @@ import (
 )
 
 const (
-	MinReduceMaxAttributes = 1
-	MaxReduceMaxAttributes = 2
+	MinReduceMinAttributes = 1
+	MaxReduceMinAttributes = 2
 )
 
-// ReduceMax represents the ONNX reduceMax operator.
-type ReduceMax struct {
+// ReduceMin represents the ONNX reduceMin operator.
+type ReduceMin struct {
 	axes     []int
 	keepDims bool
 }
 
-// newReduceMax creates a new reduceMax operator.
-func newReduceMax() ops.Operator {
-	return &ReduceMax{
+// newReduceMin creates a new reduceMin operator.
+func newReduceMin() ops.Operator {
+	return &ReduceMin{
 		axes:     []int{},
 		keepDims: true,
 	}
 }
 
-// Init initializes the reduceMax operator.
-func (r *ReduceMax) Init(n *onnx.NodeProto) error {
+// Init initializes the reduceMin operator.
+func (r *ReduceMin) Init(n *onnx.NodeProto) error {
 	attributes := n.GetAttribute()
-	if len(attributes) == 0 || len(attributes) > MaxReduceMaxAttributes {
-		return ops.ErrInvalidOptionalAttributeCount(MinReduceMaxAttributes, MaxReduceMaxAttributes, len(attributes), r)
+	if len(attributes) == 0 || len(attributes) > MaxReduceMinAttributes {
+		return ops.ErrInvalidOptionalAttributeCount(MinReduceMinAttributes, MaxReduceMinAttributes, len(attributes), r)
 	}
 
 	for _, attr := range attributes {
@@ -51,13 +51,14 @@ func (r *ReduceMax) Init(n *onnx.NodeProto) error {
 	return nil
 }
 
-// Apply applies the reduceMax operator.
-func (r *ReduceMax) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+// Apply applies the reduceMin operator.
+func (r *ReduceMin) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	input := tensor.New(tensor.WithBacking(inputs[0].Data()), tensor.WithShape(inputs[0].Shape()...))
 
 	axes := make([]int, len(r.axes))
 	for i, axis := range r.axes {
-		// Convert negative dimensions.
+		// Convert negative dimensions to positive dimensions as Go does not support
+		// negative dimension indexing like Python does.
 		if axis < 0 {
 			axis = len(input.Shape()) + axis
 		}
@@ -65,7 +66,7 @@ func (r *ReduceMax) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		axes[i] = axis
 	}
 
-	out, err := input.Max(axes...)
+	out, err := input.Min(axes...)
 	if err != nil {
 		return nil, err
 	}
@@ -86,29 +87,29 @@ func (r *ReduceMax) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (r *ReduceMax) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (r *ReduceMin) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ValidateInputs(r, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (r *ReduceMax) GetMinInputs() int {
+func (r *ReduceMin) GetMinInputs() int {
 	return 1
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (r *ReduceMax) GetMaxInputs() int {
+func (r *ReduceMin) GetMaxInputs() int {
 	return 1
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (r *ReduceMax) GetInputTypeConstraints() [][]tensor.Dtype {
+func (r *ReduceMin) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{
 		{tensor.Uint8, tensor.Int8, tensor.Uint32, tensor.Uint64, tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
 	}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (r *ReduceMax) String() string {
-	return "reduceMax operator"
+func (r *ReduceMin) String() string {
+	return "reduceMin operator"
 }
