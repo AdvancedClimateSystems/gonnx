@@ -14,14 +14,14 @@ const (
 // ReduceMin represents the ONNX reduceMin operator.
 type ReduceMin struct {
 	axes     []int
-	keepdims bool
+	keepDims bool
 }
 
 // newReduceMin creates a new reduceMin operator.
 func newReduceMin() ops.Operator {
 	return &ReduceMin{
 		axes:     []int{},
-		keepdims: true,
+		keepDims: true,
 	}
 }
 
@@ -42,7 +42,7 @@ func (r *ReduceMin) Init(n *onnx.NodeProto) error {
 
 			r.axes = axes
 		case "keepdims":
-			r.keepdims = attr.GetI() == 1
+			r.keepDims = attr.GetI() == 1
 		default:
 			return ops.ErrInvalidAttribute(attr.GetName(), r)
 		}
@@ -57,7 +57,8 @@ func (r *ReduceMin) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	axes := make([]int, len(r.axes))
 	for i, axis := range r.axes {
-		// Convert negative dimensions.
+		// Convert negative dimensions to positive dimensions as Go does not support
+		// negative dimension indexing like Python does.
 		if axis < 0 {
 			axis = len(input.Shape()) + axis
 		}
@@ -70,7 +71,7 @@ func (r *ReduceMin) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	if r.keepdims {
+	if r.keepDims {
 		newShape := input.Shape()
 		for _, axes := range axes {
 			newShape[axes] = 1
