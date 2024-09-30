@@ -32,6 +32,7 @@ var operators13 = map[string]func() ops.Operator{
 	"Less":            newLess,
 	"LessOrEqual":     newLessOrEqual,
 	"LinearRegressor": newLinearRegressor,
+	"LogSoftmax":      newLogSoftmax,
 	"LSTM":            newLSTM,
 	"MatMul":          newMatMul,
 	"Mul":             newMul,

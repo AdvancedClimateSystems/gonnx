@@ -134,6 +134,26 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Less",
+			newLess(),
+			nil,
+		},
+		{
+			"LessOrEqual",
+			newLessOrEqual(),
+			nil,
+		},
+		{
+			"LinearRegressor",
+			newLinearRegressor(),
+			nil,
+		},
+		{
+			"LogSoftmax",
+			newLogSoftmax(),
+			nil,
+		},
+		{
 			"LSTM",
 			newLSTM(),
 			nil,
