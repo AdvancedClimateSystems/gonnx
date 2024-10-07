@@ -12,9 +12,7 @@ const (
 )
 
 // Expand represents the ONNX expand operator.
-type Expand struct {
-	axis int
-}
+type Expand struct{}
 
 // newExpand creates a new expand operator.
 func newExpand() ops.Operator {

@@ -1,7 +1,6 @@
 package opset13
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/ops"
@@ -123,7 +122,6 @@ func TestInputValidationExpand(t *testing.T) {
 
 	for _, test := range tests {
 		expand := &Expand{}
-		fmt.Println(test.inputs)
 		validated, err := expand.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
