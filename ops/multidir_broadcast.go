@@ -91,7 +91,7 @@ func repeatTensorsForMutltidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, tens
 	return A, B, nil
 }
 
-// addExtraDimsToTensor adds a given number of dimensions to the shape of a tensor (in the front).
+// AddExtraDimsToTensor adds a given number of dimensions to the shape of a tensor (in the front).
 // All extra dimensions are given size one (otherwise the tensor cannot be reshaped).
 // The given tensor is cloned such that the tensor is not modified in place.
 // Example: if we add 2 extra dimensions to shape (2, 3) we get shape (1, 1, 2, 3).
