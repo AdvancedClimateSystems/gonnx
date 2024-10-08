@@ -32,14 +32,14 @@ func ReshapeTensorsForMultidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, tens
 
 	switch {
 	case nDimsA > nDimsB:
-		newB, err := addExtraDimsToTensor(B, nDimsA-nDimsB)
+		newB, err := AddExtraDimsToTensor(B, nDimsA-nDimsB)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		return A, newB, nil
 	case nDimsB > nDimsA:
-		newA, err := addExtraDimsToTensor(A, nDimsB-nDimsA)
+		newA, err := AddExtraDimsToTensor(A, nDimsB-nDimsA)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -91,11 +91,11 @@ func repeatTensorsForMutltidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, tens
 	return A, B, nil
 }
 
-// addExtraDimsToTensor adds a given number of dimensions to the shape of a tensor (in the front).
+// AddExtraDimsToTensor adds a given number of dimensions to the shape of a tensor (in the front).
 // All extra dimensions are given size one (otherwise the tensor cannot be reshaped).
 // The given tensor is cloned such that the tensor is not modified in place.
 // Example: if we add 2 extra dimensions to shape (2, 3) we get shape (1, 1, 2, 3).
-func addExtraDimsToTensor(originalT tensor.Tensor, nExtraDims int) (tensor.Tensor, error) {
+func AddExtraDimsToTensor(originalT tensor.Tensor, nExtraDims int) (tensor.Tensor, error) {
 	t, ok := originalT.Clone().(tensor.Tensor)
 	if !ok {
 		return nil, ErrTypeAssert("tensor.Tensor", originalT.Clone())

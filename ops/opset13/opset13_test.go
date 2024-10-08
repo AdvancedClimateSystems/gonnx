@@ -104,6 +104,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Expand",
+			newExpand(),
+			nil,
+		},
+		{
 			"Flatten",
 			newFlatten(),
 			nil,

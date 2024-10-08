@@ -23,6 +23,7 @@ var operators13 = map[string]func() ops.Operator{
 	"Cosh":            newCosh,
 	"Div":             newDiv,
 	"Equal":           newEqual,
+	"Expand":          newExpand,
 	"Flatten":         newFlatten,
 	"Gather":          newGather,
 	"Gemm":            newGemm,
