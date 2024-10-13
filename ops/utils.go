@@ -237,3 +237,20 @@ func PairwiseAssign(t1, t2 tensor.Tensor) (err error) {
 
 	return nil
 }
+
+// Converts a negative axis to the corresponding axis such that it can be used as index.
+// For example, if axis is -1, this represents the last dimension. Go does not support
+// negative indexing (as opposed to Python, on which ONNX is heavily dependent), so we
+// have to convert the negative axis to the positive axis it represents, which is dependent
+// on the rank (number of dimensions) of the tensor.
+// Example 1: if rank is 3, and axis is -1, the corresponding positive axis is 2.
+// Example 2: if rank is 4, and axis is -1, the corresponding positive axis is 3.
+// Example 3: if rank is 4, and axis is -3, the corresponding positive axis is 1.
+// Example 4: if rank is 3, and axis is 2, the function does nothing.
+func ConvertNegativeAxis(axis, rank int) int {
+	if axis < 0 {
+		axis = rank + axis
+	}
+
+	return axis
+}

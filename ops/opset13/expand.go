@@ -20,7 +20,7 @@ func newExpand() ops.Operator {
 }
 
 // Init initializes the expand operator.
-func (f *Expand) Init(n *onnx.NodeProto) error {
+func (f *Expand) Init(*onnx.NodeProto) error {
 	return nil
 }
 
