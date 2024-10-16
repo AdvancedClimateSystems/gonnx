@@ -28,16 +28,22 @@ func newArgMax() ops.Operator {
 
 type ArgMaxAttribute string
 
+const (
+	axis            = "axis"
+	keepDims        = "keepdims"
+	selectLastIndex = "select_last_index"
+)
+
 // Init initializes the argmax operator.
 func (a *ArgMax) Init(n *onnx.NodeProto) error {
 	attributes := n.GetAttribute()
 	for _, attr := range attributes {
 		switch attr.GetName() {
-		case "axis":
+		case axis:
 			a.axis = int(attr.GetI())
-		case "keepdims":
+		case keepDims:
 			a.keepDims = ops.Int64ToBool(attr.GetI())
-		case "select_last_index":
+		case selectLastIndex:
 			a.selectLastIndex = ops.Int64ToBool(attr.GetI())
 
 			// We have no way yet to perform argmax and keeping the
