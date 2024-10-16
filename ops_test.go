@@ -24,51 +24,84 @@ import (
 // Another reason is that some tests require an opset version higher than we have currently
 // implemented, or lower, which we also haven't implemented yet.
 var ignoredTests = []string{
-	"test_add_uint8",                       // Opset14
-	"test_batchnorm_epsilon_training_mode", // Opset14
-	"test_batchnorm_example_training_mode", // Opset14
-	"test_div_uint8",                       // Opset14
-	"test_gru_batchwise",                   // Opset14
-	"test_lstm_batchwise",                  // Opset14
-	"test_mul_uint8",                       // Opset14
-	"test_sub_uint8",                       // Opset14
-	"test_shape_clip_end",                  // Opset15
-	"test_shape_clip_start",                // Opset15
-	"test_shape_end_1",                     // Opset15
-	"test_shape_end_negative_1",            // Opset15
-	"test_shape_example",                   // Opset15
-	"test_shape_start_1",                   // Opset15
-	"test_shape_start_1_end_2",             // Opset15
-	"test_shape_start_1_end_negative_1",    // Opset15
-	"test_shape_start_negative_1",          // Opset15
-	"test_reshape_allowzero_reordered",     // Opset14
+	"test_add_uint8",                                 // Opset14
+	"test_batchnorm_epsilon_training_mode",           // Opset14
+	"test_batchnorm_example_training_mode",           // Opset14
+	"test_div_uint8",                                 // Opset14
+	"test_gru_batchwise",                             // Opset14
+	"test_logsoftmax_axis_1_expanded_ver18",          // Opset18
+	"test_logsoftmax_example_1_expanded_ver18",       // Opset18
+	"test_logsoftmax_negative_axis_expanded_ver18",   // Opset18
+	"test_logsoftmax_large_number_expanded_ver18",    // Opset18
+	"test_logsoftmax_default_axis_expanded_ver18",    // Opset18
+	"test_logsoftmax_axis_0_expanded_ver18",          // Opset18
+	"test_logsoftmax_axis_2_expanded_ver18",          // Opset18
+	"test_lstm_batchwise",                            // Opset14
+	"test_mul_uint8",                                 // Opset14
+	"test_reduce_max_do_not_keepdims_random",         // Opset18
+	"test_reduce_max_keepdims_random",                // Opset18
+	"test_reduce_max_default_axes_keepdims_random",   // Opset18
+	"test_reduce_max_do_not_keepdims_example",        // Opset18
+	"test_reduce_max_default_axes_keepdim_example",   // Opset18
+	"test_reduce_max_negative_axes_keepdims_random",  // Opset18
+	"test_reduce_max_negative_axes_keepdims_example", // Opset18
+	"test_reduce_max_bool_inputs",                    // Opset20
+	"test_reduce_max_keepdims_example",               // Opset18
+	"test_reduce_min_keepdims_random",                // Opset18
+	"test_reduce_min_keepdims_example",               // Opset18
+	"test_reduce_min_do_not_keepdims_example",        // Opset18
+	"test_reduce_min_negative_axes_keepdims_example", // Opset18
+	"test_reduce_min_bool_inputs",                    // Opset18
+	"test_reduce_min_do_not_keepdims_random",         // Opset18
+	"test_reduce_min_default_axes_keepdims_example",  // Opset18
+	"test_reduce_min_empty_set",                      // Opset18
+	"test_reduce_min_default_axes_keepdims_random",   // Opset18
+	"test_reduce_min_negative_axes_keepdims_random",  // Opset18
+	"test_sub_uint8",                                 // Opset14
+	"test_shape_clip_end",                            // Opset15
+	"test_shape_clip_start",                          // Opset15
+	"test_shape_end_1",                               // Opset15
+	"test_shape_end_negative_1",                      // Opset15
+	"test_shape_example",                             // Opset15
+	"test_shape_start_1",                             // Opset15
+	"test_shape_start_1_end_2",                       // Opset15
+	"test_shape_start_1_end_negative_1",              // Opset15
+	"test_shape_start_negative_1",                    // Opset15
+	"test_softmax_default_axis_expanded_ver18",       // Opset18
+	"test_softmax_axis_1_expanded_ver18",             // Opset18
+	"test_softmax_negative_axis_expanded_ver18",      // Opset18
+	"test_softmax_example_expanded_ver18",            // Opset18
+	"test_softmax_axis_0_expanded_ver18",             // Opset18
+	"test_softmax_large_number_expanded_ver18",       // Opset18
+	"test_softmax_axis_2_expanded_ver18",             // Opset18
+	"test_reshape_allowzero_reordered",               // Opset14
 
-	"test_constant_pad",                         // Pad is not implemented yet.
-	"test_constant_pad_axes",                    // Pad is not implemented yet.
-	"test_gemm_alpha",                           // For gemm in opset 11.
-	"test_gemm_default_no_bias",                 // For gemm in opset 11.
-	"test_gemm_default_scalar_bias",             // For gemm in opset 11.
-	"test_lstm_with_peepholes",                  // Sequence lens attribute is not supported yet.
-	"test_relu_expanded_ver18",                  // CastLike operator not implemented yet.
-	"test_softmax_default_axis_expanded_ver18",  // ReduceMax operator not implemented yet.
-	"test_softmax_axis_1_expanded_ver18",        // ReduceMax operator not implemented yet.
-	"test_softmax_negative_axis_expanded_ver18", // ReduceMax operator not implemented yet.
-	"test_softmax_example_expanded_ver18",       // ReduceMax operator not implemented yet.
-	"test_softmax_axis_0_expanded_ver18",        // ReduceMax operator not implemented yet.
-	"test_softmax_large_number_expanded_ver18",  // ReduceMax operator not implemented yet.
-	"test_softmax_axis_2_expanded_ver18",        // ReduceMax operator not implemented yet.
-	"test_softmax_axis_0_expanded",              // ReduceMax operator not implemented yet.
-	"test_softmax_negative_axis_expanded",       // ReduceMax operator not implemented yet.
-	"test_softmax_large_number_expanded",        // ReduceMax operator not implemented yet.
-	"test_softmax_axis_1_expanded",              // ReduceMax operator not implemented yet.
-	"test_softmax_example_expanded",             // ReduceMax operator not implemented yet.
-	"test_softmax_axis_2_expanded",              // ReduceMax operator not implemented yet.
-	"test_softmax_default_axis_expanded",        // ReduceMax operator not implemented yet.
-	"test_slice_start_out_of_bounds",            // ONNX expects nil output, but we throw an error.
-	"test_slice_end_out_of_bounds",              // ONNX expects nil output, but we throw an error.
-	"test_slice_neg_steps",                      // ONNX expects nil output, but we throw an error.
-	"test_slice_neg",                            // ONNX expects nil output, but we throw an error.
-	"test_transpose_default",                    // For transpose in opset 9.
+	"test_constant_pad",                      // Pad is not implemented yet.
+	"test_constant_pad_axes",                 // Pad is not implemented yet.
+	"test_gemm_alpha",                        // For gemm in opset 11.
+	"test_gemm_default_no_bias",              // For gemm in opset 11.
+	"test_gemm_default_scalar_bias",          // For gemm in opset 11.
+	"test_logsoftmax_large_number_expanded",  // Requires 'Exp' operator.
+	"test_logsoftmax_axis_0_expanded",        // Requires 'Exp' operator.
+	"test_logsoftmax_axis_1_expanded",        // Requires 'Exp' operator.
+	"test_logsoftmax_axis_2_expanded",        // Requires 'Exp' operator.
+	"test_logsoftmax_example_1_expanded",     // Requires 'Exp' operator.
+	"test_logsoftmax_default_axis_expanded",  // Requires 'Exp' operator.
+	"test_logsoftmax_negative_axis_expanded", // Requires 'Exp' operator.
+	"test_lstm_with_peepholes",               // Sequence lens attribute is not supported yet.
+	"test_relu_expanded_ver18",               // CastLike operator not implemented yet.
+	"test_softmax_axis_0_expanded",           // Requires 'Exp' operator.
+	"test_softmax_negative_axis_expanded",    // Requires 'Exp' operator.
+	"test_softmax_large_number_expanded",     // Requires 'Exp' operator.
+	"test_softmax_axis_1_expanded",           // Requires 'Exp' operator.
+	"test_softmax_example_expanded",          // Requires 'Exp' operator.
+	"test_softmax_axis_2_expanded",           // Requires 'Exp' operator.
+	"test_softmax_default_axis_expanded",     // Requires 'Exp' operator.
+	"test_slice_start_out_of_bounds",         // ONNX expects nil output, but we throw an error.
+	"test_slice_end_out_of_bounds",           // ONNX expects nil output, but we throw an error.
+	"test_slice_neg_steps",                   // ONNX expects nil output, but we throw an error.
+	"test_slice_neg",                         // ONNX expects nil output, but we throw an error.
+	"test_transpose_default",                 // For transpose in opset 9.
 
 	"test_equal_string",                               // Unsupported datatype String.
 	"test_equal_string_broadcast",                     // Unsupported datatype String.
@@ -169,7 +202,14 @@ func TestOps(t *testing.T) {
 }
 
 func getTestCasesForOp(opName string) ([]*ONNXTestCase, error) {
-	opFilter := fmt.Sprintf("test_%v", strings.ToLower(opName))
+	testOpName := strings.ToLower(opName)
+	// Because the naming of the ONNX test cases are not fully consistent, we need
+	// to map some operator names to insert some '_' in the filter.
+	if mappedFilter, ok := opNameMap[testOpName]; ok {
+		testOpName = mappedFilter
+	}
+
+	opFilter := fmt.Sprintf("test_%v", testOpName)
 
 	testDir, err := os.Open("./test_data")
 	if err != nil {
@@ -362,6 +402,8 @@ var expectedTests = []string{
 	"test_div_example",
 	"test_equal",
 	"test_equal_bcast",
+	"test_expand_dim_changed",
+	"test_expand_dim_unchanged",
 	"test_flatten_axis0",
 	"test_flatten_axis1",
 	"test_flatten_axis2",
@@ -398,6 +440,13 @@ var expectedTests = []string{
 	"test_less_equal_bcast",
 	"test_less_equal_bcast_expanded",
 	"test_less_equal_expanded",
+	"test_logsoftmax_axis_0",
+	"test_logsoftmax_axis_1",
+	"test_logsoftmax_axis_2",
+	"test_logsoftmax_default_axis",
+	"test_logsoftmax_example_1",
+	"test_logsoftmax_large_number",
+	"test_logsoftmax_negative_axis",
 	"test_lstm_defaults",
 	"test_lstm_with_initial_bias",
 	"test_matmul_4d",
@@ -472,4 +521,9 @@ var expectedTests = []string{
 	"test_xor_bcast4v2d",
 	"test_xor_bcast4v3d",
 	"test_xor_bcast4v4d",
+}
+
+var opNameMap = map[string]string{
+	"reducemax": "reduce_max",
+	"reducemin": "reduce_min",
 }

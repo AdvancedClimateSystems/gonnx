@@ -11,15 +11,18 @@ import (
 type AttributeErrorKind string
 
 const (
-	AttributeErrorCount       AttributeErrorKind = "count"
-	AttributeErrorInvalid     AttributeErrorKind = "invalid"
-	AttributeErrorUnsupported AttributeErrorKind = "unsupported"
+	AttributeErrorCount         AttributeErrorKind = "count"
+	AttributeErrorOptionalCount AttributeErrorKind = "optional_count"
+	AttributeErrorInvalid       AttributeErrorKind = "invalid"
+	AttributeErrorUnsupported   AttributeErrorKind = "unsupported"
 )
 
 type AttributeError struct {
 	kind           AttributeErrorKind
 	attributeCount int
 	expectedCount  int
+	minCount       int
+	maxCount       int
 	attributeName  string
 	operator       Operator
 }
@@ -28,6 +31,8 @@ func (t *AttributeError) Error() string {
 	switch t.kind {
 	case AttributeErrorCount:
 		return fmt.Sprintf("%s attribute error: invalid count %d expected %d", t.operator.String(), t.attributeCount, t.expectedCount)
+	case AttributeErrorOptionalCount:
+		return fmt.Sprintf("%s attribute error: invalid count %d expected %d - %d", t.operator.String(), t.attributeCount, t.minCount, t.maxCount)
 	case AttributeErrorInvalid:
 		return fmt.Sprintf("%s attribute error: invalid attribute %s", t.operator.String(), t.attributeName)
 	case AttributeErrorUnsupported:
@@ -43,6 +48,10 @@ func ErrInvalidAttribute(attributeName string, operator Operator) *AttributeErro
 
 func ErrInvalidAttributeCount(expected, actual int, operator Operator) error {
 	return &AttributeError{attributeCount: actual, expectedCount: expected, kind: "count", operator: operator}
+}
+
+func ErrInvalidOptionalAttributeCount(minCount, maxCount, actual int, operator Operator) error {
+	return &AttributeError{attributeCount: actual, minCount: minCount, maxCount: maxCount, kind: "optional_count", operator: operator}
 }
 
 func ErrUnsupportedAttribute(attributeName string, operator Operator) error {

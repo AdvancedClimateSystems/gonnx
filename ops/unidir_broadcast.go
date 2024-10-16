@@ -36,7 +36,7 @@ func reshapeTensorsForUnidirBroadcast(A, B tensor.Tensor) (tensor.Tensor, error)
 
 	switch {
 	case nDimsA > nDimsB:
-		return addExtraDimsToTensor(B, nDimsA-nDimsB)
+		return AddExtraDimsToTensor(B, nDimsA-nDimsB)
 	case nDimsA == nDimsB:
 		return B, nil
 	default:

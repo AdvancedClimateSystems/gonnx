@@ -109,6 +109,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Expand",
+			newExpand(),
+			nil,
+		},
+		{
 			"Flatten",
 			newFlatten(),
 			nil,
@@ -139,6 +144,26 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"Less",
+			newLess(),
+			nil,
+		},
+		{
+			"LessOrEqual",
+			newLessOrEqual(),
+			nil,
+		},
+		{
+			"LinearRegressor",
+			newLinearRegressor(),
+			nil,
+		},
+		{
+			"LogSoftmax",
+			newLogSoftmax(),
+			nil,
+		},
+		{
 			"LSTM",
 			newLSTM(),
 			nil,
@@ -166,6 +191,16 @@ func TestGetOperator(t *testing.T) {
 		{
 			"PRelu",
 			newPRelu(),
+			nil,
+		},
+		{
+			"ReduceMax",
+			newReduceMax(),
+			nil,
+		},
+		{
+			"ReduceMin",
+			newReduceMin(),
 			nil,
 		},
 		{

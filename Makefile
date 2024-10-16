@@ -44,7 +44,7 @@ test_ci: ## Run tests using normal test runner for ci output.
 
 test_data:  ## Creates test data from the ONNX test module.
 	rm -R ./test_data; mkdir ./test_data; touch ./test_data/
-	git clone https://github.com/onnx/onnx.git temp_onnx
+	git clone --depth 1 --branch v1.15.0 https://github.com/onnx/onnx.git temp_onnx
 	cp -r temp_onnx/onnx/backend/test/data/node/* ./test_data
 	rm -Rf temp_onnx
 
