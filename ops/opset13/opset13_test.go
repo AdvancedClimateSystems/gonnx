@@ -55,6 +55,11 @@ func TestGetOperator(t *testing.T) {
 			nil,
 		},
 		{
+			"BatchNormalization",
+			newBatchNormalization(),
+			nil,
+		},
+		{
 			"Atan",
 			newAtan(),
 			nil,

@@ -25,6 +25,8 @@ import (
 // implemented, or lower, which we also haven't implemented yet.
 var ignoredTests = []string{
 	"test_add_uint8",                                 // Opset14
+	"test_batchnorm_epsilon_training_mode",           // Opset14
+	"test_batchnorm_example_training_mode",           // Opset14
 	"test_div_uint8",                                 // Opset14
 	"test_gru_batchwise",                             // Opset14
 	"test_logsoftmax_axis_1_expanded_ver18",          // Opset18
@@ -252,6 +254,12 @@ func shouldRunTest(folder, opFilter string) bool {
 		}
 	}
 
+	// For some reason ONNX decided to not let these testcases match the operator name.
+	// Here we manually replace the filter with the name ONNX uses for this test case.
+	if opFilter == "test_batchnormalization" {
+		opFilter = "test_batchnorm"
+	}
+
 	if strings.Contains(folder, opFilter) {
 		remaining := strings.ReplaceAll(folder, opFilter, "")
 		if len(remaining) == 0 || remaining[:1] == "_" {
@@ -379,6 +387,8 @@ var expectedTests = []string{
 	"test_atan_example",
 	"test_atanh",
 	"test_atanh_example",
+	"test_batchnorm_epsilon",
+	"test_batchnorm_example",
 	"test_cast_DOUBLE_to_FLOAT",
 	"test_cast_FLOAT_to_DOUBLE",
 	"test_concat_1d_axis_0",
