@@ -57,12 +57,7 @@ func (r *ReduceMax) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	axes := make([]int, len(r.axes))
 	for i, axis := range r.axes {
-		// Convert negative dimensions.
-		if axis < 0 {
-			axis = len(input.Shape()) + axis
-		}
-
-		axes[i] = axis
+		axes[i] = ops.ConvertNegativeAxis(axis, len(input.Shape()))
 	}
 
 	out, err := input.Max(axes...)
