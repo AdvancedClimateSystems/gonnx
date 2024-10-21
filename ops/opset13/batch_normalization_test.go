@@ -36,7 +36,7 @@ func TestBatchNormalizationInitTrainingMode(t *testing.T) {
 			},
 		},
 	)
-	assert.Nil(t, err)
+	assert.Equal(t, ops.ErrUnsupportedAttribute("momentum", b), err)
 
 	assert.Equal(t, float32(0.001), b.epsilon)
 	assert.Equal(t, float32(0.99), b.momentum)

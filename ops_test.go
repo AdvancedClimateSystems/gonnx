@@ -157,6 +157,15 @@ var ignoredTests = []string{
 	"test_prelu_broadcast_expanded",   // Unsupported operator CastLike
 	"test_prelu_example_expanded",     // Unsupported operator CastLike
 	"test_constant_pad_negative_axes", // Unsupported operator Pad
+
+	"test_argmax_keepdims_random_select_last_index",                // Unsupported attribute
+	"test_argmax_keepdims_example_select_last_index",               // Unsupported attribute
+	"test_argmax_no_keepdims_example_select_last_index",            // Unsupported attribute
+	"test_argmax_no_keepdims_random_select_last_index",             // Unsupported attribute
+	"test_argmax_default_axis_example_select_last_index",           // Unsupported attribute
+	"test_argmax_default_axis_random_select_last_index",            // Unsupported attribute
+	"test_argmax_negative_axis_keepdims_example_select_last_index", // Unsupported attribute
+	"test_argmax_negative_axis_keepdims_random_select_last_index",  // Unsupported attribute
 }
 
 type ONNXTestCase struct {
@@ -362,6 +371,14 @@ var expectedTests = []string{
 	"test_and_bcast4v2d",
 	"test_and_bcast4v3d",
 	"test_and_bcast4v4d",
+	"test_argmax_default_axis_example",
+	"test_argmax_default_axis_random",
+	"test_argmax_keepdims_example",
+	"test_argmax_keepdims_random",
+	"test_argmax_negative_axis_keepdims_example",
+	"test_argmax_negative_axis_keepdims_random",
+	"test_argmax_no_keepdims_example",
+	"test_argmax_no_keepdims_random",
 	"test_asin",
 	"test_asin_example",
 	"test_asinh",
