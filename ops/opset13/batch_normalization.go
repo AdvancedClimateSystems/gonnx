@@ -48,6 +48,11 @@ func (b *BatchNormalization) Init(n *onnx.NodeProto) error {
 		b.testMode = true
 	}
 
+	// We only support test mode, as this is by far the most common for inference models.
+	if !b.testMode {
+		return ops.ErrUnsupportedAttribute("momentum", b)
+	}
+
 	return nil
 }
 
@@ -58,11 +63,6 @@ func (b *BatchNormalization) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, err
 	B := inputs[2]
 	mean := inputs[3]
 	variance := inputs[4]
-
-	// We only support test mode, as this is by far the most common for inference models.
-	if !b.testMode {
-		return nil, ops.ErrUnsupportedAttribute("momentum", b)
-	}
 
 	out, err := b.testModeCalculation(X, scale, B, mean, variance)
 	if err != nil {
