@@ -1,4 +1,4 @@
-package opset13
+package constantofshape
 
 import (
 	"encoding/binary"
@@ -64,7 +64,7 @@ func TensorProtoFromNumber(n interface{}) *onnx.TensorProto {
 	}
 }
 
-func TestConstantOfShape(t *testing.T) {
+func TestConstantOfShape9(t *testing.T) {
 	// Test cases, verifying that all these types work.
 	// Unfortunately uint* and bool are not supported.
 	tests := []struct {
@@ -90,7 +90,7 @@ func TestConstantOfShape(t *testing.T) {
 			node := &onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "value", T: tp}}}
 
 			// Create operator
-			op := ConstantOfShape{}
+			op := ConstantOfShape9{}
 			err := op.Init(node)
 			assert.NoError(t, err)
 			assert.Equal(t, test.input, op.value.Data())
@@ -106,8 +106,8 @@ func TestConstantOfShape(t *testing.T) {
 	}
 }
 
-func TestConstantOfShapeEmptyInit(t *testing.T) {
-	op := &ConstantOfShape{}
+func TestConstantOfShape9EmptyInit(t *testing.T) {
+	op := &ConstantOfShape9{}
 
 	// No init value given
 	err := op.Init(ops.EmptyNodeProto())
@@ -132,7 +132,7 @@ func TestIncorrectInput(t *testing.T) {
 	}
 	node := &onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "value", T: tp}}}
 
-	op := &ConstantOfShape{}
+	op := &ConstantOfShape9{}
 	err := op.Init(node)
 	assert.NotNil(t, err)
 	assert.Equal(
@@ -143,7 +143,7 @@ func TestIncorrectInput(t *testing.T) {
 }
 
 func TestNegativeShapeNotAllowed(t *testing.T) {
-	op := &ConstantOfShape{}
+	op := &ConstantOfShape9{}
 	_ = op.Init(ops.EmptyNodeProto())
 
 	shape := []int64{1, -1}
@@ -159,7 +159,7 @@ func TestNegativeShapeNotAllowed(t *testing.T) {
 }
 
 func TestEmptyTensorNotAllowed(t *testing.T) {
-	op := &ConstantOfShape{}
+	op := &ConstantOfShape9{}
 	_ = op.Init(ops.EmptyNodeProto())
 
 	shape := []int64{0}
@@ -175,7 +175,7 @@ func TestEmptyTensorNotAllowed(t *testing.T) {
 }
 
 func TestScalarShapeInput(t *testing.T) {
-	op := &ConstantOfShape{}
+	op := &ConstantOfShape9{}
 	_ = op.Init(ops.EmptyNodeProto())
 
 	shape := []int64{6}
@@ -187,7 +187,7 @@ func TestScalarShapeInput(t *testing.T) {
 	assert.Equal(t, []float32{0, 0, 0, 0, 0, 0}, res[0].Data())
 }
 
-func TestInputValidationConstantOfShape(t *testing.T) {
+func TestInputValidationConstantOfShape9(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -200,16 +200,16 @@ func TestInputValidationConstantOfShape(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &ConstantOfShape{}),
+			ops.ErrInvalidInputCount(0, &ConstantOfShape9{}),
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			ops.ErrInvalidInputType(0, "int", &ConstantOfShape{}),
+			ops.ErrInvalidInputType(0, "int", &ConstantOfShape9{}),
 		},
 	}
 
 	for _, test := range tests {
-		constantOfShape := &ConstantOfShape{}
+		constantOfShape := &ConstantOfShape9{}
 		validated, err := constantOfShape.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

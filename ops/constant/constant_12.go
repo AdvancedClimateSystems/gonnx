@@ -1,4 +1,4 @@
-package opset13
+package constant
 
 import (
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -6,19 +6,19 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// Constant represents the ONNX constant operator.
-type Constant struct {
+// Constant12 represents the ONNX constant operator.
+type Constant12 struct {
 	value tensor.Tensor
 }
 
-// newConstant creates a new constant operator.
-func newConstant() ops.Operator {
-	return &Constant{}
+// newConstant12 creates a new constant operator.
+func NewConstant12() ops.Operator {
+	return &Constant12{}
 }
 
 // Init initializes the constant operator. It supports all constant types except
 // `sparse_value`, `value_string`, and `value_strings`.
-func (c *Constant) Init(n *onnx.NodeProto) error {
+func (c *Constant12) Init(n *onnx.NodeProto) error {
 	attributes := n.GetAttribute()
 	if len(attributes) != 1 {
 		return ops.ErrInvalidAttributeCount(1, len(attributes), c)
@@ -54,32 +54,32 @@ func (c *Constant) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the constant operator.
-func (c *Constant) Apply(_ []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *Constant12) Apply(_ []tensor.Tensor) ([]tensor.Tensor, error) {
 	return []tensor.Tensor{c.value}, nil
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (c *Constant) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *Constant12) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ValidateInputs(c, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (c *Constant) GetMinInputs() int {
+func (c *Constant12) GetMinInputs() int {
 	return 0
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (c *Constant) GetMaxInputs() int {
+func (c *Constant12) GetMaxInputs() int {
 	return 0
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (c *Constant) GetInputTypeConstraints() [][]tensor.Dtype {
+func (c *Constant12) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (c *Constant) String() string {
-	return "constant operator"
+func (c *Constant12) String() string {
+	return "constant12 operator"
 }

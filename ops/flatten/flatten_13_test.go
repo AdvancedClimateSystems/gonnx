@@ -1,4 +1,4 @@
-package opset13
+package flatten
 
 import (
 	"testing"
@@ -9,8 +9,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestFlattenInit(t *testing.T) {
-	f := &Flatten{}
+func TestFlatten13Init(t *testing.T) {
+	f := &Flatten13{}
 
 	err := f.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 2}}})
 	assert.Nil(t, err)
@@ -18,63 +18,63 @@ func TestFlattenInit(t *testing.T) {
 	assert.Equal(t, 2, f.axis)
 }
 
-func TestFlatten(t *testing.T) {
+func TestFlatten13(t *testing.T) {
 	tests := []struct {
-		flatten       *Flatten
+		flatten       *Flatten13
 		backing       []float32
 		shape         []int
 		expectedShape tensor.Shape
 	}{
 		{
-			&Flatten{},
+			&Flatten13{},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]int{1, 4},
 		},
 		{
-			&Flatten{},
+			&Flatten13{},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
 			[]int{1, 6},
 		},
 		{
-			&Flatten{axis: 1},
+			&Flatten13{axis: 1},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7},
 			[]int{2, 2, 2},
 			[]int{2, 4},
 		},
 		{
-			&Flatten{axis: 2},
+			&Flatten13{axis: 2},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7},
 			[]int{2, 2, 2},
 			[]int{4, 2},
 		},
 		{
-			&Flatten{axis: -1},
+			&Flatten13{axis: -1},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7},
 			[]int{2, 2, 2},
 			[]int{4, 2},
 		},
 		{
-			&Flatten{axis: -2},
+			&Flatten13{axis: -2},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7},
 			[]int{2, 2, 2},
 			[]int{2, 4},
 		},
 		{
-			&Flatten{axis: -3},
+			&Flatten13{axis: -3},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
 			[]int{3, 2, 3},
 			[]int{1, 18},
 		},
 		{
-			&Flatten{axis: 2},
+			&Flatten13{axis: 2},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
 			[]int{3, 2, 3},
 			[]int{6, 3},
 		},
 		{
-			&Flatten{axis: 1},
+			&Flatten13{axis: 1},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
 			[]int{3, 2, 3},
 			[]int{3, 6},
@@ -93,7 +93,7 @@ func TestFlatten(t *testing.T) {
 	}
 }
 
-func TestInputValidationFlatten(t *testing.T) {
+func TestInputValidationFlatten13(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -139,18 +139,18 @@ func TestInputValidationFlatten(t *testing.T) {
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(2, &Flatten{}),
+			ops.ErrInvalidInputCount(2, &Flatten13{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Flatten{}),
+			ops.ErrInvalidInputType(0, "int", &Flatten13{}),
 		},
 	}
 
 	for _, test := range tests {
-		flatten := &Flatten{}
+		flatten := &Flatten13{}
 		validated, err := flatten.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

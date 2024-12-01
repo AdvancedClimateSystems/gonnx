@@ -1,4 +1,4 @@
-package opset13
+package expand
 
 import (
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -7,25 +7,25 @@ import (
 )
 
 const (
-	MinExpandInputs = 2
-	MaxExpandInputs = 2
+	MinExpand8Inputs = 2
+	MaxExpand8Inputs = 2
 )
 
-// Expand represents the ONNX expand operator.
-type Expand struct{}
+// Expand8 represents the ONNX expand operator.
+type Expand8 struct{}
 
-// newExpand creates a new expand operator.
-func newExpand() ops.Operator {
-	return &Expand{}
+// newExpand8 creates a new expand operator.
+func NewExpand8() ops.Operator {
+	return &Expand8{}
 }
 
 // Init initializes the expand operator.
-func (f *Expand) Init(*onnx.NodeProto) error {
+func (f *Expand8) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the expand operator.
-func (f *Expand) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (f *Expand8) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	input := inputs[0]
 
 	shape, err := ops.AnyToIntSlice(inputs[1].Data())
@@ -55,27 +55,27 @@ func (f *Expand) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (f *Expand) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (f *Expand8) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ValidateInputs(f, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (f *Expand) GetMinInputs() int {
-	return MinExpandInputs
+func (f *Expand8) GetMinInputs() int {
+	return MinExpand8Inputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (f *Expand) GetMaxInputs() int {
-	return MaxExpandInputs
+func (f *Expand8) GetMaxInputs() int {
+	return MaxExpand8Inputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (f *Expand) GetInputTypeConstraints() [][]tensor.Dtype {
+func (f *Expand8) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{ops.AllTypes, {tensor.Int64}}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (f *Expand) String() string {
-	return "expand operator"
+func (f *Expand8) String() string {
+	return "expand13 operator"
 }

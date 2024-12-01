@@ -1,4 +1,4 @@
-package opset13
+package cosh
 
 import (
 	"testing"
@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestCoshInit(t *testing.T) {
-	c := &Cosh{}
+func TestCosh9Init(t *testing.T) {
+	c := &Cosh9{}
 
 	// since 'cosh' does not have any attributes we pass in nil. This should not
 	// fail initializing the cosh.
@@ -17,27 +17,27 @@ func TestCoshInit(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestCosh(t *testing.T) {
+func TestCosh9(t *testing.T) {
 	tests := []struct {
-		cosh     *Cosh
+		cosh     *Cosh9
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Cosh{},
+			&Cosh9{},
 			[]float32{-2, -1, 0, 1},
 			[]int{2, 2},
 			[]float32{3.7621956, 1.5430807, 1, 1.5430807},
 		},
 		{
-			&Cosh{},
+			&Cosh9{},
 			[]float32{1, 3, 4, 5},
 			[]int{1, 4},
 			[]float32{1.5430807, 10.067662, 27.308233, 74.209946},
 		},
 		{
-			&Cosh{},
+			&Cosh9{},
 			[]float32{-1, -1, -1, -1},
 			[]int{1, 4},
 			[]float32{1.5430807, 1.5430807, 1.5430807, 1.5430807},
@@ -57,7 +57,7 @@ func TestCosh(t *testing.T) {
 	}
 }
 
-func TestInputValidationCosh(t *testing.T) {
+func TestInputValidationCosh9(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -76,18 +76,18 @@ func TestInputValidationCosh(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Cosh{}),
+			ops.ErrInvalidInputCount(0, &Cosh9{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Cosh{}),
+			ops.ErrInvalidInputType(0, "int", &Cosh9{}),
 		},
 	}
 
 	for _, test := range tests {
-		cosh := &Cosh{}
+		cosh := &Cosh9{}
 		validated, err := cosh.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

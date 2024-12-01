@@ -1,4 +1,4 @@
-package opset13
+package constantofshape
 
 import (
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -7,24 +7,24 @@ import (
 )
 
 const (
-	MinConstantOfShapeInputs = 1
-	MaxConstantOfShapeInputs = 1
+	MinConstantOfShape9Inputs = 1
+	MaxConstantOfShape9Inputs = 1
 )
 
-// ConstantOfShape represents the ONNX constant of shape operator.
-type ConstantOfShape struct {
+// ConstantOfShape9 represents the ONNX constant of shape operator.
+type ConstantOfShape9 struct {
 	// One element tensor, giving the value and type of the output tensor
 	// defaults to value 0 and type float32.
 	value *tensor.Dense
 }
 
-// newConstantOfShape creates a new constant of shape operator.
-func newConstantOfShape() ops.Operator {
-	return &ConstantOfShape{}
+// newConstantOfShape9 creates a new constant of shape operator.
+func NewConstantOfShape9() ops.Operator {
+	return &ConstantOfShape9{}
 }
 
 // Init initializes the constant of shape operator.
-func (c *ConstantOfShape) Init(n *onnx.NodeProto) error {
+func (c *ConstantOfShape9) Init(n *onnx.NodeProto) error {
 	attributes := n.GetAttribute()
 
 	if len(attributes) > 1 {
@@ -54,7 +54,7 @@ func (c *ConstantOfShape) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the constant of shape operator.
-func (c *ConstantOfShape) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *ConstantOfShape9) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	shape, err := ops.AnyToIntSlice(ops.IfScalarToSlice(inputs[0].Data()))
 	if err != nil {
 		return nil, err
@@ -78,29 +78,29 @@ func (c *ConstantOfShape) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (c *ConstantOfShape) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *ConstantOfShape9) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ValidateInputs(c, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (c *ConstantOfShape) GetMinInputs() int {
-	return MinConstantOfShapeInputs
+func (c *ConstantOfShape9) GetMinInputs() int {
+	return MinConstantOfShape9Inputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (c *ConstantOfShape) GetMaxInputs() int {
-	return MaxConstantOfShapeInputs
+func (c *ConstantOfShape9) GetMaxInputs() int {
+	return MaxConstantOfShape9Inputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (c *ConstantOfShape) GetInputTypeConstraints() [][]tensor.Dtype {
+func (c *ConstantOfShape9) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{
 		{tensor.Int64},
 	}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (c *ConstantOfShape) String() string {
-	return "constant of shape operator"
+func (c *ConstantOfShape9) String() string {
+	return "constantofshape9 operator"
 }

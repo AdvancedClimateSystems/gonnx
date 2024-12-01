@@ -1,4 +1,4 @@
-package opset13
+package expand
 
 import (
 	"testing"
@@ -8,16 +8,16 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestExpandInit(t *testing.T) {
-	e := &Expand{}
+func TestExpand13Init(t *testing.T) {
+	e := &Expand13{}
 
 	err := e.Init(nil)
 	assert.Nil(t, err)
 }
 
-func TestExpand(t *testing.T) {
+func TestExpand13(t *testing.T) {
 	tests := []struct {
-		expand          *Expand
+		expand          *Expand13
 		backing         []float32
 		shape           []int
 		newShapeBacking []int64
@@ -25,7 +25,7 @@ func TestExpand(t *testing.T) {
 		expectedData    []float32
 	}{
 		{
-			&Expand{},
+			&Expand13{},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]int64{1, 1, 1},
@@ -33,7 +33,7 @@ func TestExpand(t *testing.T) {
 			[]float32{0, 1, 2, 3},
 		},
 		{
-			&Expand{},
+			&Expand13{},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]int64{1, 3, 1, 1},
@@ -56,7 +56,7 @@ func TestExpand(t *testing.T) {
 	}
 }
 
-func TestInputValidationExpand(t *testing.T) {
+func TestInputValidationExpand13(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -109,19 +109,19 @@ func TestInputValidationExpand(t *testing.T) {
 				ops.TensorWithBackingFixture([]int64{1, 1, 1}, 3),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(3, &Expand{}),
+			ops.ErrInvalidInputCount(3, &Expand13{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{1, 1, 1}, 3),
 			},
-			ops.ErrInvalidInputType(0, "int", &Expand{}),
+			ops.ErrInvalidInputType(0, "int", &Expand13{}),
 		},
 	}
 
 	for _, test := range tests {
-		expand := &Expand{}
+		expand := &Expand13{}
 		validated, err := expand.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

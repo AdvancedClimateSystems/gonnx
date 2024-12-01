@@ -1,4 +1,4 @@
-package opset13
+package cos
 
 import (
 	"testing"
@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestCosInit(t *testing.T) {
-	c := &Cos{}
+func TestCos7Init(t *testing.T) {
+	c := &Cos7{}
 
 	// since 'cos' does not have any attributes we pass in nil. This should not
 	// fail initializing the cos.
@@ -17,27 +17,27 @@ func TestCosInit(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestCos(t *testing.T) {
+func TestCos7(t *testing.T) {
 	tests := []struct {
-		cos      *Cos
+		cos      *Cos7
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Cos{},
+			&Cos7{},
 			[]float32{-2, -1, 0, 1},
 			[]int{2, 2},
 			[]float32{-0.41614684, 0.5403023, 1, 0.5403023},
 		},
 		{
-			&Cos{},
+			&Cos7{},
 			[]float32{1, 3, 4, 5},
 			[]int{1, 4},
 			[]float32{0.5403023, -0.9899925, -0.6536436, 0.2836622},
 		},
 		{
-			&Cos{},
+			&Cos7{},
 			[]float32{-1, -1, -1, -1},
 			[]int{1, 4},
 			[]float32{0.5403023, 0.5403023, 0.5403023, 0.5403023},
@@ -57,7 +57,7 @@ func TestCos(t *testing.T) {
 	}
 }
 
-func TestInputValidationCos(t *testing.T) {
+func TestInputValidationCos7(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -76,18 +76,18 @@ func TestInputValidationCos(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Cos{}),
+			ops.ErrInvalidInputCount(0, &Cos7{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Cos{}),
+			ops.ErrInvalidInputType(0, "int", &Cos7{}),
 		},
 	}
 
 	for _, test := range tests {
-		cos := &Cos{}
+		cos := &Cos7{}
 		validated, err := cos.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

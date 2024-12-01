@@ -1,4 +1,4 @@
-package opset13
+package equal
 
 import (
 	"testing"
@@ -8,39 +8,39 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestDivInit(t *testing.T) {
-	div := &Div{}
+func TestEqual13Init(t *testing.T) {
+	e := &Equal13{}
 
-	// since the div does not have any attributes we pass in nil. This should not
-	// fail initializing the div.
-	err := div.Init(nil)
+	// since 'equal' does not have any attributes we pass in nil. This should not
+	// fail initializing the equal.
+	err := e.Init(ops.EmptyNodeProto())
 	assert.Nil(t, err)
 }
 
-func TestDiv(t *testing.T) {
+func TestEqual13(t *testing.T) {
 	tests := []struct {
-		div      *Div
-		shapes   [][]int
+		equal    *Equal13
 		backings [][]float32
-		expected []float32
+		shapes   [][]int
+		expected []bool
 	}{
 		{
-			&Div{},
+			&Equal13{},
+			[][]float32{{0, 1, 2, 3}, {1, 1, 1, 1}},
 			[][]int{{2, 2}, {2, 2}},
-			[][]float32{{10, 10, 10, 10}, {2, 5, 2.5, 1.0}},
-			[]float32{5, 2, 4, 10},
+			[]bool{false, true, false, false},
 		},
 		{
-			&Div{},
-			[][]int{{2, 2}, {2}},
-			[][]float32{{1, 1, 1, 1}, {1, 2}},
-			[]float32{1, 0.5, 1, 0.5},
+			&Equal13{},
+			[][]float32{{0, 1, 2, 2, 4, 5}, {2, 2, 2, 2, 2, 2}},
+			[][]int{{3, 2}, {3, 2}},
+			[]bool{false, false, true, true, false, false},
 		},
 		{
-			&Div{},
-			[][]int{{2, 2}, {1}},
-			[][]float32{{1, 1, 1, 1}, {2}},
-			[]float32{0.5, 0.5, 0.5, 0.5},
+			&Equal13{},
+			[][]float32{{0, 1}, {0, 1, 0, 1}},
+			[][]int{{2}, {2, 2}},
+			[]bool{true, true, true, true},
 		},
 	}
 
@@ -49,14 +49,16 @@ func TestDiv(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backings[0], test.shapes[0]...),
 			ops.TensorWithBackingFixture(test.backings[1], test.shapes[1]...),
 		}
-		res, err := test.div.Apply(inputs)
+
+		res, err := test.equal.Apply(inputs)
 		assert.Nil(t, err)
 
+		assert.Nil(t, err)
 		assert.Equal(t, test.expected, res[0].Data())
 	}
 }
 
-func TestInputValidationDiv(t *testing.T) {
+func TestInputValidationEqual13(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -107,20 +109,20 @@ func TestInputValidationDiv(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(1, &Div{}),
+			ops.ErrInvalidInputCount(1, &Equal13{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Div{}),
+			ops.ErrInvalidInputType(0, "int", &Equal13{}),
 		},
 	}
 
 	for _, test := range tests {
-		div := &Div{}
-		validated, err := div.ValidateInputs(test.inputs)
+		equal := &Equal13{}
+		validated, err := equal.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
 

@@ -1,4 +1,4 @@
-package opset13
+package flatten
 
 import (
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -7,24 +7,24 @@ import (
 )
 
 const (
-	MinFlattenInputs = 1
-	MaxFlattenInputs = 1
+	MinFlatten9Inputs = 1
+	MaxFlatten9Inputs = 1
 )
 
-// Flatten represents the ONNX flatten operator.
-type Flatten struct {
+// Flatten9 represents the ONNX flatten operator.
+type Flatten9 struct {
 	axis int
 }
 
-// newFlatten creates a new flatten operator.
-func newFlatten() ops.Operator {
-	return &Flatten{
+// newFlatten9 creates a new flatten operator.
+func NewFlatten9() ops.Operator {
+	return &Flatten9{
 		axis: 1,
 	}
 }
 
 // Init initializes the flatten operator.
-func (f *Flatten) Init(n *onnx.NodeProto) error {
+func (f *Flatten9) Init(n *onnx.NodeProto) error {
 	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
 		case "axis":
@@ -38,15 +38,8 @@ func (f *Flatten) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the flatten operator.
-func (f *Flatten) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (f *Flatten9) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	inputShape := inputs[0].Shape()
-	rank := len(inputShape)
-
-	axis := f.axis
-	if axis < 0 {
-		axis = rank + axis
-	}
-
 	out, ok := inputs[0].Clone().(tensor.Tensor)
 	if !ok {
 		return nil, ops.ErrTypeAssert("tensor.Tensor", inputs[0].Clone())
@@ -55,10 +48,10 @@ func (f *Flatten) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var err error
 	// In the special case where axis is 0, we reshape the tensor to shape
 	// (1, <n_elements>). This is ONNX defined behaviour.
-	if axis == 0 {
+	if f.axis == 0 {
 		err = out.Reshape(1, ops.NElements(inputShape...))
 	} else {
-		err = out.Reshape(ops.NElements(inputShape[:axis]...), ops.NElements(inputShape[axis:]...))
+		err = out.Reshape(ops.NElements(inputShape[:f.axis]...), ops.NElements(inputShape[f.axis:]...))
 	}
 
 	if err != nil {
@@ -69,27 +62,27 @@ func (f *Flatten) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (f *Flatten) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (f *Flatten9) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ValidateInputs(f, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (f *Flatten) GetMinInputs() int {
-	return MinFlattenInputs
+func (f *Flatten9) GetMinInputs() int {
+	return MinFlatten9Inputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (f *Flatten) GetMaxInputs() int {
-	return MaxFlattenInputs
+func (f *Flatten9) GetMaxInputs() int {
+	return MaxFlatten9Inputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (f *Flatten) GetInputTypeConstraints() [][]tensor.Dtype {
+func (f *Flatten9) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{ops.AllTypes}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (f *Flatten) String() string {
-	return "flatten operator"
+func (f *Flatten9) String() string {
+	return "flatten9 operator"
 }

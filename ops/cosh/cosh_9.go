@@ -1,4 +1,4 @@
-package opset13
+package cosh
 
 import (
 	"math"
@@ -8,21 +8,21 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// Cos represents the ONNX cos operator.
-type Cos struct{}
+// Cosh9 represents the ONNX cosh operator.
+type Cosh9 struct{}
 
-// newCos creates a new cos operator.
-func newCos() ops.Operator {
-	return &Cos{}
+// newCosh9 creates a new cosh operator.
+func NewCosh9() ops.Operator {
+	return &Cosh9{}
 }
 
-// Init initializes the cos operator.
-func (c *Cos) Init(*onnx.NodeProto) error {
+// Init initializes the cosh operator.
+func (c *Cosh9) Init(*onnx.NodeProto) error {
 	return nil
 }
 
-// Apply applies the cos operator.
-func (c *Cos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+// Apply applies the cosh operator.
+func (c *Cosh9) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var (
 		out tensor.Tensor
 		err error
@@ -30,9 +30,9 @@ func (c *Cos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	switch inputs[0].Dtype() {
 	case tensor.Float32:
-		out, err = inputs[0].Apply(cos[float32])
+		out, err = inputs[0].Apply(cosh[float32])
 	case tensor.Float64:
-		out, err = inputs[0].Apply(cos[float64])
+		out, err = inputs[0].Apply(cosh[float64])
 	default:
 		return nil, ops.ErrInvalidInputType(0, inputs[0].Dtype().String(), c)
 	}
@@ -45,31 +45,31 @@ func (c *Cos) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (c *Cos) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *Cosh9) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ValidateInputs(c, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (c *Cos) GetMinInputs() int {
+func (c *Cosh9) GetMinInputs() int {
 	return 1
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (c *Cos) GetMaxInputs() int {
+func (c *Cosh9) GetMaxInputs() int {
 	return 1
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (c *Cos) GetInputTypeConstraints() [][]tensor.Dtype {
+func (c *Cosh9) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{{tensor.Float32, tensor.Float64}}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (c *Cos) String() string {
-	return "cos operator"
+func (c *Cosh9) String() string {
+	return "cosh9 operator"
 }
 
-func cos[T ops.FloatType](x T) T {
-	return T(math.Cos(float64(x)))
+func cosh[T ops.FloatType](x T) T {
+	return T(math.Cosh(float64(x)))
 }

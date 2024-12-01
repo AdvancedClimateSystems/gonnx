@@ -1,4 +1,4 @@
-package opset13
+package equal
 
 import (
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -7,25 +7,25 @@ import (
 )
 
 var (
-	MinEqualInputs = 2
-	MaxEqualInputs = 2
+	MinEqual13Inputs = 2
+	MaxEqual13Inputs = 2
 )
 
-// Equal represents the ONNX equal operator.
-type Equal struct{}
+// Equal13 represents the ONNX equal operator.
+type Equal13 struct{}
 
-// newEqual creates a new equal operator.
-func newEqual() ops.Operator {
-	return &Equal{}
+// newEqual13 creates a new equal operator.
+func NewEqual13() ops.Operator {
+	return &Equal13{}
 }
 
 // Init initializes the equal operator.
-func (e *Equal) Init(*onnx.NodeProto) error {
+func (e *Equal13) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the equal operator.
-func (e *Equal) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (e *Equal13) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ApplyBinaryOperation(
 		inputs[0],
 		inputs[1],
@@ -35,27 +35,27 @@ func (e *Equal) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (e *Equal) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (e *Equal13) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ValidateInputs(e, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (e *Equal) GetMinInputs() int {
-	return MinEqualInputs
+func (e *Equal13) GetMinInputs() int {
+	return MinEqual13Inputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (e *Equal) GetMaxInputs() int {
-	return MaxEqualInputs
+func (e *Equal13) GetMaxInputs() int {
+	return MaxEqual13Inputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (e *Equal) GetInputTypeConstraints() [][]tensor.Dtype {
+func (e *Equal13) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{ops.AllTypes, ops.AllTypes}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (e *Equal) String() string {
-	return "equal operator"
+func (e *Equal13) String() string {
+	return "equal13 operator"
 }
