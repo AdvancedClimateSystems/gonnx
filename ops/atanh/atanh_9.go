@@ -1,4 +1,4 @@
-package opset13
+package atanh
 
 import (
 	"math"
@@ -8,21 +8,21 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// Atanh represents the ONNX atanh operator.
-type Atanh struct{}
+// Atanh9 represents the ONNX atanh operator.
+type Atanh9 struct{}
 
-// newAtanh creates a new atanh operator.
-func newAtanh() ops.Operator {
-	return &Atanh{}
+// newAtanh9 creates a new atanh operator.
+func NewAtanh9() ops.Operator {
+	return &Atanh9{}
 }
 
 // Init initializes the atanh operator.
-func (a *Atanh) Init(*onnx.NodeProto) error {
+func (a *Atanh9) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the atanh operator.
-func (a *Atanh) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (a *Atanh9) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var (
 		out tensor.Tensor
 		err error
@@ -45,29 +45,29 @@ func (a *Atanh) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (a *Atanh) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (a *Atanh9) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ValidateInputs(a, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (a *Atanh) GetMinInputs() int {
+func (a *Atanh9) GetMinInputs() int {
 	return 1
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (a *Atanh) GetMaxInputs() int {
+func (a *Atanh9) GetMaxInputs() int {
 	return 1
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (a *Atanh) GetInputTypeConstraints() [][]tensor.Dtype {
+func (a *Atanh9) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{{tensor.Float32, tensor.Float64}}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (a *Atanh) String() string {
-	return "atanh operator"
+func (a *Atanh9) String() string {
+	return "atanh9 operator"
 }
 
 func atanh[T ops.FloatType](x T) T {

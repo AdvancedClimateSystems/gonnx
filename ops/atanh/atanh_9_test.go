@@ -1,4 +1,4 @@
-package opset13
+package atanh
 
 import (
 	"testing"
@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestAtanhInit(t *testing.T) {
-	a := &Atanh{}
+func TestAtanh9Init(t *testing.T) {
+	a := &Atanh9{}
 
 	// since 'atanh' does not have any attributes we pass in nil. This should not
 	// fail initializing the atanh.
@@ -17,27 +17,27 @@ func TestAtanhInit(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestAtanh(t *testing.T) {
+func TestAtanh9(t *testing.T) {
 	tests := []struct {
-		atanh    *Atanh
+		atanh    *Atanh9
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Atanh{},
+			&Atanh9{},
 			[]float32{-0.9, -0.5, 0, 0.5},
 			[]int{2, 2},
 			[]float32{-1.4722193, -0.54930615, 0, 0.54930615},
 		},
 		{
-			&Atanh{},
+			&Atanh9{},
 			[]float32{-0.9, -0.5, 0, 0.5},
 			[]int{1, 4},
 			[]float32{-1.4722193, -0.54930615, 0, 0.54930615},
 		},
 		{
-			&Atanh{},
+			&Atanh9{},
 			[]float32{0.5, 0.5, 0.5, 0.5},
 			[]int{1, 4},
 			[]float32{0.54930615, 0.54930615, 0.54930615, 0.54930615},
@@ -57,7 +57,7 @@ func TestAtanh(t *testing.T) {
 	}
 }
 
-func TestInputValidationAtanh(t *testing.T) {
+func TestInputValidationAtanh9(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -76,18 +76,18 @@ func TestInputValidationAtanh(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Atanh{}),
+			ops.ErrInvalidInputCount(0, &Atanh9{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Atanh{}),
+			ops.ErrInvalidInputType(0, "int", &Atanh9{}),
 		},
 	}
 
 	for _, test := range tests {
-		atanh := &Atanh{}
+		atanh := &Atanh9{}
 		validated, err := atanh.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

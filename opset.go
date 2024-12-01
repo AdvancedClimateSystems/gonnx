@@ -11,6 +11,9 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops/asin"
 	"github.com/advancedclimatesystems/gonnx/ops/asinh"
 	"github.com/advancedclimatesystems/gonnx/ops/atan"
+	"github.com/advancedclimatesystems/gonnx/ops/atanh"
+	"github.com/advancedclimatesystems/gonnx/ops/cast"
+	"github.com/advancedclimatesystems/gonnx/ops/concat"
 )
 
 const (
@@ -55,9 +58,19 @@ var operators = map[string]OperatorVersions{
 	"Atan": {
 		7: atan.NewAtan7,
 	},
-	"Atanh":           {},
-	"Cast":            {},
-	"Concat":          {},
+	"Atanh": {
+		9: atanh.NewAtanh9,
+	},
+	"Cast": {
+		6:  cast.NewCast6,
+		9:  cast.NewCast9,
+		13: cast.NewCast13,
+	},
+	"Concat": {
+		4:  concat.NewConcat4,
+		11: concat.NewConcat11,
+		13: concat.NewConcat13,
+	},
 	"Constant":        {},
 	"ConstantOfShape": {},
 	"Conv":            {},

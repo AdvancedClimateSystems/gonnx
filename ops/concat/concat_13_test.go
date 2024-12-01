@@ -1,4 +1,4 @@
-package opset13
+package concat
 
 import (
 	"testing"
@@ -9,39 +9,39 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestConcatInit(t *testing.T) {
-	concat := &Concat{}
+func TestConcat13Init(t *testing.T) {
+	concat := &Concat13{}
 	err := concat.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 3}}})
 
 	assert.Nil(t, err)
 	assert.Equal(t, 3, concat.axis)
 }
 
-func TestConcatInitFail(t *testing.T) {
-	concat := &Concat{}
+func TestConcat13InitFail(t *testing.T) {
+	concat := &Concat13{}
 	err := concat.Init(ops.EmptyNodeProto())
 
 	expected := ops.ErrInvalidAttributeCount(1, 0, concat)
 	assert.Equal(t, expected, err)
 }
 
-func TestConcat(t *testing.T) {
+func TestConcat13(t *testing.T) {
 	tests := []struct {
-		concat          *Concat
+		concat          *Concat13
 		backings        [][]float32
 		shapes          [][]int
 		expectedShape   tensor.Shape
 		expectedBacking []float32
 	}{
 		{
-			&Concat{1, 2, [][]tensor.Dtype{ops.AllTypes, ops.AllTypes}},
+			&Concat13{1, 2, [][]tensor.Dtype{ops.AllTypes, ops.AllTypes}},
 			[][]float32{{0, 1, 2, 3}, {10, 20}},
 			[][]int{{2, 2}, {2, 1}},
 			[]int{2, 3},
 			[]float32{0, 1, 10, 2, 3, 20},
 		},
 		{
-			&Concat{1, 2, [][]tensor.Dtype{ops.AllTypes, ops.AllTypes}},
+			&Concat13{1, 2, [][]tensor.Dtype{ops.AllTypes, ops.AllTypes}},
 			[][]float32{{0, 1, 2, 3}, {10, 20, 30, 40, 50, 60}},
 			[][]int{{2, 2}, {2, 3}},
 			[]int{2, 5},
@@ -63,20 +63,20 @@ func TestConcat(t *testing.T) {
 	}
 }
 
-func TestInputValidationConcat(t *testing.T) {
+func TestInputValidationConcat13(t *testing.T) {
 	tests := []struct {
 		concat ops.Operator
 		inputs []tensor.Tensor
 	}{
 		{
-			&Concat{1, 2, [][]tensor.Dtype{ops.AllTypes, ops.AllTypes}},
+			&Concat13{1, 2, [][]tensor.Dtype{ops.AllTypes, ops.AllTypes}},
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]uint32{3, 4}, 2),
 			},
 		},
 		{
-			&Concat{1, 1, [][]tensor.Dtype{ops.AllTypes}},
+			&Concat13{1, 1, [][]tensor.Dtype{ops.AllTypes}},
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]float32{1, 2}, 2)},
 		},
 	}

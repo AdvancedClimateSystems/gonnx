@@ -1,4 +1,4 @@
-package opset13
+package cast
 
 import (
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -7,22 +7,22 @@ import (
 )
 
 const (
-	MinCastInputs = 1
-	MaxCastInputs = 1
+	MinCast6Inputs = 1
+	MaxCast6Inputs = 1
 )
 
-// Cast represents the ONNX cast operator.
-type Cast struct {
+// Cast6 represents the ONNX cast operator.
+type Cast6 struct {
 	to int32 // DataType to cast to, as defined by TensorProto
 }
 
-// newCast creates a new cast operator.
-func newCast() ops.Operator {
-	return &Cast{}
+// newCast6 creates a new cast operator.
+func NewCast6() ops.Operator {
+	return &Cast6{}
 }
 
 // Init initializes the cast operator.
-func (c *Cast) Init(n *onnx.NodeProto) error {
+func (c *Cast6) Init(n *onnx.NodeProto) error {
 	attributes := n.GetAttribute()
 
 	if len(attributes) != 1 {
@@ -40,7 +40,7 @@ func (c *Cast) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the cast operator.
-func (c *Cast) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *Cast6) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	out, err := ops.ConvertTensorDtype(inputs[0], c.to)
 	if err != nil {
 		return nil, err
@@ -50,32 +50,32 @@ func (c *Cast) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (c *Cast) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *Cast6) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ValidateInputs(c, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (c *Cast) GetMinInputs() int {
-	return MinCastInputs
+func (c *Cast6) GetMinInputs() int {
+	return MinCast6Inputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (c *Cast) GetMaxInputs() int {
-	return MaxCastInputs
+func (c *Cast6) GetMaxInputs() int {
+	return MaxCast6Inputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (c *Cast) GetInputTypeConstraints() [][]tensor.Dtype {
+func (c *Cast6) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{
 		{
 			tensor.Int16, tensor.Uint16, tensor.Int32, tensor.Uint32, tensor.Int64, tensor.Uint64,
-			tensor.Float32, tensor.Float64,
+			tensor.Float32, tensor.Float64, tensor.String,
 		},
 	}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (c *Cast) String() string {
-	return "cast operator"
+func (c *Cast6) String() string {
+	return "cast6 operator"
 }

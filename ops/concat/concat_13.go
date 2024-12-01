@@ -1,4 +1,4 @@
-package opset13
+package concat
 
 import (
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -7,23 +7,23 @@ import (
 )
 
 const (
-	MinConcatInputs = 1
+	MinConcat13Inputs = 1
 )
 
-// Concat represents the ONNX concat operator.
-type Concat struct {
+// Concat13 represents the ONNX concat operator.
+type Concat13 struct {
 	axis                 int
 	maxInputs            int
 	inputTypeConstraints [][]tensor.Dtype
 }
 
-// newConcat creates a new concat operator.
-func newConcat() ops.Operator {
-	return &Concat{}
+// newConcat13 creates a new concat operator.
+func NewConcat13() ops.Operator {
+	return &Concat13{}
 }
 
 // Init initializes the concat operator.
-func (c *Concat) Init(n *onnx.NodeProto) error {
+func (c *Concat13) Init(n *onnx.NodeProto) error {
 	attributes := n.GetAttribute()
 
 	if len(attributes) != 1 {
@@ -36,7 +36,7 @@ func (c *Concat) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the concat operator.
-func (c *Concat) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *Concat13) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	// Not sure why this is possible, but minimum number of inputs is said to be 1.
 	if len(inputs) == 1 {
 		return inputs, nil
@@ -56,8 +56,8 @@ func (c *Concat) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (c *Concat) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	// Because Concat can have an infinite number of inputs, we set the maximum number
+func (c *Concat13) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+	// Because Concat13 can have an infinite number of inputs, we set the maximum number
 	// of inputs dynamically, based on our inputs. Every input can have any type.
 	c.maxInputs = len(inputs)
 	c.inputTypeConstraints = make([][]tensor.Dtype, len(inputs))
@@ -70,22 +70,22 @@ func (c *Concat) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (c *Concat) GetMinInputs() int {
-	return MinConcatInputs
+func (c *Concat13) GetMinInputs() int {
+	return MinConcat13Inputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (c *Concat) GetMaxInputs() int {
+func (c *Concat13) GetMaxInputs() int {
 	return c.maxInputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (c *Concat) GetInputTypeConstraints() [][]tensor.Dtype {
+func (c *Concat13) GetInputTypeConstraints() [][]tensor.Dtype {
 	return c.inputTypeConstraints
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (c *Concat) String() string {
-	return "concat operator"
+func (c *Concat13) String() string {
+	return "concat13 operator"
 }
