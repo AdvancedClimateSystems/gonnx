@@ -1,4 +1,4 @@
-package opset13
+package argmax
 
 import (
 	"testing"
@@ -9,8 +9,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestArgMaxInit(t *testing.T) {
-	a := &ArgMax{}
+func TestArgMax13Init(t *testing.T) {
+	a := &ArgMax13{}
 
 	err := a.Init(
 		&onnx.NodeProto{
@@ -28,23 +28,23 @@ func TestArgMaxInit(t *testing.T) {
 	assert.Equal(t, false, a.selectLastIndex)
 }
 
-func TestArgMax(t *testing.T) {
+func TestArgMax13(t *testing.T) {
 	tests := []struct {
-		argmax        *ArgMax
+		argmax        *ArgMax13
 		backing       []float32
 		shape         []int
 		expectedShape tensor.Shape
 		expectedData  []int64
 	}{
 		{
-			&ArgMax{axis: 0, keepDims: true},
+			&ArgMax13{axis: 0, keepDims: true},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]int{1, 2},
 			[]int64{1, 1},
 		},
 		{
-			&ArgMax{axis: -1, keepDims: true},
+			&ArgMax13{axis: -1, keepDims: true},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]int{2, 1},
@@ -65,7 +65,7 @@ func TestArgMax(t *testing.T) {
 	}
 }
 
-func TestInputValidationArgMax(t *testing.T) {
+func TestInputValidationArgMax13(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -111,18 +111,18 @@ func TestInputValidationArgMax(t *testing.T) {
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(2, &ArgMax{}),
+			ops.ErrInvalidInputCount(2, &ArgMax13{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &ArgMax{}),
+			ops.ErrInvalidInputType(0, "int", &ArgMax13{}),
 		},
 	}
 
 	for _, test := range tests {
-		argmax := &ArgMax{}
+		argmax := &ArgMax13{}
 		validated, err := argmax.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

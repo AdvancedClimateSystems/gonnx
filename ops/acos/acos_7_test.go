@@ -1,4 +1,4 @@
-package opset13
+package acos
 
 import (
 	"testing"
@@ -8,39 +8,39 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestAtanInit(t *testing.T) {
-	a := &Atan{}
+func TestAcos7Init(t *testing.T) {
+	c := &Acos7{}
 
-	// since 'atan' does not have any attributes we pass in nil. This should not
-	// fail initializing the atan.
-	err := a.Init(nil)
+	// since 'acos' does not have any attributes we pass in nil. This should not
+	// fail initializing the acos.
+	err := c.Init(nil)
 	assert.Nil(t, err)
 }
 
-func TestAtan(t *testing.T) {
+func TestAcos7(t *testing.T) {
 	tests := []struct {
-		atan     *Atan
+		acos     *Acos7
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Atan{},
-			[]float32{1, 2, 3, 4},
+			&Acos7{},
+			[]float32{-1, -1, 0, 1},
 			[]int{2, 2},
-			[]float32{0.7853982, 1.1071488, 1.2490457, 1.3258177},
+			[]float32{3.1415927, 3.1415927, 1.5707964, 0},
 		},
 		{
-			&Atan{},
-			[]float32{1, 2, 3, 4},
+			&Acos7{},
+			[]float32{1, 0.5, 0.0, -0.5},
 			[]int{1, 4},
-			[]float32{0.7853982, 1.1071488, 1.2490457, 1.3258177},
+			[]float32{0, 1.0471976, 1.5707964, 2.0943952},
 		},
 		{
-			&Atan{},
-			[]float32{2, 2, 2, 2},
+			&Acos7{},
+			[]float32{-1, -1, -1, -1},
 			[]int{1, 4},
-			[]float32{1.1071488, 1.1071488, 1.1071488, 1.1071488},
+			[]float32{3.1415927, 3.1415927, 3.1415927, 3.1415927},
 		},
 	}
 
@@ -49,7 +49,7 @@ func TestAtan(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		res, err := test.atan.Apply(inputs)
+		res, err := test.acos.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Nil(t, err)
@@ -57,7 +57,7 @@ func TestAtan(t *testing.T) {
 	}
 }
 
-func TestInputValidationAtan(t *testing.T) {
+func TestInputValidationAcos7(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -76,19 +76,19 @@ func TestInputValidationAtan(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Atan{}),
+			ops.ErrInvalidInputCount(0, &Acos7{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Atan{}),
+			ops.ErrInvalidInputType(0, "int", &Acos7{}),
 		},
 	}
 
 	for _, test := range tests {
-		atan := &Atan{}
-		validated, err := atan.ValidateInputs(test.inputs)
+		acos := &Acos7{}
+		validated, err := acos.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
 

@@ -1,4 +1,4 @@
-package opset13
+package acosh
 
 import (
 	"math"
@@ -8,21 +8,21 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// Asinh represents the ONNX asinh operator.
-type Asinh struct{}
+// Acosh9 represents the ONNX acosh operator.
+type Acosh9 struct{}
 
-// newAsinh creates a new asinh operator.
-func newAsinh() ops.Operator {
-	return &Asinh{}
+// newAcosh9 creates a new acosh operator.
+func NewAcosh9() ops.Operator {
+	return &Acosh9{}
 }
 
-// Init initializes the asinh operator.
-func (a *Asinh) Init(*onnx.NodeProto) error {
+// Init initializes the acosh operator.
+func (c *Acosh9) Init(*onnx.NodeProto) error {
 	return nil
 }
 
-// Apply applies the asinh operator.
-func (a *Asinh) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+// Apply applies the acosh operator.
+func (c *Acosh9) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var (
 		out tensor.Tensor
 		err error
@@ -30,11 +30,11 @@ func (a *Asinh) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	switch inputs[0].Dtype() {
 	case tensor.Float32:
-		out, err = inputs[0].Apply(asinh[float32])
+		out, err = inputs[0].Apply(acosh[float32])
 	case tensor.Float64:
-		out, err = inputs[0].Apply(asinh[float64])
+		out, err = inputs[0].Apply(acosh[float64])
 	default:
-		return nil, ops.ErrInvalidInputType(0, inputs[0].Dtype().String(), a)
+		return nil, ops.ErrInvalidInputType(0, inputs[0].Dtype().String(), c)
 	}
 
 	if err != nil {
@@ -45,31 +45,31 @@ func (a *Asinh) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (a *Asinh) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(a, inputs)
+func (c *Acosh9) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+	return ops.ValidateInputs(c, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (a *Asinh) GetMinInputs() int {
+func (c *Acosh9) GetMinInputs() int {
 	return 1
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (a *Asinh) GetMaxInputs() int {
+func (c *Acosh9) GetMaxInputs() int {
 	return 1
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (a *Asinh) GetInputTypeConstraints() [][]tensor.Dtype {
+func (c *Acosh9) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{{tensor.Float32, tensor.Float64}}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (a *Asinh) String() string {
-	return "asinh operator"
+func (c *Acosh9) String() string {
+	return "acosh9 operator"
 }
 
-func asinh[T ops.FloatType](x T) T {
-	return T(math.Asinh(float64(x)))
+func acosh[T ops.FloatType](x T) T {
+	return T(math.Acosh(float64(x)))
 }

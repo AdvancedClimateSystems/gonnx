@@ -1,4 +1,4 @@
-package opset13
+package abs
 
 import (
 	"testing"
@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestAbsInit(t *testing.T) {
-	a := &Abs{}
+func TestAbs13Init(t *testing.T) {
+	a := &Abs13{}
 
 	// since 'abs' does not have any attributes we pass in nil. This should not
 	// fail initializing the abs.
@@ -17,27 +17,27 @@ func TestAbsInit(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestAbs(t *testing.T) {
+func TestAbs13(t *testing.T) {
 	tests := []struct {
-		abs      *Abs
+		abs      *Abs13
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Abs{},
+			&Abs13{},
 			[]float32{-2, -1, 0, 1},
 			[]int{2, 2},
 			[]float32{2, 1, 0, 1},
 		},
 		{
-			&Abs{},
+			&Abs13{},
 			[]float32{1, 3, 4, 5},
 			[]int{1, 4},
 			[]float32{1, 3, 4, 5},
 		},
 		{
-			&Abs{},
+			&Abs13{},
 			[]float32{-1, -1, -1, -1},
 			[]int{1, 4},
 			[]float32{1, 1, 1, 1},
@@ -57,7 +57,7 @@ func TestAbs(t *testing.T) {
 	}
 }
 
-func TestInputValidationAbs(t *testing.T) {
+func TestInputValidationAbs13(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -124,18 +124,18 @@ func TestInputValidationAbs(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Abs{}),
+			ops.ErrInvalidInputCount(0, &Abs13{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Abs{}),
+			ops.ErrInvalidInputType(0, "int", &Abs13{}),
 		},
 	}
 
 	for _, test := range tests {
-		abs := &Abs{}
+		abs := &Abs13{}
 		validated, err := abs.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

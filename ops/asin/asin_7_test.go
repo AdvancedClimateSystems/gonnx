@@ -1,4 +1,4 @@
-package opset13
+package asin
 
 import (
 	"testing"
@@ -8,39 +8,39 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestAcoshInit(t *testing.T) {
-	c := &Acosh{}
+func TestAsin7Init(t *testing.T) {
+	s := &Asin7{}
 
-	// since 'acosh' does not have any attributes we pass in nil. This should not
-	// fail initializing the acosh.
-	err := c.Init(nil)
+	// since 'asin' does not have any attributes we pass in nil. This should not
+	// fail initializing the asin.
+	err := s.Init(nil)
 	assert.Nil(t, err)
 }
 
-func TestAcosh(t *testing.T) {
+func TestAsin7(t *testing.T) {
 	tests := []struct {
-		acosh    *Acosh
+		asin     *Asin7
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Acosh{},
-			[]float32{1, 2, 3, 4},
+			&Asin7{},
+			[]float32{-1, -1, 0, 1},
 			[]int{2, 2},
-			[]float32{0, 1.316958, 1.7627472, 2.063437},
+			[]float32{-1.5707964, -1.5707964, 0, 1.5707964},
 		},
 		{
-			&Acosh{},
-			[]float32{1, 2, 3, 4},
+			&Asin7{},
+			[]float32{1, 0.5, 0.0, -0.5},
 			[]int{1, 4},
-			[]float32{0, 1.316958, 1.7627472, 2.063437},
+			[]float32{1.5707964, 0.5235988, 0, -0.5235988},
 		},
 		{
-			&Acosh{},
-			[]float32{2, 2, 2, 2},
+			&Asin7{},
+			[]float32{-1, -1, -1, -1},
 			[]int{1, 4},
-			[]float32{1.316958, 1.316958, 1.316958, 1.316958},
+			[]float32{-1.5707964, -1.5707964, -1.5707964, -1.5707964},
 		},
 	}
 
@@ -49,7 +49,7 @@ func TestAcosh(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		res, err := test.acosh.Apply(inputs)
+		res, err := test.asin.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Nil(t, err)
@@ -57,7 +57,7 @@ func TestAcosh(t *testing.T) {
 	}
 }
 
-func TestInputValidationAcosh(t *testing.T) {
+func TestInputValidationAsin7(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -76,19 +76,19 @@ func TestInputValidationAcosh(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Acosh{}),
+			ops.ErrInvalidInputCount(0, &Asin7{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Acosh{}),
+			ops.ErrInvalidInputType(0, "int", &Asin7{}),
 		},
 	}
 
 	for _, test := range tests {
-		acosh := &Acosh{}
-		validated, err := acosh.ValidateInputs(test.inputs)
+		asin := &Asin7{}
+		validated, err := asin.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
 

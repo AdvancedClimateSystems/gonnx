@@ -1,4 +1,4 @@
-package opset13
+package atan
 
 import (
 	"testing"
@@ -8,39 +8,39 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestAsinInit(t *testing.T) {
-	s := &Asin{}
+func TestAtan7Init(t *testing.T) {
+	a := &Atan7{}
 
-	// since 'asin' does not have any attributes we pass in nil. This should not
-	// fail initializing the asin.
-	err := s.Init(nil)
+	// since 'atan' does not have any attributes we pass in nil. This should not
+	// fail initializing the atan.
+	err := a.Init(nil)
 	assert.Nil(t, err)
 }
 
-func TestAsin(t *testing.T) {
+func TestAtan7(t *testing.T) {
 	tests := []struct {
-		asin     *Asin
+		atan     *Atan7
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Asin{},
-			[]float32{-1, -1, 0, 1},
+			&Atan7{},
+			[]float32{1, 2, 3, 4},
 			[]int{2, 2},
-			[]float32{-1.5707964, -1.5707964, 0, 1.5707964},
+			[]float32{0.7853982, 1.1071488, 1.2490457, 1.3258177},
 		},
 		{
-			&Asin{},
-			[]float32{1, 0.5, 0.0, -0.5},
+			&Atan7{},
+			[]float32{1, 2, 3, 4},
 			[]int{1, 4},
-			[]float32{1.5707964, 0.5235988, 0, -0.5235988},
+			[]float32{0.7853982, 1.1071488, 1.2490457, 1.3258177},
 		},
 		{
-			&Asin{},
-			[]float32{-1, -1, -1, -1},
+			&Atan7{},
+			[]float32{2, 2, 2, 2},
 			[]int{1, 4},
-			[]float32{-1.5707964, -1.5707964, -1.5707964, -1.5707964},
+			[]float32{1.1071488, 1.1071488, 1.1071488, 1.1071488},
 		},
 	}
 
@@ -49,7 +49,7 @@ func TestAsin(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		res, err := test.asin.Apply(inputs)
+		res, err := test.atan.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Nil(t, err)
@@ -57,7 +57,7 @@ func TestAsin(t *testing.T) {
 	}
 }
 
-func TestInputValidationAsin(t *testing.T) {
+func TestInputValidationAtan7(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -76,19 +76,19 @@ func TestInputValidationAsin(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Asin{}),
+			ops.ErrInvalidInputCount(0, &Atan7{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Asin{}),
+			ops.ErrInvalidInputType(0, "int", &Atan7{}),
 		},
 	}
 
 	for _, test := range tests {
-		asin := &Asin{}
-		validated, err := asin.ValidateInputs(test.inputs)
+		atan := &Atan7{}
+		validated, err := atan.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
 

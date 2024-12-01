@@ -1,4 +1,4 @@
-package opset13
+package add
 
 import (
 	"testing"
@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestAddInit(t *testing.T) {
-	a := &Add{}
+func TestAdd13Init(t *testing.T) {
+	a := &Add13{}
 
 	// since 'add' does not have any attributes we pass in nil. This should not
 	// fail initializing the add.
@@ -17,27 +17,27 @@ func TestAddInit(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestAdd(t *testing.T) {
+func TestAdd13(t *testing.T) {
 	tests := []struct {
-		add      *Add
+		add      *Add13
 		backings [][]float32
 		shapes   [][]int
 		expected []float32
 	}{
 		{
-			&Add{},
+			&Add13{},
 			[][]float32{{0, 1, 2, 3}, {1, 1, 1, 1}},
 			[][]int{{2, 2}, {2, 2}},
 			[]float32{1, 2, 3, 4},
 		},
 		{
-			&Add{},
+			&Add13{},
 			[][]float32{{0, 1, 2, 3, 4, 5}, {2, 2, 2, 2, 2, 2}},
 			[][]int{{3, 2}, {3, 2}},
 			[]float32{2, 3, 4, 5, 6, 7},
 		},
 		{
-			&Add{},
+			&Add13{},
 			[][]float32{{0, 1}, {0, 1, 2, 3}},
 			[][]int{{2}, {2, 2}},
 			[]float32{0, 2, 2, 4},
@@ -57,18 +57,18 @@ func TestAdd(t *testing.T) {
 	}
 }
 
-func TestAddFail(t *testing.T) {
+func TestAdd13Fail(t *testing.T) {
 	inputs := []tensor.Tensor{
 		ops.TensorWithBackingFixture([]float32{1, 2, 3, 4}, 2, 2),
 		ops.TensorWithBackingFixture([]float32{1, 2, 3}, 3),
 	}
 
-	add := &Add{}
+	add := &Add13{}
 	_, err := add.Apply(inputs)
 	assert.Equal(t, err, ops.ErrMultidirBroadcast(inputs[0].Shape(), inputs[1].Shape(), ops.ErrIncompatibleDimensions()))
 }
 
-func TestInputValidationAdd(t *testing.T) {
+func TestInputValidationAdd13(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -119,19 +119,19 @@ func TestInputValidationAdd(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(1, &Add{}),
+			ops.ErrInvalidInputCount(1, &Add13{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Add{}),
+			ops.ErrInvalidInputType(0, "int", &Add13{}),
 		},
 	}
 
 	for _, test := range tests {
-		add := &Add{}
+		add := &Add13{}
 		validated, err := add.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

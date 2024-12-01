@@ -1,4 +1,4 @@
-package opset13
+package and
 
 import (
 	"testing"
@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestAndInit(t *testing.T) {
-	a := &And{}
+func TestAnd7Init(t *testing.T) {
+	a := &And7{}
 
 	// since 'and' does not have any attributes we pass in nil. This should not
 	// fail initializing the and.
@@ -17,33 +17,33 @@ func TestAndInit(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestAnd(t *testing.T) {
+func TestAnd7(t *testing.T) {
 	tests := []struct {
-		and      *And
+		and      *And7
 		backings [][]bool
 		shapes   [][]int
 		expected []bool
 	}{
 		{
-			&And{},
+			&And7{},
 			[][]bool{{true, false, true, false}, {true, true, true, false}},
 			[][]int{{2, 2}, {2, 2}},
 			[]bool{true, false, true, false},
 		},
 		{
-			&And{},
+			&And7{},
 			[][]bool{{true, false, true, false}, {true, false}},
 			[][]int{{2, 2}, {1, 2}},
 			[]bool{true, false, true, false},
 		},
 		{
-			&And{},
+			&And7{},
 			[][]bool{{true, false, true, false}, {true, false}},
 			[][]int{{2, 2}, {2, 1}},
 			[]bool{true, false, false, false},
 		},
 		{
-			&And{},
+			&And7{},
 			[][]bool{{true, false, true, false, true, false}, {false, false}},
 			[][]int{{3, 2}, {1, 2}},
 			[]bool{false, false, false, false, false, false},
@@ -64,7 +64,7 @@ func TestAnd(t *testing.T) {
 	}
 }
 
-func TestInputValidationAnd(t *testing.T) {
+func TestInputValidationAnd7(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -80,19 +80,19 @@ func TestInputValidationAnd(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
 			},
-			ops.ErrInvalidInputCount(1, &And{}),
+			ops.ErrInvalidInputCount(1, &And7{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(1, "int", &And{}),
+			ops.ErrInvalidInputType(1, "int", &And7{}),
 		},
 	}
 
 	for _, test := range tests {
-		and := &And{}
+		and := &And7{}
 		validated, err := and.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

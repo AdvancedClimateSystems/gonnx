@@ -1,4 +1,4 @@
-package opset13
+package and
 
 import (
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -7,25 +7,25 @@ import (
 )
 
 var (
-	MinAndInputs = 2
-	MaxAndInputs = 2
+	MinAnd7Inputs = 2
+	MaxAnd7Inputs = 2
 )
 
-// And represents the ONNX and operator.
-type And struct{}
+// And7 represents the ONNX and operator.
+type And7 struct{}
 
-// newAnd creates a new and operator.
-func newAnd() ops.Operator {
-	return &And{}
+// newAnd7 creates a new and operator.
+func NewAnd7() ops.Operator {
+	return &And7{}
 }
 
 // Init initializes the and operator.
-func (a *And) Init(*onnx.NodeProto) error {
+func (a *And7) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the and operator.
-func (a *And) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (a *And7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ApplyBinaryOperation(
 		inputs[0],
 		inputs[1],
@@ -35,27 +35,27 @@ func (a *And) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (a *And) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (a *And7) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ValidateInputs(a, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (a *And) GetMinInputs() int {
-	return MinAndInputs
+func (a *And7) GetMinInputs() int {
+	return MinAnd7Inputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (a *And) GetMaxInputs() int {
-	return MaxAndInputs
+func (a *And7) GetMaxInputs() int {
+	return MaxAnd7Inputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (a *And) GetInputTypeConstraints() [][]tensor.Dtype {
+func (a *And7) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{{tensor.Bool}, {tensor.Bool}}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (a *And) String() string {
-	return "and operator"
+func (a *And7) String() string {
+	return "and7 operator"
 }

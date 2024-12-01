@@ -1,4 +1,4 @@
-package opset13
+package acosh
 
 import (
 	"testing"
@@ -8,39 +8,39 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestAcosInit(t *testing.T) {
-	c := &Acos{}
+func TestAcosh9Init(t *testing.T) {
+	c := &Acosh9{}
 
-	// since 'acos' does not have any attributes we pass in nil. This should not
-	// fail initializing the acos.
+	// since 'acosh' does not have any attributes we pass in nil. This should not
+	// fail initializing the acosh.
 	err := c.Init(nil)
 	assert.Nil(t, err)
 }
 
-func TestAcos(t *testing.T) {
+func TestAcosh9(t *testing.T) {
 	tests := []struct {
-		acos     *Acos
+		acosh    *Acosh9
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Acos{},
-			[]float32{-1, -1, 0, 1},
+			&Acosh9{},
+			[]float32{1, 2, 3, 4},
 			[]int{2, 2},
-			[]float32{3.1415927, 3.1415927, 1.5707964, 0},
+			[]float32{0, 1.316958, 1.7627472, 2.063437},
 		},
 		{
-			&Acos{},
-			[]float32{1, 0.5, 0.0, -0.5},
+			&Acosh9{},
+			[]float32{1, 2, 3, 4},
 			[]int{1, 4},
-			[]float32{0, 1.0471976, 1.5707964, 2.0943952},
+			[]float32{0, 1.316958, 1.7627472, 2.063437},
 		},
 		{
-			&Acos{},
-			[]float32{-1, -1, -1, -1},
+			&Acosh9{},
+			[]float32{2, 2, 2, 2},
 			[]int{1, 4},
-			[]float32{3.1415927, 3.1415927, 3.1415927, 3.1415927},
+			[]float32{1.316958, 1.316958, 1.316958, 1.316958},
 		},
 	}
 
@@ -49,7 +49,7 @@ func TestAcos(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		res, err := test.acos.Apply(inputs)
+		res, err := test.acosh.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Nil(t, err)
@@ -57,7 +57,7 @@ func TestAcos(t *testing.T) {
 	}
 }
 
-func TestInputValidationAcos(t *testing.T) {
+func TestInputValidationAcosh9(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -76,19 +76,19 @@ func TestInputValidationAcos(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Acos{}),
+			ops.ErrInvalidInputCount(0, &Acosh9{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Acos{}),
+			ops.ErrInvalidInputType(0, "int", &Acosh9{}),
 		},
 	}
 
 	for _, test := range tests {
-		acos := &Acos{}
-		validated, err := acos.ValidateInputs(test.inputs)
+		acosh := &Acosh9{}
+		validated, err := acosh.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
 
