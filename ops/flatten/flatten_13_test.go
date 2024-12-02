@@ -10,7 +10,7 @@ import (
 )
 
 func TestFlatten13Init(t *testing.T) {
-	f := &Flatten13{}
+	f := &Flatten13{FlattenBase: &FlattenBase{axis: 1}}
 
 	err := f.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 2}}})
 	assert.Nil(t, err)
@@ -26,55 +26,55 @@ func TestFlatten13(t *testing.T) {
 		expectedShape tensor.Shape
 	}{
 		{
-			&Flatten13{},
+			&Flatten13{FlattenBase: &FlattenBase{}},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]int{1, 4},
 		},
 		{
-			&Flatten13{},
+			&Flatten13{FlattenBase: &FlattenBase{}},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
 			[]int{1, 6},
 		},
 		{
-			&Flatten13{axis: 1},
+			&Flatten13{FlattenBase: &FlattenBase{axis: 1}},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7},
 			[]int{2, 2, 2},
 			[]int{2, 4},
 		},
 		{
-			&Flatten13{axis: 2},
+			&Flatten13{FlattenBase: &FlattenBase{axis: 2}},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7},
 			[]int{2, 2, 2},
 			[]int{4, 2},
 		},
 		{
-			&Flatten13{axis: -1},
+			&Flatten13{FlattenBase: &FlattenBase{axis: -1}},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7},
 			[]int{2, 2, 2},
 			[]int{4, 2},
 		},
 		{
-			&Flatten13{axis: -2},
+			&Flatten13{FlattenBase: &FlattenBase{axis: -2}},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7},
 			[]int{2, 2, 2},
 			[]int{2, 4},
 		},
 		{
-			&Flatten13{axis: -3},
+			&Flatten13{FlattenBase: &FlattenBase{axis: -3}},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
 			[]int{3, 2, 3},
 			[]int{1, 18},
 		},
 		{
-			&Flatten13{axis: 2},
+			&Flatten13{FlattenBase: &FlattenBase{axis: 2}},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
 			[]int{3, 2, 3},
 			[]int{6, 3},
 		},
 		{
-			&Flatten13{axis: 1},
+			&Flatten13{FlattenBase: &FlattenBase{axis: 1}},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
 			[]int{3, 2, 3},
 			[]int{3, 6},
@@ -139,18 +139,18 @@ func TestInputValidationFlatten13(t *testing.T) {
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(2, &Flatten13{}),
+			ops.ErrInvalidInputCount(2, &FlattenBase{version: 13, axis: 1, minInputs: 1, maxInputs: 1, inputTypeConstraints: [][]tensor.Dtype{ops.AllTypes}}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Flatten13{}),
+			ops.ErrInvalidInputType(0, "int", &FlattenBase{version: 13, axis: 1, minInputs: 1, maxInputs: 1, inputTypeConstraints: [][]tensor.Dtype{ops.AllTypes}}),
 		},
 	}
 
 	for _, test := range tests {
-		flatten := &Flatten13{}
+		flatten := newFlatten13()
 		validated, err := flatten.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

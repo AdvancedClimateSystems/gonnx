@@ -1,89 +1,24 @@
 package flatten
 
 import (
-	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
-const (
-	MinFlatten1Inputs = 1
-	MaxFlatten1Inputs = 1
-)
-
-// Flatten1 represents the ONNX flatten operator.
+// Flatten1 implements version-specific behavior for Flatten 1.
 type Flatten1 struct {
-	axis int
+	*FlattenBase
 }
 
-// newFlatten1 creates a new flatten operator.
 func newFlatten1() ops.Operator {
 	return &Flatten1{
-		axis: 1,
+		FlattenBase: &FlattenBase{
+			version:   1,
+			axis:      1,
+			minInputs: 1,
+			maxInputs: 1,
+			// Misses Float16 type
+			inputTypeConstraints: [][]tensor.Dtype{{tensor.Float32, tensor.Float64}},
+		},
 	}
-}
-
-// Init initializes the flatten operator.
-func (f *Flatten1) Init(n *onnx.NodeProto) error {
-	for _, attr := range n.GetAttribute() {
-		switch attr.GetName() {
-		case axis:
-			f.axis = int(attr.GetI())
-		default:
-			return ops.ErrInvalidAttribute(attr.GetName(), f)
-		}
-	}
-
-	return nil
-}
-
-// Apply applies the flatten operator.
-func (f *Flatten1) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	inputShape := inputs[0].Shape()
-
-	out, ok := inputs[0].Clone().(tensor.Tensor)
-	if !ok {
-		return nil, ops.ErrTypeAssert("tensor.Tensor", inputs[0].Clone())
-	}
-
-	var err error
-	// In the special case where axis is 0, we reshape the tensor to shape
-	// (1, <n_elements>). This is ONNX defined behaviour.
-	if f.axis == 0 {
-		err = out.Reshape(1, ops.NElements(inputShape...))
-	} else {
-		err = out.Reshape(ops.NElements(inputShape[:f.axis]...), ops.NElements(inputShape[f.axis:]...))
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return []tensor.Tensor{out}, nil
-}
-
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (f *Flatten1) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(f, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (f *Flatten1) GetMinInputs() int {
-	return MinFlatten1Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (f *Flatten1) GetMaxInputs() int {
-	return MaxFlatten1Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (f *Flatten1) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{{tensor.Float32, tensor.Float64}}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (f *Flatten1) String() string {
-	return "flatten1 operator"
 }
