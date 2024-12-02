@@ -27,23 +27,23 @@ func (c *Constant12) Init(n *onnx.NodeProto) error {
 	attr := attributes[0]
 
 	switch attr.GetName() {
-	case "sparse_value", "value_string", "value_strings":
+	case sparseValue, valueString, valueStrings:
 		return ops.ErrUnsupportedAttribute(attr.GetName(), c)
-	case "value":
+	case value:
 		t, err := onnx.TensorFromProto(attr.GetT())
 		if err != nil {
 			return err
 		}
 
 		c.value = t
-	case "value_float":
+	case valueFloat:
 		c.value = tensor.New(tensor.FromScalar(attr.GetF()))
-	case "value_floats":
+	case valueFloats:
 		floats := attr.GetFloats()
 		c.value = tensor.New(tensor.WithShape(len(floats)), tensor.WithBacking(floats))
-	case "value_int":
+	case valueInt:
 		c.value = tensor.New(tensor.FromScalar(attr.GetI()))
-	case "value_ints":
+	case valueInts:
 		ints := attr.GetInts()
 		c.value = tensor.New(tensor.WithShape(len(ints)), tensor.WithBacking(ints))
 	default:

@@ -26,7 +26,7 @@ func (c *Constant9) Init(n *onnx.NodeProto) error {
 	attr := attributes[0]
 
 	switch attr.GetName() {
-	case "value":
+	case value:
 		t, err := onnx.TensorFromProto(attr.GetT())
 		if err != nil {
 			return err

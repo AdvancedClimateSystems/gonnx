@@ -35,6 +35,7 @@ var ignoredTests = []string{
 	"test_logsoftmax_axis_2_expanded_ver18",          // Opset18
 	"test_lstm_batchwise",                            // Opset14
 	"test_mul_uint8",                                 // Opset14
+	"test_reduce_max_empty_set",                      // Opset20
 	"test_reduce_max_do_not_keepdims_random",         // Opset18
 	"test_reduce_max_keepdims_random",                // Opset18
 	"test_reduce_max_default_axes_keepdims_random",   // Opset18
@@ -75,9 +76,6 @@ var ignoredTests = []string{
 
 	"test_constant_pad",                      // Pad is not implemented yet.
 	"test_constant_pad_axes",                 // Pad is not implemented yet.
-	"test_gemm_alpha",                        // For gemm in opset 11.
-	"test_gemm_default_no_bias",              // For gemm in opset 11.
-	"test_gemm_default_scalar_bias",          // For gemm in opset 11.
 	"test_logsoftmax_large_number_expanded",  // Requires 'Exp' operator.
 	"test_logsoftmax_axis_0_expanded",        // Requires 'Exp' operator.
 	"test_logsoftmax_axis_1_expanded",        // Requires 'Exp' operator.
@@ -98,7 +96,6 @@ var ignoredTests = []string{
 	"test_slice_end_out_of_bounds",           // ONNX expects nil output, but we throw an error.
 	"test_slice_neg_steps",                   // ONNX expects nil output, but we throw an error.
 	"test_slice_neg",                         // ONNX expects nil output, but we throw an error.
-	"test_transpose_default",                 // For transpose in opset 9.
 
 	"test_equal_string",                               // Unsupported datatype String.
 	"test_equal_string_broadcast",                     // Unsupported datatype String.
@@ -145,7 +142,6 @@ var ignoredTests = []string{
 	"test_cast_no_saturate_FLOAT16_to_FLOAT8E4M3FN",   // Unsupported datatype.
 	"test_cast_no_saturate_FLOAT16_to_FLOAT8E5M2",     // Unsupported datatype.
 
-	"test_unsqueeze_axis_3",                 // Tests an old version of Unsqueeze (<= 11)
 	"test_constantofshape_int_shape_zero",   // Empty tensors are not supported in gorgonia
 	"test_gather_elements_0",                // Operator GatherElements is not implemented
 	"test_gather_elements_1",                // Operator GatherElements is not implemented
@@ -303,9 +299,14 @@ func readTestModel(folder string) (*Model, error) {
 		return nil, err
 	}
 
-	// Currently we only implemented Opset13, hence we enforce this in our tests. All
+	// Currently we support Opset 7-13, hence we enforce this in our tests. All
 	// tests that fail because of this are ignored.
-	mp.OpsetImport[0].Version = 13
+	fmt.Println(folder, mp.OpsetImport[0].Version)
+	if mp.OpsetImport[0].Version < MinSupportedOpset {
+		mp.OpsetImport[0].Version = MinSupportedOpset
+	} else if mp.OpsetImport[0].Version > MaxSupportedOpset {
+		mp.OpsetImport[0].Version = MaxSupportedOpset
+	}
 
 	model, err := NewModel(mp)
 	if err != nil {
@@ -424,7 +425,10 @@ var expectedTests = []string{
 	"test_gather_negative_indices",
 	"test_gemm_default_single_elem_vector_bias",
 	"test_gemm_all_attributes",
+	"test_gemm_alpha",
 	"test_gemm_default_matrix_bias",
+	"test_gemm_default_no_bias",
+	"test_gemm_default_scalar_bias",
 	"test_gemm_default_vector_bias",
 	"test_gemm_transposeA",
 	"test_gemm_default_zero_bias",
@@ -514,6 +518,7 @@ var expectedTests = []string{
 	"test_transpose_all_permutations_3",
 	"test_transpose_all_permutations_4",
 	"test_transpose_all_permutations_5",
+	"test_transpose_default",
 	"test_unsqueeze_axis_0",
 	"test_unsqueeze_axis_1",
 	"test_unsqueeze_axis_2",

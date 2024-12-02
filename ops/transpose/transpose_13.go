@@ -25,19 +25,17 @@ func newTranspose13() ops.Operator {
 func (t *Transpose13) Init(n *onnx.NodeProto) error {
 	attributes := n.GetAttribute()
 
-	if len(attributes) != 1 {
-		return ops.ErrInvalidAttributeCount(1, len(attributes), t)
-	}
+	if len(attributes) == 1 {
+		attr := attributes[0]
 
-	attr := attributes[0]
+		if attr.GetName() != "perm" {
+			return ops.ErrInvalidAttribute(attr.GetName(), t)
+		}
 
-	if attr.GetName() != "perm" {
-		return ops.ErrInvalidAttribute(attr.GetName(), t)
-	}
-
-	attrPerm := attr.GetInts()
-	for _, val := range attrPerm {
-		t.perm = append(t.perm, int(val))
+		attrPerm := attr.GetInts()
+		for _, val := range attrPerm {
+			t.perm = append(t.perm, int(val))
+		}
 	}
 
 	return nil

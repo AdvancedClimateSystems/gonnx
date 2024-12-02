@@ -27,7 +27,7 @@ func newFlatten13() ops.Operator {
 func (f *Flatten13) Init(n *onnx.NodeProto) error {
 	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
-		case "axis":
+		case axis:
 			f.axis = int(attr.GetI())
 		default:
 			return ops.ErrInvalidAttribute(attr.GetName(), f)

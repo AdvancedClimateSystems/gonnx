@@ -33,13 +33,13 @@ func newGemm7() ops.Operator {
 func (g *Gemm7) Init(n *onnx.NodeProto) error {
 	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
-		case "alpha":
+		case alpha:
 			g.alpha = attr.GetF()
-		case "beta":
+		case beta:
 			g.beta = attr.GetF()
-		case "transA":
+		case transA:
 			g.transA = ops.Int64ToBool(attr.GetI())
-		case "transB":
+		case transB:
 			g.transB = ops.Int64ToBool(attr.GetI())
 		default:
 			return ops.ErrInvalidAttribute(attr.GetName(), g)

@@ -57,10 +57,7 @@ func (s *Squeeze11) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	ops.OffsetArrayIfNegative(dimsToSqueeze, nDims)
 
 	if len(s.axes) > 0 {
-		dimsToSqueeze, err = getDimsToSqueezeFromList(s.axes, nDims)
-		if err != nil {
-			return nil, err
-		}
+		dimsToSqueeze = getDimsToSqueezeFromList(s.axes, nDims)
 	}
 
 	newShape := getNewShape(currentShape, dimsToSqueeze)
@@ -105,7 +102,7 @@ func (s *Squeeze11) String() string {
 // based on a list of ints. The list should contain dimensions/axes to squeeze. Negative dimensions
 // represent dimensions counting from the end of the shape, i.e. -2 repesents the second
 // last dimension.
-func getDimsToSqueezeFromList(axes []int, nDims int) ([]int, error) {
+func getDimsToSqueezeFromList(axes []int, nDims int) []int {
 	dimsToSqueeze := make([]int, len(axes))
 	copy(dimsToSqueeze, axes)
 
@@ -115,5 +112,5 @@ func getDimsToSqueezeFromList(axes []int, nDims int) ([]int, error) {
 		}
 	}
 
-	return dimsToSqueeze, nil
+	return dimsToSqueeze
 }

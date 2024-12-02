@@ -93,7 +93,7 @@ func (s *Slice10) GetInputTypeConstraints() [][]tensor.Dtype {
 
 // String implements the stringer interface, and can be used to format errors or messages.
 func (s *Slice10) String() string {
-	return "slice11 operator"
+	return "slice10 operator"
 }
 
 // constructSlice constructs a list with tensor.Slice objects. The list is initializes with nils.

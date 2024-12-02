@@ -133,7 +133,7 @@ var operators = map[string]ops.OperatorVersions{
 // one is used. If the opset version is 13, and an operator has versions 7 and 14, version 7 is used, as
 // it is the closest opset version going downwards.
 func GetClosestOperatorVersion(opsetID int64, versions ops.OperatorVersions) func() ops.Operator {
-	for closestOpset := opsetID; opsetID >= MinSupportedOpset; closestOpset-- {
+	for closestOpset := opsetID; closestOpset >= 1; closestOpset-- {
 		if operator, ok := versions[closestOpset]; ok {
 			return operator
 		}
@@ -149,6 +149,7 @@ func ResolveOpset(opsetID int64) (Opset, error) {
 	}
 
 	opset := map[string]func() ops.Operator{}
+
 	for operatorName, operatorVersions := range operators {
 		operator := GetClosestOperatorVersion(opsetID, operatorVersions)
 		if operator == nil {

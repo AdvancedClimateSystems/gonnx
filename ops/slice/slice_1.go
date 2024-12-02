@@ -7,8 +7,10 @@ import (
 )
 
 const (
-	MinSlice1Inputs = 3
-	MaxSlice1Inputs = 5
+	MinSliceAttributes = 2
+	MaxSliceAttributes = 3
+	MinSlice1Inputs    = 3
+	MaxSlice1Inputs    = 5
 )
 
 // Slice1 represents the ONNX slice operator.
@@ -27,7 +29,7 @@ func newSlice1() ops.Operator {
 func (s *Slice1) Init(n *onnx.NodeProto) error {
 	nAttrs := len(n.GetAttribute())
 	if nAttrs < 2 || nAttrs > 3 {
-		return ops.ErrInvalidOptionalAttributeCount(2, 3, nAttrs, s)
+		return ops.ErrInvalidOptionalAttributeCount(MinSliceAttributes, MaxSliceAttributes, nAttrs, s)
 	}
 
 	for _, attr := range n.GetAttribute() {
@@ -109,7 +111,7 @@ func (s *Slice1) GetInputTypeConstraints() [][]tensor.Dtype {
 
 // String implements the stringer interface, and can be used to format errors or messages.
 func (s *Slice1) String() string {
-	return "slice11 operator"
+	return "slice1 operator"
 }
 
 // constructSlice constructs a list with tensor.Slice objects. The list is initializes with nils.

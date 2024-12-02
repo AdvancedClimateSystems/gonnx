@@ -30,7 +30,7 @@ func (g *Gather11) Init(n *onnx.NodeProto) error {
 	if len(attributes) == 1 {
 		attr := attributes[0]
 
-		if attr.GetName() == "axis" {
+		if attr.GetName() == axis {
 			g.axis = int(attr.GetI())
 		} else {
 			return ops.ErrInvalidAttribute(attr.GetName(), g)

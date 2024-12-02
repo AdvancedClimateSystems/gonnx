@@ -34,14 +34,14 @@ func (r *ReduceMax11) Init(n *onnx.NodeProto) error {
 
 	for _, attr := range attributes {
 		switch attr.GetName() {
-		case "axes":
+		case axes:
 			axes, err := ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
 				return err
 			}
 
 			r.axes = axes
-		case "keepdims":
+		case keepDims:
 			r.keepDims = attr.GetI() == 1
 		default:
 			return ops.ErrInvalidAttribute(attr.GetName(), r)

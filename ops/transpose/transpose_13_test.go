@@ -25,14 +25,6 @@ func TestTranspose13InitFailWrongAttribute(t *testing.T) {
 	assert.Equal(t, expected, err)
 }
 
-func TestTranspose13InitFailAttrCount(t *testing.T) {
-	trans := &Transpose13{}
-	err := trans.Init(ops.EmptyNodeProto())
-
-	expected := ops.ErrInvalidAttributeCount(1, 0, trans)
-	assert.Equal(t, expected, err)
-}
-
 func TestTranspose13(t *testing.T) {
 	tests := []struct {
 		trans           *Transpose13

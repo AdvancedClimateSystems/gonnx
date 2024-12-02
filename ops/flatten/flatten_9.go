@@ -27,7 +27,7 @@ func newFlatten9() ops.Operator {
 func (f *Flatten9) Init(n *onnx.NodeProto) error {
 	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
-		case "axis":
+		case axis:
 			f.axis = int(attr.GetI())
 		default:
 			return ops.ErrInvalidAttribute(attr.GetName(), f)
@@ -40,6 +40,7 @@ func (f *Flatten9) Init(n *onnx.NodeProto) error {
 // Apply applies the flatten operator.
 func (f *Flatten9) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	inputShape := inputs[0].Shape()
+
 	out, ok := inputs[0].Clone().(tensor.Tensor)
 	if !ok {
 		return nil, ops.ErrTypeAssert("tensor.Tensor", inputs[0].Clone())

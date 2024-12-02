@@ -57,10 +57,7 @@ func (s *Squeeze1) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	ops.OffsetArrayIfNegative(dimsToSqueeze, nDims)
 
 	if len(s.axes) > 0 {
-		dimsToSqueeze, err = getDimsToSqueezeFromList(s.axes, nDims)
-		if err != nil {
-			return nil, err
-		}
+		dimsToSqueeze = getDimsToSqueezeFromList(s.axes, nDims)
 	}
 
 	newShape := getNewShape(currentShape, dimsToSqueeze)

@@ -27,9 +27,9 @@ func (c *Constant11) Init(n *onnx.NodeProto) error {
 	attr := attributes[0]
 
 	switch attr.GetName() {
-	case "sparse_value":
+	case sparseValue:
 		return ops.ErrUnsupportedAttribute(attr.GetName(), c)
-	case "value":
+	case value:
 		t, err := onnx.TensorFromProto(attr.GetT())
 		if err != nil {
 			return err

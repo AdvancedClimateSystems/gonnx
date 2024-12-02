@@ -134,7 +134,7 @@ func (m *MatMul1) GetInputTypeConstraints() [][]tensor.Dtype {
 
 // String implements the stringer interface, and can be used to format errors or messages.
 func (m *MatMul1) String() string {
-	return "matmul13 operator"
+	return "matmul1 operator"
 }
 
 // broadcastTensors broadcasts both tensors for the matmul operator. It is almost identical
