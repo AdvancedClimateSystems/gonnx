@@ -301,7 +301,6 @@ func readTestModel(folder string) (*Model, error) {
 
 	// Currently we support Opset 7-13, hence we enforce this in our tests. All
 	// tests that fail because of this are ignored.
-	fmt.Println(folder, mp.OpsetImport[0].Version)
 	if mp.OpsetImport[0].Version < MinSupportedOpset {
 		mp.OpsetImport[0].Version = MinSupportedOpset
 	} else if mp.OpsetImport[0].Version > MaxSupportedOpset {
