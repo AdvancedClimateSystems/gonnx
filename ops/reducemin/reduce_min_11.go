@@ -35,12 +35,12 @@ func (r *ReduceMin11) Init(n *onnx.NodeProto) error {
 	for _, attr := range attributes {
 		switch attr.GetName() {
 		case axes:
-			axes, err := ops.AnyToIntSlice(attr.GetInts())
+			value, err := ops.AnyToIntSlice(attr.GetInts())
 			if err != nil {
 				return err
 			}
 
-			r.axes = axes
+			r.axes = value
 		case keepDims:
 			r.keepDims = attr.GetI() == 1
 		default:
