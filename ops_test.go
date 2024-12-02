@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
-	"github.com/advancedclimatesystems/gonnx/ops/opset13"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
 	"gorgonia.org/tensor"
@@ -175,9 +174,8 @@ type ONNXTestCase struct {
 
 func TestOps(t *testing.T) {
 	runnedTests := []string{}
-	opNames := opset13.GetOpNames()
 
-	for _, opName := range opNames {
+	for opName := range operators {
 		tests, err := getTestCasesForOp(opName)
 		assert.Nil(t, err)
 

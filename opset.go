@@ -28,6 +28,35 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops/greater"
 	"github.com/advancedclimatesystems/gonnx/ops/greaterorequal"
 	"github.com/advancedclimatesystems/gonnx/ops/gru"
+	"github.com/advancedclimatesystems/gonnx/ops/less"
+	"github.com/advancedclimatesystems/gonnx/ops/lessorequal"
+	"github.com/advancedclimatesystems/gonnx/ops/linearregressor"
+	"github.com/advancedclimatesystems/gonnx/ops/logsoftmax"
+	"github.com/advancedclimatesystems/gonnx/ops/lstm"
+	"github.com/advancedclimatesystems/gonnx/ops/matmul"
+	"github.com/advancedclimatesystems/gonnx/ops/mul"
+	"github.com/advancedclimatesystems/gonnx/ops/not"
+	"github.com/advancedclimatesystems/gonnx/ops/or"
+	"github.com/advancedclimatesystems/gonnx/ops/prelu"
+	"github.com/advancedclimatesystems/gonnx/ops/reducemax"
+	"github.com/advancedclimatesystems/gonnx/ops/reducemin"
+	"github.com/advancedclimatesystems/gonnx/ops/relu"
+	"github.com/advancedclimatesystems/gonnx/ops/reshape"
+	"github.com/advancedclimatesystems/gonnx/ops/rnn"
+	"github.com/advancedclimatesystems/gonnx/ops/scaler"
+	"github.com/advancedclimatesystems/gonnx/ops/shape"
+	"github.com/advancedclimatesystems/gonnx/ops/sigmoid"
+	"github.com/advancedclimatesystems/gonnx/ops/sin"
+	"github.com/advancedclimatesystems/gonnx/ops/sinh"
+	"github.com/advancedclimatesystems/gonnx/ops/slice"
+	"github.com/advancedclimatesystems/gonnx/ops/softmax"
+	"github.com/advancedclimatesystems/gonnx/ops/squeeze"
+	"github.com/advancedclimatesystems/gonnx/ops/sub"
+	"github.com/advancedclimatesystems/gonnx/ops/tan"
+	"github.com/advancedclimatesystems/gonnx/ops/tanh"
+	"github.com/advancedclimatesystems/gonnx/ops/transpose"
+	"github.com/advancedclimatesystems/gonnx/ops/unsqueeze"
+	"github.com/advancedclimatesystems/gonnx/ops/xor"
 )
 
 const (
@@ -37,6 +66,9 @@ const (
 
 // OpGetter is a function that gets an operator based on a string.
 type OpGetter func(string) (ops.Operator, error)
+
+// Opset is a set of operators matching a certain opset version.
+type Opset map[string]func() ops.Operator
 
 var operators = map[string]ops.OperatorVersions{
 	"Abs":             abs.AbsVersions,
@@ -65,47 +97,66 @@ var operators = map[string]ops.OperatorVersions{
 	"Greater":         greater.GreaterVersions,
 	"GreaterOrEqual":  greaterorequal.GreaterOrEqualVersions,
 	"GRU":             gru.GRUVersions,
-	"Less":            {},
-	"LessOrEqual":     {},
-	"LinearRegressor": {},
-	"LogSoftmax":      {},
-	"LSTM":            {},
-	"MatMul":          {},
-	"Mul":             {},
-	"Not":             {},
-	"Or":              {},
-	"PRelu":           {},
-	"ReduceMax":       {},
-	"ReduceMin":       {},
-	"Relu":            {},
-	"Reshape":         {},
-	"RNN":             {},
-	"Scaler":          {},
-	"Shape":           {},
-	"Sigmoid":         {},
-	"Sin":             {},
-	"Sinh":            {},
-	"Slice":           {},
-	"Softmax":         {},
-	"Squeeze":         {},
-	"Sub":             {},
-	"Tan":             {},
-	"Tanh":            {},
-	"Transpose":       {},
-	"Unsqueeze":       {},
-	"Xor":             {},
+	"Less":            less.LessVersions,
+	"LessOrEqual":     lessorequal.LessOrEqualVersions,
+	"LinearRegressor": linearregressor.LinearRegressorVersions,
+	"LogSoftmax":      logsoftmax.LogSoftmaxVersions,
+	"LSTM":            lstm.LSTMVersions,
+	"MatMul":          matmul.MatMulVersions,
+	"Mul":             mul.MulVersions,
+	"Not":             not.NotVersions,
+	"Or":              or.OrVersions,
+	"PRelu":           prelu.PReluVersions,
+	"ReduceMax":       reducemax.ReduceMaxVersions,
+	"ReduceMin":       reducemin.ReduceMinVersions,
+	"Relu":            relu.ReluVersions,
+	"Reshape":         reshape.ReshapeVersions,
+	"RNN":             rnn.RNNVersions,
+	"Scaler":          scaler.ScalerVersions,
+	"Shape":           shape.ShapeVersions,
+	"Sigmoid":         sigmoid.SigmoidVersions,
+	"Sin":             sin.SinVersions,
+	"Sinh":            sinh.SinhVersions,
+	"Slice":           slice.SliceVersions,
+	"Softmax":         softmax.SoftmaxVersions,
+	"Squeeze":         squeeze.SqueezeVersions,
+	"Sub":             sub.SubVersions,
+	"Tan":             tan.TanVersions,
+	"Tanh":            tanh.TanhVersions,
+	"Transpose":       transpose.TransposeVersions,
+	"Unsqueeze":       unsqueeze.UnsqueezeVersions,
+	"Xor":             xor.XorVersions,
 }
 
-// ResolveOperatorGetter resolves the getter for operators based on the opset version.
-func ResolveOperatorGetter(opsetID int64) (OpGetter, error) {
+// GetClosestOperatorVersion resolves, given a certain opset version, the operator version that is closest
+// to that version, going downwards. So if the opset version is 13, and an operator has version 13, this
+// one is used. If the opset version is 13, and an operator has versions 7 and 14, version 7 is used, as
+// it is the closest opset version going downwards.
+func GetClosestOperatorVersion(opsetID int64, versions ops.OperatorVersions) func() ops.Operator {
+	for closestOpset := opsetID; opsetID >= MinSupportedOpset; closestOpset-- {
+		if operator, ok := versions[closestOpset]; ok {
+			return operator
+		}
+	}
+
+	return nil
+}
+
+// ResolveOpset resolves the opset with all closest operator versions for the given opset version.
+func ResolveOpset(opsetID int64) (Opset, error) {
 	if opsetID < MinSupportedOpset || opsetID > MaxSupportedOpset {
 		return nil, ops.ErrUnsupportedOpsetVersion
 	}
 
-	//TODO: create new OpGetter based on opsetID
-	if getOperator, ok := operatorGetters[opsetID]; ok {
-		return getOperator, nil
+	opset := map[string]func() ops.Operator{}
+	for operatorName, operatorVersions := range operators {
+		operator := GetClosestOperatorVersion(opsetID, operatorVersions)
+		if operator == nil {
+			continue
+		}
+
+		opset[operatorName] = operator
 	}
 
-	return nil, ops.ErrUnsupportedOpsetVersion
+	return opset, nil
 }

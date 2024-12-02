@@ -137,7 +137,7 @@ func TestIncorrectInput(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(
 		t,
-		"constant of shape operator invalid tensor found, reason: expected tensor to have one element",
+		"constantofshape9 operator invalid tensor found, reason: expected tensor to have one element",
 		err.Error(),
 	)
 }
@@ -154,7 +154,7 @@ func TestNegativeShapeNotAllowed(t *testing.T) {
 
 	assert.Equal(
 		t,
-		"constant of shape operator invalid tensor found, reason: empty dimensions are not allowed",
+		"constantofshape9 operator invalid tensor found, reason: empty dimensions are not allowed",
 		err.Error())
 }
 
@@ -170,7 +170,7 @@ func TestEmptyTensorNotAllowed(t *testing.T) {
 
 	assert.Equal(
 		t,
-		"constant of shape operator invalid tensor found, reason: empty dimensions are not allowed",
+		"constantofshape9 operator invalid tensor found, reason: empty dimensions are not allowed",
 		err.Error())
 }
 

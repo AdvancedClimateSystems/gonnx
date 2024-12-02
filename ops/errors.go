@@ -221,6 +221,12 @@ func ErrUnknownOperatorType(operatorType string) error {
 	return fmt.Errorf("%w: %s", ErrUnsupportedOperator, operatorType)
 }
 
+var ErrUnsupportedOperatorVersion = errors.New("unsupported opset operator version")
+
+func ErrUnsupportedOperatorVersionType(opsetID int64, operatorType string) error {
+	return fmt.Errorf("%w: opset %d for operator %s", ErrUnsupportedOperator, opsetID, operatorType)
+}
+
 var ErrAxisNotInRange = errors.New("axis out of range")
 
 func ErrNotAllAxesInRange(min, max int) error {

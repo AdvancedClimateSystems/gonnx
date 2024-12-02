@@ -7,8 +7,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestResolveOperatorGetterFail(t *testing.T) {
-	opGetter, err := ResolveOperatorGetter(12)
-	assert.Nil(t, opGetter)
+func TestResolveOpset(t *testing.T) {
+	_, err := ResolveOpset(13)
+	assert.Nil(t, err)
+}
+
+func TestResolveOpsetNotSupported(t *testing.T) {
+	opset, err := ResolveOpset(6)
+	assert.Nil(t, opset)
 	assert.Equal(t, ops.ErrUnsupportedOpsetVersion, err)
 }

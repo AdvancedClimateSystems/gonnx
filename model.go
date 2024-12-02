@@ -16,9 +16,9 @@ type Tensors map[string]tensor.Tensor
 
 // Model defines a model that can be used for inference.
 type Model struct {
-	mp          *onnx.ModelProto
-	parameters  Tensors
-	GetOperator OpGetter
+	mp         *onnx.ModelProto
+	parameters Tensors
+	Opset      Opset
 }
 
 // NewModelFromFile creates a new model from a path to a file.
@@ -74,15 +74,15 @@ func NewModel(mp *onnx.ModelProto) (*Model, error) {
 		}
 	}
 
-	GetOperator, err := ResolveOperatorGetter(opsetID)
+	opset, err := ResolveOpset(opsetID)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Model{
-		mp:          mp,
-		parameters:  params,
-		GetOperator: GetOperator,
+		mp:         mp,
+		parameters: params,
+		Opset:      opset,
 	}, nil
 }
 
@@ -167,12 +167,12 @@ func (m *Model) Run(inputs Tensors) (Tensors, error) {
 	}
 
 	for _, n := range m.mp.Graph.GetNode() {
-		op, err := m.GetOperator(n.GetOpType())
-		if err != nil {
-			return nil, err
+		op, ok := m.Opset[n.GetOpType()]
+		if !ok {
+			return nil, ops.ErrUnknownOperatorType(n.GetOpType())
 		}
 
-		if err := m.applyOp(op, n, tensors); err != nil {
+		if err := m.applyOp(op(), n, tensors); err != nil {
 			return nil, err
 		}
 	}

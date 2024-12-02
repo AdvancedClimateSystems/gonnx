@@ -1,0 +1,140 @@
+package softmax
+
+import (
+	"testing"
+
+	"github.com/advancedclimatesystems/gonnx/ops"
+	"github.com/stretchr/testify/assert"
+	"gorgonia.org/tensor"
+)
+
+func TestSoftmax13Init(t *testing.T) {
+	s := &Softmax13{}
+
+	// since 'softmax' does not have any attributes we pass in nil. This should not
+	// fail initializing the softmax.
+	err := s.Init(nil)
+	assert.Nil(t, err)
+}
+
+func TestSoftmax13(t *testing.T) {
+	tests := []struct {
+		softmax  *Softmax13
+		backing  []float32
+		shape    []int
+		expected []float32
+	}{
+		{
+			&Softmax13{
+				axis: -1,
+			},
+			[]float32{0, 1, 2, 3},
+			[]int{1, 4},
+			[]float32{0.032058604, 0.087144315, 0.2368828, 0.6439142},
+		},
+		{
+			&Softmax13{
+				axis: 1,
+			},
+			[]float32{0, 1, 2, 3},
+			[]int{1, 4},
+			[]float32{0.032058604, 0.087144315, 0.2368828, 0.6439142},
+		},
+		{
+			&Softmax13{
+				axis: -1,
+			},
+			[]float32{0, 1, 2, 3},
+			[]int{2, 2},
+			[]float32{0.26894143, 0.7310586, 0.26894143, 0.7310586},
+		},
+		{
+			&Softmax13{
+				axis: -1,
+			},
+			[]float32{0, 1, 2, 3, 4, 5},
+			[]int{1, 2, 3},
+			[]float32{0.09003057, 0.24472848, 0.66524094, 0.09003057, 0.24472848, 0.66524094},
+		},
+		{
+			&Softmax13{
+				axis: -1,
+			},
+			[]float32{0, 1, 2, 3},
+			[]int{4, 1},
+			[]float32{1, 1, 1, 1},
+		},
+	}
+
+	for _, test := range tests {
+		inputs := []tensor.Tensor{
+			ops.TensorWithBackingFixture(test.backing, test.shape...),
+		}
+
+		res, err := test.softmax.Apply(inputs)
+		assert.Nil(t, err)
+
+		assert.Equal(t, test.expected, res[0].Data())
+	}
+}
+
+func TestSoftmax13Fail(t *testing.T) {
+	inputs := []tensor.Tensor{
+		ops.TensorWithBackingFixture([]float32{1, 2, 3, 4}, 2, 2),
+	}
+
+	softmax := &Softmax13{
+		// This axis is out of range, because the input tensor only has 2 dimensions.
+		axis: 3,
+	}
+	_, err := softmax.Apply(inputs)
+	assert.Equal(
+		t,
+		err,
+		ops.ErrAxisOutOfRange(-2, 2, 3),
+	)
+}
+
+func TestInputValidationSoftmax13(t *testing.T) {
+	tests := []struct {
+		inputs []tensor.Tensor
+		err    error
+	}{
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
+			},
+			nil,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
+			},
+			nil,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]int{1, 2}, 2),
+				ops.TensorWithBackingFixture([]int{1, 2}, 2),
+			},
+			ops.ErrInvalidInputCount(2, &Softmax13{}),
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]int{1, 2}, 2),
+			},
+			ops.ErrInvalidInputType(0, "int", &Softmax13{}),
+		},
+	}
+
+	for _, test := range tests {
+		softmax := &Softmax13{}
+		validated, err := softmax.ValidateInputs(test.inputs)
+
+		assert.Equal(t, test.err, err)
+
+		if test.err == nil {
+			assert.Equal(t, test.inputs, validated)
+		}
+	}
+}

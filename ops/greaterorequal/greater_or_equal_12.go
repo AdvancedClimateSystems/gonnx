@@ -57,5 +57,5 @@ func (g *GreaterOrEqual12) GetInputTypeConstraints() [][]tensor.Dtype {
 
 // String implements the stringer interface, and can be used to format errors or messages.
 func (g *GreaterOrEqual12) String() string {
-	return "greaterOrEqual12 operator"
+	return "greaterorequal12 operator"
 }

@@ -1,0 +1,75 @@
+package reshape
+
+import (
+	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/ops"
+	"gorgonia.org/tensor"
+)
+
+const (
+	Reshape5MinInputs = 2
+	Reshape5MaxInputs = 2
+)
+
+// Reshape5 represents the ONNX reshape operator.
+type Reshape5 struct{}
+
+// newReshape5 creates a new reshape operator.
+func newReshape5() ops.Operator {
+	return &Reshape5{}
+}
+
+// Init initializes the reshape operator.
+func (r *Reshape5) Init(*onnx.NodeProto) error {
+	return nil
+}
+
+// Apply applies the reshape operator.
+func (r *Reshape5) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+	t := inputs[0]
+
+	newShape, err := ops.AnyToIntSlice(ops.IfScalarToSlice(inputs[1].Data().([]int64)))
+	if err != nil {
+		return nil, err
+	}
+
+	err = processShape(newShape, t.Shape())
+	if err != nil {
+		return nil, err
+	}
+
+	out, ok := t.Clone().(tensor.Tensor)
+	if !ok {
+		return nil, ops.ErrTypeAssert("tensor.Tensor", t.Clone())
+	}
+
+	err = out.Reshape(newShape...)
+
+	return []tensor.Tensor{out}, err
+}
+
+// ValidateInputs validates the inputs that will be given to Apply for this operator.
+func (r *Reshape5) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+	return ops.ValidateInputs(r, inputs)
+}
+
+// GetMinInputs returns the minimum number of input tensors this operator expects.
+func (r *Reshape5) GetMinInputs() int {
+	return Reshape5MinInputs
+}
+
+// GetMaxInputs returns the maximum number of input tensors this operator expects.
+func (r *Reshape5) GetMaxInputs() int {
+	return Reshape5MaxInputs
+}
+
+// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
+// for the corresponding input tensor.
+func (r *Reshape5) GetInputTypeConstraints() [][]tensor.Dtype {
+	return [][]tensor.Dtype{ops.AllTypes, {tensor.Int64}}
+}
+
+// String implements the stringer interface, and can be used to format errors or messages.
+func (r *Reshape5) String() string {
+	return "reshape5 operator"
+}
