@@ -19,7 +19,7 @@ type ConstantOfShape9 struct {
 }
 
 // newConstantOfShape9 creates a new constant of shape operator.
-func NewConstantOfShape9() ops.Operator {
+func newConstantOfShape9() ops.Operator {
 	return &ConstantOfShape9{}
 }
 

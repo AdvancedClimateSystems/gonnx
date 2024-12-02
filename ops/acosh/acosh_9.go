@@ -12,7 +12,7 @@ import (
 type Acosh9 struct{}
 
 // newAcosh9 creates a new acosh operator.
-func NewAcosh9() ops.Operator {
+func newAcosh9() ops.Operator {
 	return &Acosh9{}
 }
 

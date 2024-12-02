@@ -1,10 +1,11 @@
-package opset13
+package gather
 
 import (
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/ops/concat"
 	"github.com/stretchr/testify/assert"
 	"gorgonia.org/tensor"
 )
@@ -15,34 +16,34 @@ func makeAxisProto(n int) *onnx.NodeProto {
 	}
 }
 
-func TestGatherInit(t *testing.T) {
+func TestGather13Init(t *testing.T) {
 	attrs := makeAxisProto(1)
-	op := Gather{}
+	op := Gather13{}
 	err := op.Init(attrs)
 	assert.NoError(t, err)
 	assert.Equal(t, op.axis, 1)
 }
 
-func TestGatherInitDefault(t *testing.T) {
-	op := Gather{}
+func TestGather13InitDefault(t *testing.T) {
+	op := Gather13{}
 	err := op.Init(ops.EmptyNodeProto())
 	assert.NoError(t, err)
 	assert.Equal(t, op.axis, 0)
 }
 
-func TestGatherInitTooManyAttrs(t *testing.T) {
-	op := Gather{}
+func TestGather13InitTooManyAttrs(t *testing.T) {
+	op := Gather13{}
 	err := op.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis"}, {Name: "default"}}})
-	assert.EqualError(t, err, "gather operator attribute error: invalid count 2 expected 1")
+	assert.EqualError(t, err, "gather13 operator attribute error: invalid count 2 expected 1")
 }
 
-func TestGatherInitInvalidAttrName(t *testing.T) {
-	op := Gather{}
+func TestGather13InitInvalidAttrName(t *testing.T) {
+	op := Gather13{}
 	err := op.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axes"}}}) // should be axis
-	assert.EqualError(t, err, "gather operator attribute error: invalid attribute axes")
+	assert.EqualError(t, err, "gather13 operator attribute error: invalid attribute axes")
 }
 
-func TestGather(t *testing.T) {
+func TestGather13(t *testing.T) {
 	tests := []struct {
 		data  interface{}
 		shape []int
@@ -186,7 +187,7 @@ func TestGather(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		op := &Gather{test.axis}
+		op := &Gather13{test.axis}
 
 		indices := test.indices
 		data := test.data
@@ -202,7 +203,7 @@ func TestGather(t *testing.T) {
 }
 
 func TestCombinedWithOtherOp(t *testing.T) {
-	concat := &Concat{}
+	concat := &concat.Concat13{}
 	err := concat.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 0}}})
 	assert.NoError(t, err)
 
@@ -212,7 +213,7 @@ func TestCombinedWithOtherOp(t *testing.T) {
 	data, err := concat.Apply([]tensor.Tensor{data0, data1})
 	assert.NoError(t, err)
 
-	gather := &Gather{0}
+	gather := &Gather13{0}
 	indices := tensor.New(tensor.WithBacking([]int64{1}), tensor.WithShape(1))
 
 	res, err := gather.Apply([]tensor.Tensor{data[0], indices})
@@ -221,7 +222,7 @@ func TestCombinedWithOtherOp(t *testing.T) {
 }
 
 func TestScalarInput(t *testing.T) {
-	op := &Gather{0}
+	op := &Gather13{0}
 
 	dataIn := tensor.New(tensor.WithBacking([]int64{1}), tensor.WithShape(1))
 
@@ -233,8 +234,8 @@ func TestScalarInput(t *testing.T) {
 	assert.Equal(t, int64(1), res[0].Data())
 }
 
-func TestGatherAxesIndexOutOfRange(t *testing.T) {
-	op := &Gather{}
+func TestGather13AxesIndexOutOfRange(t *testing.T) {
+	op := &Gather13{}
 	err := op.Init(makeAxisProto(1))
 	assert.NoError(t, err)
 
@@ -246,8 +247,8 @@ func TestGatherAxesIndexOutOfRange(t *testing.T) {
 	assert.EqualError(t, err, "axis out of range: axis argument must be in the range -1 <= x < 1, was 1")
 }
 
-func TestGatherIndexOutOfRange(t *testing.T) {
-	op := &Gather{0}
+func TestGather13IndexOutOfRange(t *testing.T) {
+	op := &Gather13{0}
 
 	dataIn := tensor.New(tensor.WithBacking([]int64{1}), tensor.WithShape(1))
 	indicesIn := tensor.New(tensor.WithBacking([]int64{2}), tensor.WithShape(1))
@@ -257,7 +258,7 @@ func TestGatherIndexOutOfRange(t *testing.T) {
 	assert.EqualError(t, err, "axis out of range: all indices entries must be in the range -1 <= x < 1")
 }
 
-func TestInputValidationGather(t *testing.T) {
+func TestInputValidationGather13(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -278,19 +279,19 @@ func TestInputValidationGather(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			ops.ErrInvalidInputCount(1, &Gather{}),
+			ops.ErrInvalidInputCount(1, &Gather13{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{3, 4}, 2),
 			},
-			ops.ErrInvalidInputType(1, "float32", &Gather{}),
+			ops.ErrInvalidInputType(1, "float32", &Gather13{}),
 		},
 	}
 
 	for _, test := range tests {
-		gather := &Gather{}
+		gather := &Gather13{}
 		validated, err := gather.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

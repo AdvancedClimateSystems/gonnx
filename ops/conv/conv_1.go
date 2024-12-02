@@ -24,7 +24,7 @@ type Conv1 struct {
 }
 
 // newConv1 creates a new conv operator.
-func NewConv1() ops.Operator {
+func newConv1() ops.Operator {
 	return &Conv1{
 		autoPad: NotSet,
 	}

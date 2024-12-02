@@ -17,7 +17,7 @@ type Cast13 struct {
 }
 
 // newCast13 creates a new cast operator.
-func NewCast13() ops.Operator {
+func newCast13() ops.Operator {
 	return &Cast13{}
 }
 

@@ -12,7 +12,7 @@ type Constant9 struct {
 }
 
 // newConstant9 creates a new constant operator.
-func NewConstant9() ops.Operator {
+func newConstant9() ops.Operator {
 	return &Constant9{}
 }
 

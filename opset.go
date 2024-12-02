@@ -23,6 +23,11 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops/equal"
 	"github.com/advancedclimatesystems/gonnx/ops/expand"
 	"github.com/advancedclimatesystems/gonnx/ops/flatten"
+	"github.com/advancedclimatesystems/gonnx/ops/gather"
+	"github.com/advancedclimatesystems/gonnx/ops/gemm"
+	"github.com/advancedclimatesystems/gonnx/ops/greater"
+	"github.com/advancedclimatesystems/gonnx/ops/greaterorequal"
+	"github.com/advancedclimatesystems/gonnx/ops/gru"
 )
 
 const (
@@ -33,97 +38,33 @@ const (
 // OpGetter is a function that gets an operator based on a string.
 type OpGetter func(string) (ops.Operator, error)
 
-type OperatorVersions map[int64]func() ops.Operator
-
-var operators = map[string]OperatorVersions{
-	"Abs": {
-		6:  abs.NewAbs6, // Same, but bfloat16 type is added
-		13: abs.NewAbs13,
-	},
-	"Acos": {
-		7: acos.NewAcos7,
-	},
-	"Acosh": {
-		9: acosh.NewAcosh9,
-	},
-	"Add": {
-		7:  add.NewAdd7, // Same, but bfloat16 type is added
-		13: add.NewAdd13,
-	},
-	"And": {
-		7: and.NewAnd7,
-	},
-	"ArgMax": {
-		11: argmax.NewArgMax11, // Same, but one attribute is added (which we don't support it anyway)
-		12: argmax.NewArgMax12, // Same, but bfloat16 type differs
-		13: argmax.NewArgMax13,
-	},
-	"Asin": {
-		7: asin.NewAsin7,
-	},
-	"Asinh": {
-		9: asinh.NewAsinh9,
-	},
-	"Atan": {
-		7: atan.NewAtan7,
-	},
-	"Atanh": {
-		9: atanh.NewAtanh9,
-	},
-	"Cast": {
-		6:  cast.NewCast6, // Same, but string type is added
-		9:  cast.NewCast9, // Same, but bfloat16 type differs
-		13: cast.NewCast13,
-	},
-	"Concat": {
-		4:  concat.NewConcat4,
-		11: concat.NewConcat11, // Same, but bfloat16 type differs
-		13: concat.NewConcat13,
-	},
-	"Constant": {
-		1:  constant.NewConstant1,
-		9:  constant.NewConstant9,
-		11: constant.NewConstant11,
-		12: constant.NewConstant12, // Same, but bfloat16 type differs
-		13: constant.NewConstant13,
-	},
-	"ConstantOfShape": {
-		9: constantofshape.NewConstantOfShape9,
-	},
-	"Conv": {
-		1:  conv.NewConv1, // Same, but only float16 type differs
-		11: conv.NewConv11,
-	},
-	"Cos": {
-		7: cos.NewCos7,
-	},
-	"Cosh": {
-		9: cosh.NewCosh9,
-	},
-	"Div": {
-		7:  div.NewDiv7, // Same, but float16 type differs
-		13: div.NewDiv13,
-	},
-	"Equal": {
-		7:  equal.NewEqual7,
-		11: equal.NewEqual11, // Same, but float16 type differs
-		13: equal.NewEqual13,
-	},
-	"Expand": {
-		8:  expand.NewExpand8, // Same, but float16 type differs
-		13: expand.NewExpand13,
-	},
-	"Flatten": {
-		1:  flatten.NewFlatten1,  // Same, but only float types
-		9:  flatten.NewFlatten9,  // Same, but negative axis added
-		11: flatten.NewFlatten11, // Same, but float16 type differs
-		13: flatten.NewFlatten13,
-	},
-	"Gather":          {},
-	"Gemm":            {},
-	"Greater":         {},
-	"GreaterOrEqual":  {},
-	"GRU":             {},
+var operators = map[string]ops.OperatorVersions{
+	"Abs":             abs.AbsVersions,
+	"Acos":            acos.AcosVersions,
+	"Acosh":           acosh.AcoshVersions,
+	"Add":             add.AddVersions,
+	"And":             and.AndVersions,
+	"ArgMax":          argmax.ArgMaxVersions,
+	"Asin":            asin.AsinVersions,
+	"Asinh":           asinh.AsinhVersions,
+	"Atan":            atan.AtanVersions,
+	"Atanh":           atanh.AtanhVersions,
+	"Cast":            cast.CastVersions,
+	"Concat":          concat.ConcatVersions,
+	"Constant":        constant.ConstantVersions,
+	"ConstantOfShape": constantofshape.ConstantOfShapeVersions,
+	"Conv":            conv.ConvVersions,
+	"Cos":             cos.CosVersions,
+	"Cosh":            cosh.CoshVersions,
+	"Div":             div.DivVersions,
+	"Equal":           equal.EqualVersions,
+	"Expand":          expand.ExpandVersions,
+	"Flatten":         flatten.FlattenVersions,
+	"Gather":          gather.GatherVersions,
+	"Gemm":            gemm.GemmVersions,
+	"Greater":         greater.GreaterVersions,
+	"GreaterOrEqual":  greaterorequal.GreaterOrEqualVersions,
+	"GRU":             gru.GRUVersions,
 	"Less":            {},
 	"LessOrEqual":     {},
 	"LinearRegressor": {},

@@ -12,7 +12,7 @@ import (
 type Atan7 struct{}
 
 // newAtan7 creates a new atan operator.
-func NewAtan7() ops.Operator {
+func newAtan7() ops.Operator {
 	return &Atan7{}
 }
 

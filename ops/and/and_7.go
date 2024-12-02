@@ -15,7 +15,7 @@ var (
 type And7 struct{}
 
 // newAnd7 creates a new and operator.
-func NewAnd7() ops.Operator {
+func newAnd7() ops.Operator {
 	return &And7{}
 }
 

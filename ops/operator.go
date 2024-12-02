@@ -5,6 +5,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
+type OperatorVersions map[int64]func() Operator
+
 // Operator is the base interface for all operators.
 type Operator interface {
 	// String should return a simple string describing the operator

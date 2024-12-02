@@ -12,7 +12,7 @@ import (
 type Cosh9 struct{}
 
 // newCosh9 creates a new cosh operator.
-func NewCosh9() ops.Operator {
+func newCosh9() ops.Operator {
 	return &Cosh9{}
 }
 

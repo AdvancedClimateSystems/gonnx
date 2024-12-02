@@ -15,7 +15,7 @@ const (
 type Abs13 struct{}
 
 // newAbs13 creates a new abs operator.
-func NewAbs13() ops.Operator {
+func newAbs13() ops.Operator {
 	return &Abs13{}
 }
 

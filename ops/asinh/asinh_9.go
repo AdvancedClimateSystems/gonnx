@@ -12,7 +12,7 @@ import (
 type Asinh9 struct{}
 
 // newAsinh9 creates a new asinh operator.
-func NewAsinh9() ops.Operator {
+func newAsinh9() ops.Operator {
 	return &Asinh9{}
 }
 

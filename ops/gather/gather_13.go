@@ -1,4 +1,4 @@
-package opset13
+package gather
 
 import (
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -7,24 +7,24 @@ import (
 )
 
 const (
-	MinGatherInputs = 2
-	MaxGatherInputs = 2
+	MinGather13Inputs = 2
+	MaxGather13Inputs = 2
 )
 
-// Gather represents the ONNX gather operator.
-type Gather struct {
+// Gather13 represents the ONNX gather operator.
+type Gather13 struct {
 	axis int // axis to gather on, default is 0
 }
 
-// newGather creates a new gather operator.
-func newGather() ops.Operator {
-	return &Gather{
+// newGather13 creates a new gather operator.
+func newGather13() ops.Operator {
+	return &Gather13{
 		axis: 0,
 	}
 }
 
 // Init initializes the gather operator.
-func (g *Gather) Init(n *onnx.NodeProto) error {
+func (g *Gather13) Init(n *onnx.NodeProto) error {
 	attributes := n.GetAttribute()
 
 	if len(attributes) == 1 {
@@ -43,7 +43,7 @@ func (g *Gather) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the gather operator.
-func (g *Gather) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (g *Gather13) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	// Convert the indices (of Dtype Int32 or Int64) to a tensor with Dtype Int
 	indicesData, err := ops.AnyToIntSlice(ops.IfScalarToSlice(inputs[1].Data()))
 	if err != nil {
@@ -92,23 +92,23 @@ func (g *Gather) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (g *Gather) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (g *Gather13) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ValidateInputs(g, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (g *Gather) GetMinInputs() int {
-	return MinGatherInputs
+func (g *Gather13) GetMinInputs() int {
+	return MinGather13Inputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (g *Gather) GetMaxInputs() int {
-	return MaxGatherInputs
+func (g *Gather13) GetMaxInputs() int {
+	return MaxGather13Inputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (g *Gather) GetInputTypeConstraints() [][]tensor.Dtype {
+func (g *Gather13) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{
 		ops.AllTypes,
 		{tensor.Int32, tensor.Int64},
@@ -116,8 +116,8 @@ func (g *Gather) GetInputTypeConstraints() [][]tensor.Dtype {
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (g *Gather) String() string {
-	return "gather operator"
+func (g *Gather13) String() string {
+	return "gather13 operator"
 }
 
 // Perform gather according to the definition given by ONNX :

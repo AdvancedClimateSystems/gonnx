@@ -18,7 +18,7 @@ type Concat11 struct {
 }
 
 // newConcat11 creates a new concat operator.
-func NewConcat11() ops.Operator {
+func newConcat11() ops.Operator {
 	return &Concat11{}
 }
 

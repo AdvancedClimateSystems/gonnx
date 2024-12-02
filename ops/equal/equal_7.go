@@ -15,7 +15,7 @@ var (
 type Equal7 struct{}
 
 // newEqual7 creates a new equal operator.
-func NewEqual7() ops.Operator {
+func newEqual7() ops.Operator {
 	return &Equal7{}
 }
 

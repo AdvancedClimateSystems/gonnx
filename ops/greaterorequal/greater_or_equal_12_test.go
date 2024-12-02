@@ -1,4 +1,4 @@
-package opset13
+package greaterorequal
 
 import (
 	"testing"
@@ -8,39 +8,39 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestGreaterInit(t *testing.T) {
-	g := &Greater{}
+func TestGreaterOrEqual12Init(t *testing.T) {
+	g := &GreaterOrEqual12{}
 
-	// since 'greater' does not have any attributes we pass in nil. This should not
-	// fail initializing the greater.
+	// since 'greaterOrEqual' does not have any attributes we pass in nil. This should not
+	// fail initializing the greaterOrEqual.
 	err := g.Init(ops.EmptyNodeProto())
 	assert.Nil(t, err)
 }
 
-func TestGreater(t *testing.T) {
+func TestGreaterOrEqual12(t *testing.T) {
 	tests := []struct {
-		greater  *Greater
-		backings [][]float32
-		shapes   [][]int
-		expected []bool
+		greaterOrEqual *GreaterOrEqual12
+		backings       [][]float32
+		shapes         [][]int
+		expected       []bool
 	}{
 		{
-			&Greater{},
+			&GreaterOrEqual12{},
 			[][]float32{{0, 1, 2, 3}, {1, 1, 1, 1}},
 			[][]int{{2, 2}, {2, 2}},
-			[]bool{false, false, true, true},
+			[]bool{false, true, true, true},
 		},
 		{
-			&Greater{},
+			&GreaterOrEqual12{},
 			[][]float32{{0, 1, 2, 3, 4, 5}, {2, 2, 2, 2, 2, 2}},
 			[][]int{{3, 2}, {3, 2}},
-			[]bool{false, false, false, true, true, true},
+			[]bool{false, false, true, true, true, true},
 		},
 		{
-			&Greater{},
+			&GreaterOrEqual12{},
 			[][]float32{{0, 1}, {0, 1, 2, 3}},
 			[][]int{{2}, {2, 2}},
-			[]bool{false, false, false, false},
+			[]bool{true, true, false, false},
 		},
 	}
 
@@ -50,7 +50,7 @@ func TestGreater(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backings[1], test.shapes[1]...),
 		}
 
-		res, err := test.greater.Apply(inputs)
+		res, err := test.greaterOrEqual.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Nil(t, err)
@@ -58,7 +58,7 @@ func TestGreater(t *testing.T) {
 	}
 }
 
-func TestInputValidationGreater(t *testing.T) {
+func TestInputValidationGreaterOrEqual12(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -109,20 +109,20 @@ func TestInputValidationGreater(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(1, &Greater{}),
+			ops.ErrInvalidInputCount(1, &GreaterOrEqual12{}),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Greater{}),
+			ops.ErrInvalidInputType(0, "int", &GreaterOrEqual12{}),
 		},
 	}
 
 	for _, test := range tests {
-		greater := &Greater{}
-		validated, err := greater.ValidateInputs(test.inputs)
+		greaterOrEqual := &GreaterOrEqual12{}
+		validated, err := greaterOrEqual.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
 

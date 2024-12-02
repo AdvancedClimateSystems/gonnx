@@ -12,7 +12,7 @@ import (
 type Acos7 struct{}
 
 // newAcos7 creates a new acos operator.
-func NewAcos7() ops.Operator {
+func newAcos7() ops.Operator {
 	return &Acos7{}
 }
 

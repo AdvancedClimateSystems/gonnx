@@ -17,7 +17,7 @@ type Flatten11 struct {
 }
 
 // newFlatten11 creates a new flatten operator.
-func NewFlatten11() ops.Operator {
+func newFlatten11() ops.Operator {
 	return &Flatten11{
 		axis: 1,
 	}

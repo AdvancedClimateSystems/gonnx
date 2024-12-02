@@ -15,7 +15,7 @@ const (
 type Expand8 struct{}
 
 // newExpand8 creates a new expand operator.
-func NewExpand8() ops.Operator {
+func newExpand8() ops.Operator {
 	return &Expand8{}
 }
 

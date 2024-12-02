@@ -1,4 +1,4 @@
-package opset13
+package greaterorequal
 
 import (
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -7,25 +7,25 @@ import (
 )
 
 var (
-	MinGreaterOrEqualInputs = 2
-	MaxGreaterOrEqualInputs = 2
+	MinGreaterOrEqual12Inputs = 2
+	MaxGreaterOrEqual12Inputs = 2
 )
 
-// GreaterOrEqual represents the ONNX greaterOrEqual operator.
-type GreaterOrEqual struct{}
+// GreaterOrEqual12 represents the ONNX greaterOrEqual operator.
+type GreaterOrEqual12 struct{}
 
-// newGreaterOrEqual creates a new greaterOrEqual operator.
-func newGreaterOrEqual() ops.Operator {
-	return &GreaterOrEqual{}
+// newGreaterOrEqual12 creates a new greaterOrEqual operator.
+func newGreaterOrEqual12() ops.Operator {
+	return &GreaterOrEqual12{}
 }
 
 // Init initializes the greaterOrEqual operator.
-func (g *GreaterOrEqual) Init(*onnx.NodeProto) error {
+func (g *GreaterOrEqual12) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the greaterOrEqual operator.
-func (g *GreaterOrEqual) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (g *GreaterOrEqual12) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ApplyBinaryOperation(
 		inputs[0],
 		inputs[1],
@@ -35,27 +35,27 @@ func (g *GreaterOrEqual) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) 
 }
 
 // ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (g *GreaterOrEqual) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (g *GreaterOrEqual12) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ValidateInputs(g, inputs)
 }
 
 // GetMinInputs returns the minimum number of input tensors this operator expects.
-func (g *GreaterOrEqual) GetMinInputs() int {
-	return MinGreaterOrEqualInputs
+func (g *GreaterOrEqual12) GetMinInputs() int {
+	return MinGreaterOrEqual12Inputs
 }
 
 // GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (g *GreaterOrEqual) GetMaxInputs() int {
-	return MaxGreaterOrEqualInputs
+func (g *GreaterOrEqual12) GetMaxInputs() int {
+	return MaxGreaterOrEqual12Inputs
 }
 
 // GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
 // for the corresponding input tensor.
-func (g *GreaterOrEqual) GetInputTypeConstraints() [][]tensor.Dtype {
+func (g *GreaterOrEqual12) GetInputTypeConstraints() [][]tensor.Dtype {
 	return [][]tensor.Dtype{ops.AllTypes, ops.AllTypes}
 }
 
 // String implements the stringer interface, and can be used to format errors or messages.
-func (g *GreaterOrEqual) String() string {
-	return "greaterOrEqual operator"
+func (g *GreaterOrEqual12) String() string {
+	return "greaterOrEqual12 operator"
 }

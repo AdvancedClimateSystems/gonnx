@@ -39,7 +39,7 @@ type Conv11 struct {
 }
 
 // newConv11 creates a new conv operator.
-func NewConv11() ops.Operator {
+func newConv11() ops.Operator {
 	return &Conv11{
 		autoPad: NotSet,
 	}

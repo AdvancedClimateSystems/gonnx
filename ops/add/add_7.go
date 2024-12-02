@@ -15,7 +15,7 @@ const (
 type Add7 struct{}
 
 // newAdd7 creates a new add operator.
-func NewAdd7() ops.Operator {
+func newAdd7() ops.Operator {
 	return &Add7{}
 }
 

@@ -19,7 +19,7 @@ type ArgMax11 struct {
 }
 
 // newArgMax11 creates a new argmax operator.
-func NewArgMax11() ops.Operator {
+func newArgMax11() ops.Operator {
 	return &ArgMax11{
 		keepDims:        true,
 		selectLastIndex: false,

@@ -15,7 +15,7 @@ const (
 type Expand13 struct{}
 
 // newExpand13 creates a new expand operator.
-func NewExpand13() ops.Operator {
+func newExpand13() ops.Operator {
 	return &Expand13{}
 }
 

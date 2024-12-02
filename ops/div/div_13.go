@@ -15,7 +15,7 @@ const (
 type Div13 struct{}
 
 // newDiv13 creates a new div operator.
-func NewDiv13() ops.Operator {
+func newDiv13() ops.Operator {
 	return &Div13{}
 }
 

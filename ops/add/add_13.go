@@ -15,7 +15,7 @@ const (
 type Add13 struct{}
 
 // newAdd13 creates a new add operator.
-func NewAdd13() ops.Operator {
+func newAdd13() ops.Operator {
 	return &Add13{}
 }
 

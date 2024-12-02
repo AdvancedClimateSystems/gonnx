@@ -12,7 +12,7 @@ import (
 type Cos7 struct{}
 
 // newCos7 creates a new cos operator.
-func NewCos7() ops.Operator {
+func newCos7() ops.Operator {
 	return &Cos7{}
 }
 

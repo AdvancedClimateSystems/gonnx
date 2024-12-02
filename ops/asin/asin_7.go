@@ -12,7 +12,7 @@ import (
 type Asin7 struct{}
 
 // newSin creates a new asin operator.
-func NewAsin7() ops.Operator {
+func newAsin7() ops.Operator {
 	return &Asin7{}
 }
 

@@ -1,4 +1,4 @@
-package opset13
+package gemm
 
 import (
 	"testing"
@@ -9,9 +9,9 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestGemmInit(t *testing.T) {
-	gemm := Gemm{}
-	err := gemm.Init(GemmOnnxNodeProtoFixture())
+func TestGemm13Init(t *testing.T) {
+	gemm := Gemm13{}
+	err := gemm.Init(Gemm13OnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
 	assert.Equal(t, float32(10.0), gemm.alpha)
@@ -20,52 +20,52 @@ func TestGemmInit(t *testing.T) {
 	assert.Equal(t, true, gemm.transB)
 }
 
-func TestGemmInitFail(t *testing.T) {
-	gemm := &Gemm{}
+func TestGemm13InitFail(t *testing.T) {
+	gemm := &Gemm13{}
 	err := gemm.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "unknownAttribute"}}})
 
 	expected := ops.ErrInvalidAttribute("unknownAttribute", gemm)
 	assert.Equal(t, expected, err)
 }
 
-func TestGemm(t *testing.T) {
+func TestGemm13(t *testing.T) {
 	tests := []struct {
-		gemm     *Gemm
+		gemm     *Gemm13
 		shapes   [][]int
 		expected []float32
 	}{
 		{
-			&Gemm{1, 1, false, false},
+			&Gemm13{1, 1, false, false},
 			[][]int{{3, 2}, {2, 5}, {5}},
 			[]float32{5, 7, 9, 11, 13, 15, 21, 27, 33, 39, 25, 35, 45, 55, 65},
 		},
 		{
-			&Gemm{1, 1, true, false},
+			&Gemm13{1, 1, true, false},
 			[][]int{{2, 3}, {2, 5}, {5}},
 			[]float32{15, 19, 23, 27, 31, 20, 26, 32, 38, 44, 25, 33, 41, 49, 57},
 		},
 		{
-			&Gemm{1, 1, true, true},
+			&Gemm13{1, 1, true, true},
 			[][]int{{2, 3}, {5, 2}, {5}},
 			[]float32{3, 10, 17, 24, 31, 4, 15, 26, 37, 48, 5, 20, 35, 50, 65},
 		},
 		{
-			&Gemm{1, 1, false, true},
+			&Gemm13{1, 1, false, true},
 			[][]int{{3, 2}, {5, 2}, {5}},
 			[]float32{1, 4, 7, 10, 13, 3, 14, 25, 36, 47, 5, 24, 43, 62, 81},
 		},
 		{
-			&Gemm{1, 1, false, false},
+			&Gemm13{1, 1, false, false},
 			[][]int{{1, 2}, {2, 5}, {5}},
 			[]float32{5, 7, 9, 11, 13},
 		},
 		{
-			&Gemm{1, 1, false, false},
+			&Gemm13{1, 1, false, false},
 			[][]int{{1, 2}, {2, 5}},
 			[]float32{5, 6, 7, 8, 9},
 		},
 		{
-			&Gemm{1, 1, false, false},
+			&Gemm13{1, 1, false, false},
 			[][]int{{20, 4}, {4, 6}, {6}},
 			[]float32{
 				84, 91, 98, 105, 112, 119, 228, 251, 274,
@@ -104,7 +104,7 @@ func TestGemm(t *testing.T) {
 	}
 }
 
-func TestInputValidationGemm(t *testing.T) {
+func TestInputValidationGemm13(t *testing.T) {
 	tests := []struct {
 		inputs   []tensor.Tensor
 		expected []tensor.Tensor
@@ -134,7 +134,7 @@ func TestInputValidationGemm(t *testing.T) {
 		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
 			nil,
-			ops.ErrInvalidOptionalInputCount(1, &Gemm{}),
+			ops.ErrInvalidOptionalInputCount(1, &Gemm13{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -144,7 +144,7 @@ func TestInputValidationGemm(t *testing.T) {
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 			},
 			nil,
-			ops.ErrInvalidOptionalInputCount(4, &Gemm{}),
+			ops.ErrInvalidOptionalInputCount(4, &Gemm13{}),
 		},
 		{
 			[]tensor.Tensor{
@@ -152,12 +152,12 @@ func TestInputValidationGemm(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
 			nil,
-			ops.ErrInvalidInputType(0, "int", &Gemm{}),
+			ops.ErrInvalidInputType(0, "int", &Gemm13{}),
 		},
 	}
 
 	for _, test := range tests {
-		gemm := &Gemm{}
+		gemm := &Gemm13{}
 		validated, err := gemm.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -172,7 +172,7 @@ func TestInputValidationGemm(t *testing.T) {
 	}
 }
 
-func GemmOnnxNodeProtoFixture() *onnx.NodeProto {
+func Gemm13OnnxNodeProtoFixture() *onnx.NodeProto {
 	return &onnx.NodeProto{
 		Attribute: []*onnx.AttributeProto{
 			{Name: "alpha", F: 10.0},

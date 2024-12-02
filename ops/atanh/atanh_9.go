@@ -12,7 +12,7 @@ import (
 type Atanh9 struct{}
 
 // newAtanh9 creates a new atanh operator.
-func NewAtanh9() ops.Operator {
+func newAtanh9() ops.Operator {
 	return &Atanh9{}
 }
 
