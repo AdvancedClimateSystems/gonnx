@@ -8,19 +8,24 @@ import (
 	"gorgonia.org/tensor"
 )
 
-const (
-	MinUnsqueeze1Inputs = 2
-	MaxUnsqueeze1Inputs = 2
-)
-
-// Unsqueeze1 represents the ONNX unsqueeze operator.
+// Unsqueeze1 represents version 1 of the ONNX unsqueeze operator.
 type Unsqueeze1 struct {
+	ops.BaseOperator
+
 	axes []int
 }
 
 // newUnsqueeze1 creates a new unsqueeze operator.
-func newUnsqueeze1() ops.Operator {
-	return &Unsqueeze1{}
+func newUnsqueeze1() *Unsqueeze1 {
+	return &Unsqueeze1{
+		BaseOperator: ops.NewBaseOperator(
+			1,
+			1,
+			1,
+			[][]tensor.Dtype{ops.AllTypes},
+			"unsqueeze",
+		),
+	}
 }
 
 // Init initializes the unsqueeze operator.
@@ -46,18 +51,14 @@ func (u *Unsqueeze1) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	outputRank := len(dataShape) + len(u.axes)
 
-	if !ops.AllInRange(u.axes, -outputRank, outputRank-1) {
+	if !ops.AllInRange(u.axes, 0, outputRank-1) {
 		return nil, ops.ErrNotAllAxesInRange(outputRank, outputRank)
 	}
-
-	// negative entries should be offset by the rank of the output tensor
-	// i.e. -1 -> outputRank - 1, -outputrank -> 0
-	ops.OffsetArrayIfNegative(u.axes, outputRank)
 
 	sort.Ints(u.axes)
 
 	if ops.HasDuplicates(u.axes) {
-		return nil, ops.ErrInvalidInput("axes cannot have duplicate entries after offset", u)
+		return nil, ops.ErrInvalidInput("axes cannot have duplicate entries after offset", u.BaseOperator)
 	}
 
 	newShape := insertOnes(dataShape, u.axes)
@@ -70,30 +71,4 @@ func (u *Unsqueeze1) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	err := out.Reshape(newShape...)
 
 	return []tensor.Tensor{out}, err
-}
-
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (u *Unsqueeze1) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(u, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (u *Unsqueeze1) GetMinInputs() int {
-	return MinUnsqueeze1Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (u *Unsqueeze1) GetMaxInputs() int {
-	return MaxUnsqueeze1Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (u *Unsqueeze1) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{ops.AllTypes, {tensor.Int64}}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (u *Unsqueeze1) String() string {
-	return "unsqueeze1 operator"
 }

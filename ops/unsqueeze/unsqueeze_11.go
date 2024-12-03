@@ -8,19 +8,24 @@ import (
 	"gorgonia.org/tensor"
 )
 
-const (
-	MinUnsqueeze11Inputs = 2
-	MaxUnsqueeze11Inputs = 2
-)
-
-// Unsqueeze11 represents the ONNX unsqueeze operator.
+// Unsqueeze11 represents version 11 of the ONNX unsqueeze operator.
 type Unsqueeze11 struct {
+	ops.BaseOperator
+
 	axes []int
 }
 
 // newUnsqueeze11 creates a new unsqueeze operator.
-func newUnsqueeze11() ops.Operator {
-	return &Unsqueeze11{}
+func newUnsqueeze11() *Unsqueeze11 {
+	return &Unsqueeze11{
+		BaseOperator: ops.NewBaseOperator(
+			11,
+			1,
+			1,
+			[][]tensor.Dtype{ops.AllTypes},
+			"unsqueeze",
+		),
+	}
 }
 
 // Init initializes the unsqueeze operator.
@@ -57,7 +62,7 @@ func (u *Unsqueeze11) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	sort.Ints(u.axes)
 
 	if ops.HasDuplicates(u.axes) {
-		return nil, ops.ErrInvalidInput("axes cannot have duplicate entries after offset", u)
+		return nil, ops.ErrInvalidInput("axes cannot have duplicate entries after offset", u.BaseOperator)
 	}
 
 	newShape := insertOnes(dataShape, u.axes)
@@ -70,30 +75,4 @@ func (u *Unsqueeze11) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	err := out.Reshape(newShape...)
 
 	return []tensor.Tensor{out}, err
-}
-
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (u *Unsqueeze11) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(u, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (u *Unsqueeze11) GetMinInputs() int {
-	return MinUnsqueeze11Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (u *Unsqueeze11) GetMaxInputs() int {
-	return MaxUnsqueeze11Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (u *Unsqueeze11) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{ops.AllTypes, {tensor.Int64}}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (u *Unsqueeze11) String() string {
-	return "unsqueeze11 operator"
 }

@@ -29,12 +29,12 @@ func newXor(version int, typeConstraint [][]tensor.Dtype) *Xor {
 }
 
 // Init initializes the xor operator.
-func (a *Xor) Init(*onnx.NodeProto) error {
+func (x *Xor) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the xor operator.
-func (a *Xor) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (x *Xor) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return ops.ApplyBinaryOperation(
 		inputs[0],
 		inputs[1],

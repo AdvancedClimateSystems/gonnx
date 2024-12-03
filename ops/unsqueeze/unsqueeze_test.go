@@ -3,22 +3,52 @@ package unsqueeze
 import (
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
 	"gorgonia.org/tensor"
 )
 
-func TestUnsqueeze13Init(t *testing.T) {
-	s := &Unsqueeze13{}
+func TestUnsqueezeInit(t *testing.T) {
+	tests := []struct {
+		version int64
+		attrs   *onnx.NodeProto
+		err     error
+	}{
+		{
+			1,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "axes", Ints: []int64{1, 0}},
+				},
+			},
+			nil,
+		},
+		{
+			11,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "axes", Ints: []int64{1, 0}},
+				},
+			},
+			nil,
+		},
+		{
+			13,
+			nil,
+			nil,
+		},
+	}
 
-	// since the unsqueeze does not have any attributes we pass in nil. This should not
-	// fail initializing the unsqueeze.
-	err := s.Init(nil)
-	assert.NoError(t, err)
+	for _, test := range tests {
+		op := UnsqueezeVersions[test.version]()
+		err := op.Init(test.attrs)
+		assert.Equal(t, test.err, err)
+	}
 }
 
 func TestAxesOutRangeError(t *testing.T) {
-	op := &Unsqueeze13{}
+	op := UnsqueezeVersions[13]()
 	err := op.Init(nil)
 	assert.Nil(t, err)
 
@@ -33,7 +63,7 @@ func TestAxesOutRangeError(t *testing.T) {
 }
 
 func TestDuplicateEntriesAfterOffsetNotAllowed(t *testing.T) {
-	op := &Unsqueeze13{}
+	op := UnsqueezeVersions[13]()
 	err := op.Init(nil)
 	assert.Nil(t, err)
 
@@ -44,11 +74,11 @@ func TestDuplicateEntriesAfterOffsetNotAllowed(t *testing.T) {
 	dataIn := ops.TensorWithBackingFixture(data, 3, 3)
 	axesIn := ops.TensorWithBackingFixture(axes, len(axes))
 	_, err = op.Apply([]tensor.Tensor{dataIn, axesIn})
-	assert.EqualError(t, err, "invalid input tensor for unsqueeze13 operator: axes cannot have duplicate entries after offset")
+	assert.EqualError(t, err, "invalid input tensor for unsqueeze v13: axes cannot have duplicate entries after offset")
 }
 
 func TestDuplicateEntriesNotAllowed(t *testing.T) {
-	op := &Unsqueeze13{}
+	op := UnsqueezeVersions[13]()
 	err := op.Init(nil)
 	assert.Nil(t, err)
 
@@ -58,10 +88,10 @@ func TestDuplicateEntriesNotAllowed(t *testing.T) {
 	dataIn := ops.TensorWithBackingFixture(data, 3, 3)
 	axesIn := ops.TensorWithBackingFixture(axes, len(axes))
 	_, err = op.Apply([]tensor.Tensor{dataIn, axesIn})
-	assert.EqualError(t, err, "invalid input tensor for unsqueeze13 operator: axes cannot have duplicate entries after offset")
+	assert.EqualError(t, err, "invalid input tensor for unsqueeze v13: axes cannot have duplicate entries after offset")
 }
 
-func TestUnsqueeze13(t *testing.T) {
+func TestUnsqueeze(t *testing.T) {
 	tests := []struct {
 		data              interface{}
 		dataShape         []int
@@ -109,7 +139,7 @@ func TestUnsqueeze13(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		op := &Unsqueeze13{}
+		op := &Unsqueeze{}
 		err := op.Init(nil)
 		assert.Nil(t, err)
 
@@ -127,16 +157,32 @@ func TestUnsqueeze13(t *testing.T) {
 	}
 }
 
-func TestInputValidationUnsqueeze13(t *testing.T) {
+func TestInputValidationUnsqueeze(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		inputs  []tensor.Tensor
+		version int64
+		err     error
 	}{
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
+			},
+			1,
+			nil,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
+			},
+			11,
+			nil,
+		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{3, 4}, 2),
 			},
+			13,
 			nil,
 		},
 		{
@@ -144,30 +190,50 @@ func TestInputValidationUnsqueeze13(t *testing.T) {
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{3, 4}, 2),
 			},
+			13,
 			nil,
 		},
 		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
+				ops.TensorWithBackingFixture([]int64{3, 4}, 2),
+			},
+			1,
+			ops.ErrInvalidInputCount(2, flatten1BaseOpFixture()),
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
+				ops.TensorWithBackingFixture([]int64{3, 4}, 2),
+			},
+			11,
+			ops.ErrInvalidInputCount(2, flatten11BaseOpFixture()),
+		},
+		{
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			ops.ErrInvalidInputCount(1, &Unsqueeze13{}),
+			13,
+			ops.ErrInvalidInputCount(1, flatten13BaseOpFixture()),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{3, 4}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Unsqueeze13{}),
+			13,
+			ops.ErrInvalidInputType(0, "int", flatten13BaseOpFixture()),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int32{3, 4}, 2),
 			},
-			ops.ErrInvalidInputType(1, "int32", &Unsqueeze13{}),
+			13,
+			ops.ErrInvalidInputType(1, "int32", flatten13BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		unsqueeze := &Unsqueeze13{}
+		unsqueeze := UnsqueezeVersions[test.version]()
 		validated, err := unsqueeze.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -176,4 +242,16 @@ func TestInputValidationUnsqueeze13(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func flatten1BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(1, 1, 1, [][]tensor.Dtype{ops.AllTypes}, "unsqueeze")
+}
+
+func flatten11BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(11, 1, 1, [][]tensor.Dtype{ops.AllTypes}, "unsqueeze")
+}
+
+func flatten13BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(13, 2, 2, [][]tensor.Dtype{ops.AllTypes, {tensor.Int64}}, "unsqueeze")
 }

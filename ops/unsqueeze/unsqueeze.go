@@ -8,26 +8,41 @@ import (
 	"gorgonia.org/tensor"
 )
 
+var unsqueezeTypeConstraints = [][]tensor.Dtype{
+	ops.AllTypes,
+	{tensor.Int64},
+}
+
 const (
-	MinUnsqueeze13Inputs = 2
-	MaxUnsqueeze13Inputs = 2
+	MinUnsqueezeInputs = 2
+	MaxUnsqueezeInputs = 2
 )
 
-// Unsqueeze13 represents the ONNX unsqueeze operator.
-type Unsqueeze13 struct{}
+// Unsqueeze represents the ONNX unsqueeze operator.
+type Unsqueeze struct {
+	ops.BaseOperator
+}
 
-// newUnsqueeze13 creates a new unsqueeze operator.
-func newUnsqueeze13() ops.Operator {
-	return &Unsqueeze13{}
+// newUnsqueeze creates a new unsqueeze operator.
+func newUnsqueeze(version int, typeConstraint [][]tensor.Dtype) *Unsqueeze {
+	return &Unsqueeze{
+		BaseOperator: ops.NewBaseOperator(
+			version,
+			MinUnsqueezeInputs,
+			MaxUnsqueezeInputs,
+			typeConstraint,
+			"unsqueeze",
+		),
+	}
 }
 
 // Init initializes the unsqueeze operator.
-func (u *Unsqueeze13) Init(*onnx.NodeProto) error {
+func (u *Unsqueeze) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the unsqueeze operator.
-func (u *Unsqueeze13) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (u *Unsqueeze) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	dataShape := inputs[0].Shape()
 
 	axes, err := ops.AnyToIntSlice(inputs[1].Data())
@@ -48,7 +63,7 @@ func (u *Unsqueeze13) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	sort.Ints(axes)
 
 	if ops.HasDuplicates(axes) {
-		return nil, ops.ErrInvalidInput("axes cannot have duplicate entries after offset", u)
+		return nil, ops.ErrInvalidInput("axes cannot have duplicate entries after offset", u.BaseOperator)
 	}
 
 	newShape := insertOnes(dataShape, axes)
@@ -61,32 +76,6 @@ func (u *Unsqueeze13) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	err = out.Reshape(newShape...)
 
 	return []tensor.Tensor{out}, err
-}
-
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (u *Unsqueeze13) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(u, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (u *Unsqueeze13) GetMinInputs() int {
-	return MinUnsqueeze13Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (u *Unsqueeze13) GetMaxInputs() int {
-	return MaxUnsqueeze13Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (u *Unsqueeze13) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{ops.AllTypes, {tensor.Int64}}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (u *Unsqueeze13) String() string {
-	return "unsqueeze13 operator"
 }
 
 // Creates a new array, which is `original` with ones added at the indices specified by `indices`
