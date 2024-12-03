@@ -8,40 +8,40 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestXor7Init(t *testing.T) {
-	x := &Xor7{}
+func TestXorInit(t *testing.T) {
+	x := &Xor{}
 
 	err := x.Init(nil)
 	assert.Nil(t, err)
 }
 
-func TestXor7(t *testing.T) {
+func TestXor(t *testing.T) {
 	tests := []struct {
-		xor      *Xor7
+		xor      *Xor
 		backings [][]bool
 		shapes   [][]int
 		expected []bool
 	}{
 		{
-			&Xor7{},
+			&Xor{},
 			[][]bool{{true, false, true, false}, {true, true, true, false}},
 			[][]int{{2, 2}, {2, 2}},
 			[]bool{false, true, false, false},
 		},
 		{
-			&Xor7{},
+			&Xor{},
 			[][]bool{{true, false, true, false}, {true, false}},
 			[][]int{{2, 2}, {1, 2}},
 			[]bool{false, false, false, false},
 		},
 		{
-			&Xor7{},
+			&Xor{},
 			[][]bool{{true, false, true, false}, {true, false}},
 			[][]int{{2, 2}, {2, 1}},
 			[]bool{false, true, true, false},
 		},
 		{
-			&Xor7{},
+			&Xor{},
 			[][]bool{{true, false, true, false, true, false}, {false, false}},
 			[][]int{{3, 2}, {1, 2}},
 			[]bool{true, false, true, false, true, false},
@@ -62,10 +62,11 @@ func TestXor7(t *testing.T) {
 	}
 }
 
-func TestInputValidationXor7(t *testing.T) {
+func TestInputValidationXor(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		inputs  []tensor.Tensor
+		err     error
+		version int64
 	}{
 		{
 			[]tensor.Tensor{
@@ -73,24 +74,27 @@ func TestInputValidationXor7(t *testing.T) {
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
 			},
 			nil,
+			7,
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
 			},
-			ops.ErrInvalidInputCount(1, &Xor7{}),
+			ops.ErrInvalidInputType(1, "int", ops.NewBaseOperator(7, 1, 1, xorTypeConstraint, "xor")),
+			7,
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(1, "int", &Xor7{}),
+			ops.ErrInvalidInputType(1, "int", ops.NewBaseOperator(7, 1, 1, xorTypeConstraint, "xor")),
+			7,
 		},
 	}
 
 	for _, test := range tests {
-		or := &Xor7{}
+		or := &Xor{}
 		validated, err := or.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
