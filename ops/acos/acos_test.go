@@ -25,19 +25,19 @@ func TestAcos(t *testing.T) {
 		expected []float32
 	}{
 		{
-			newAcos(7),
+			newAcos(),
 			[]float32{-1, -1, 0, 1},
 			[]int{2, 2},
 			[]float32{3.1415927, 3.1415927, 1.5707964, 0},
 		},
 		{
-			newAcos(7),
+			newAcos(),
 			[]float32{1, 0.5, 0.0, -0.5},
 			[]int{1, 4},
 			[]float32{0, 1.0471976, 1.5707964, 2.0943952},
 		},
 		{
-			newAcos(7),
+			newAcos(),
 			[]float32{-1, -1, -1, -1},
 			[]int{1, 4},
 			[]float32{3.1415927, 3.1415927, 3.1415927, 3.1415927},
@@ -87,7 +87,7 @@ func TestInputValidationAcos(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		acos := newAcos(7)
+		acos := newAcos()
 		validated, err := acos.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

@@ -5,5 +5,5 @@ import (
 )
 
 var AcoshVersions = ops.OperatorVersions{
-	9: newAcosh9,
+	9: newAcosh,
 }

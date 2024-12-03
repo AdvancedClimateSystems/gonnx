@@ -14,10 +14,10 @@ type Acos struct {
 }
 
 // newAcos creates a new acos operator.
-func newAcos(verion int) ops.Operator {
+func newAcos() ops.Operator {
 	return &Acos{
 		BaseOperator: ops.NewBaseOperator(
-			verion,
+			7,
 			1,
 			1,
 			[][]tensor.Dtype{{tensor.Float32, tensor.Float64}},
