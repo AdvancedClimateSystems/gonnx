@@ -5,7 +5,15 @@ import (
 	"gorgonia.org/tensor"
 )
 
-type OperatorVersions map[int64]func() Operator
+type OperatorVersions map[int64]OperatorFactory
+
+type OperatorFactory func() Operator
+
+func NewOperatorConstructor(op Operator) OperatorFactory {
+	return func() Operator {
+		return op
+	}
+}
 
 // Operator is the base interface for all operators.
 type Operator interface {

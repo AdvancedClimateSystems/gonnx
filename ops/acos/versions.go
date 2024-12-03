@@ -5,5 +5,5 @@ import (
 )
 
 var AcosVersions = ops.OperatorVersions{
-	7: newAcos7,
+	7: ops.NewOperatorConstructor(newAcos(7)),
 }

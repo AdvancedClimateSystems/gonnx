@@ -9,7 +9,7 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestFlattenBaseInit(t *testing.T) {
+func TestFlattenInit(t *testing.T) {
 	f := &Flatten{axis: 1}
 
 	err := f.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 2}}})
@@ -18,7 +18,7 @@ func TestFlattenBaseInit(t *testing.T) {
 	assert.Equal(t, 2, f.axis)
 }
 
-func TestFlattenBase(t *testing.T) {
+func TestFlatten(t *testing.T) {
 	tests := []struct {
 		flatten       *Flatten
 		backing       []float32

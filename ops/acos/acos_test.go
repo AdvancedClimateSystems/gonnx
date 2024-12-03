@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestAcos7Init(t *testing.T) {
-	c := &Acos7{}
+func TestAcosInit(t *testing.T) {
+	c := &Acos{}
 
 	// since 'acos' does not have any attributes we pass in nil. This should not
 	// fail initializing the acos.
@@ -17,27 +17,27 @@ func TestAcos7Init(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestAcos7(t *testing.T) {
+func TestAcos(t *testing.T) {
 	tests := []struct {
-		acos     *Acos7
+		acos     ops.Operator 
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Acos7{},
+			newAcos(7),
 			[]float32{-1, -1, 0, 1},
 			[]int{2, 2},
 			[]float32{3.1415927, 3.1415927, 1.5707964, 0},
 		},
 		{
-			&Acos7{},
+			newAcos(7),
 			[]float32{1, 0.5, 0.0, -0.5},
 			[]int{1, 4},
 			[]float32{0, 1.0471976, 1.5707964, 2.0943952},
 		},
 		{
-			&Acos7{},
+			newAcos(7),
 			[]float32{-1, -1, -1, -1},
 			[]int{1, 4},
 			[]float32{3.1415927, 3.1415927, 3.1415927, 3.1415927},
@@ -57,7 +57,7 @@ func TestAcos7(t *testing.T) {
 	}
 }
 
-func TestInputValidationAcos7(t *testing.T) {
+func TestInputValidationAcos(t *testing.T) {
 	tests := []struct {
 		inputs []tensor.Tensor
 		err    error
@@ -76,18 +76,18 @@ func TestInputValidationAcos7(t *testing.T) {
 		},
 		{
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Acos7{}),
+			ops.ErrInvalidInputCount(0, ops.NewBaseOperator(7, 1, 1, [][]tensor.Dtype{{tensor.Float32, tensor.Float64}}, "acos")),
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Acos7{}),
+			ops.ErrInvalidInputType(0, "int", ops.NewBaseOperator(7, 1, 1, [][]tensor.Dtype{{tensor.Float32, tensor.Float64}}, "acos")),
 		},
 	}
 
 	for _, test := range tests {
-		acos := &Acos7{}
+		acos := newAcos(7)
 		validated, err := acos.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
