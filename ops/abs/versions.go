@@ -5,6 +5,12 @@ import (
 )
 
 var AbsVersions = ops.OperatorVersions{
-	6:  newAbs6, // Same, but bfloat16 type is added
-	13: newAbs13,
+	6:  newConstructor(newAbs(6, absTypeConstraint)), // Same, but bfloat16 type is added
+	13:  newConstructor(newAbs(13, absTypeConstraint)), // Same, but bfloat16 type is added
+}
+
+func newConstructor(base *Abs) func() ops.Operator {
+	return func() ops.Operator {
+		return base
+	}
 }

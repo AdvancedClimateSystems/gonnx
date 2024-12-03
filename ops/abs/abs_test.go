@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestAbs13Init(t *testing.T) {
-	a := &Abs13{}
+func TestAbsInit(t *testing.T) {
+	a := &Abs{}
 
 	// since 'abs' does not have any attributes we pass in nil. This should not
 	// fail initializing the abs.
@@ -17,27 +17,27 @@ func TestAbs13Init(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestAbs13(t *testing.T) {
+func TestAbs(t *testing.T) {
 	tests := []struct {
-		abs      *Abs13
+		abs      *Abs
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Abs13{},
+			&Abs{},
 			[]float32{-2, -1, 0, 1},
 			[]int{2, 2},
 			[]float32{2, 1, 0, 1},
 		},
 		{
-			&Abs13{},
+			&Abs{},
 			[]float32{1, 3, 4, 5},
 			[]int{1, 4},
 			[]float32{1, 3, 4, 5},
 		},
 		{
-			&Abs13{},
+			&Abs{},
 			[]float32{-1, -1, -1, -1},
 			[]int{1, 4},
 			[]float32{1, 1, 1, 1},
@@ -57,85 +57,180 @@ func TestAbs13(t *testing.T) {
 	}
 }
 
-func TestInputValidationAbs13(t *testing.T) {
+func TestInputValidationAbs(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		inputs  []tensor.Tensor
+		err     error
+		version int64
 	}{
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint8{1, 2}, 2),
 			},
 			nil,
+			6,
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint16{1, 2}, 2),
 			},
 			nil,
+			6,
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 			},
 			nil,
+			6,
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint64{1, 2}, 2),
 			},
 			nil,
+			6,
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int8{1, 2}, 2),
 			},
 			nil,
+			6,
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int16{1, 2}, 2),
 			},
 			nil,
+			6,
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int32{1, 2}, 2),
 			},
 			nil,
+			6,
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int64{1, 2}, 2),
 			},
 			nil,
+			6,
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
+			6,
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 			},
 			nil,
+			6,
 		},
 		{
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Abs13{}),
+			ops.ErrInvalidInputCount(0, ops.NewBaseOperator(6, 1, 1, absTypeConstraint, "abs")),
+			6,
 		},
 		{
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Abs13{}),
+			ops.ErrInvalidInputType(0, "int", ops.NewBaseOperator(6, 1, 1, absTypeConstraint, "abs")),
+			6,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]uint8{1, 2}, 2),
+			},
+			nil,
+			13,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]uint16{1, 2}, 2),
+			},
+			nil,
+			13,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
+			},
+			nil,
+			13,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]uint64{1, 2}, 2),
+			},
+			nil,
+			13,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]int8{1, 2}, 2),
+			},
+			nil,
+			13,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]int16{1, 2}, 2),
+			},
+			nil,
+			13,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]int32{1, 2}, 2),
+			},
+			nil,
+			13,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]int64{1, 2}, 2),
+			},
+			nil,
+			13,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
+			},
+			nil,
+			13,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
+			},
+			nil,
+			13,
+		},
+		{
+			[]tensor.Tensor{},
+			ops.ErrInvalidInputCount(0, ops.NewBaseOperator(13, 1, 1, absTypeConstraint, "abs")),
+			13,
+		},
+		{
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]int{1, 2}, 2),
+			},
+			ops.ErrInvalidInputType(0, "int", ops.NewBaseOperator(13, 1, 1, absTypeConstraint, "abs")),
+			13,
 		},
 	}
 
 	for _, test := range tests {
-		abs := &Abs13{}
+		abs := AbsVersions[test.version]()
 		validated, err := abs.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
