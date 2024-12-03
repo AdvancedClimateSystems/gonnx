@@ -127,10 +127,8 @@ func TransposeOnnxNodeProtoFixture() *onnx.NodeProto {
 
 func transpose1BaseOpFixture() ops.BaseOperator {
 	return ops.NewBaseOperator(1, 1, 1, transposeTypeConstraint, "transpose")
-
 }
 
 func transpose13BaseOpFixture() ops.BaseOperator {
 	return ops.NewBaseOperator(13, 1, 1, transposeTypeConstraint, "transpose")
-
 }

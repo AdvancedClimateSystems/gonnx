@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestTanh13Init(t *testing.T) {
-	tanh := newTanh13()
+func TestTanhInit(t *testing.T) {
+	tanh := &Tanh{}
 	// Since the tanh does not have any attributes we expect it to initialize even
 	// when nil is passed.
 	err := tanh.Init(nil)
@@ -17,7 +17,7 @@ func TestTanh13Init(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestTanh13(t *testing.T) {
+func TestTanh(t *testing.T) {
 	tests := []struct {
 		backing  []float32
 		shape    []int
@@ -44,7 +44,7 @@ func TestTanh13(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		tanh := &Tanh13{}
+		tanh := &Tanh{}
 		inputs := []tensor.Tensor{
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
@@ -55,31 +55,51 @@ func TestTanh13(t *testing.T) {
 	}
 }
 
-func TestInputValidationTanh13(t *testing.T) {
+func TestInputValidationTanh(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			6,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]float32{1, 2}, 2)},
 			nil,
 		},
 		{
+			13,
+			[]tensor.Tensor{ops.TensorWithBackingFixture([]float32{1, 2}, 2)},
+			nil,
+		},
+		{
+			13,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]float64{1, 2}, 2)},
 			nil,
 		},
 		{
+			6,
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Tanh13{}),
+			ops.ErrInvalidInputCount(0, tanh6BaseOpFixture()),
 		},
 		{
+			13,
+			[]tensor.Tensor{},
+			ops.ErrInvalidInputCount(0, tanh13BaseOpFixture()),
+		},
+		{
+			6,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			ops.ErrInvalidInputType(0, "int", &Tanh13{}),
+			ops.ErrInvalidInputType(0, "int", tanh6BaseOpFixture()),
+		},
+		{
+			13,
+			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
+			ops.ErrInvalidInputType(0, "int", tanh13BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		tanh := &Tanh13{}
+		tanh := TanhVersions[test.version]()
 		validated, err := tanh.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -88,4 +108,12 @@ func TestInputValidationTanh13(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func tanh6BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(6, 1, 1, tanhTypeConstraint, "tanh")
+}
+
+func tanh13BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(13, 1, 1, tanhTypeConstraint, "tanh")
 }
