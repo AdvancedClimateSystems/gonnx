@@ -1,24 +1,31 @@
 package flatten
 
 import (
-	"fmt"
-
 	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"gorgonia.org/tensor"
 )
 
-// FlattenBase provides common functionality for all Flatten versions.
-type FlattenBase struct {
-	version              int
-	axis                 int
-	minInputs            int
-	maxInputs            int
-	inputTypeConstraints [][]tensor.Dtype
+// Flatten provides common functionality for all Flatten versions.
+type Flatten struct {
+	ops.BaseOperator
+	axis int
+}
+
+func newFlatten(version int, typeConstraint [][]tensor.Dtype) *Flatten {
+	return &Flatten{
+		BaseOperator: ops.NewBaseOperator(
+			version,
+			1,
+			1,
+			typeConstraint,
+			"flatten",
+		),
+	}
 }
 
 // Init initializes the flatten operator.
-func (f *FlattenBase) Init(n *onnx.NodeProto) error {
+func (f *Flatten) Init(n *onnx.NodeProto) error {
 	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
 		case axis:
@@ -32,7 +39,7 @@ func (f *FlattenBase) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the flatten operator.
-func (f *FlattenBase) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (f *Flatten) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	inputShape := inputs[0].Shape()
 	rank := len(inputShape)
 
@@ -59,28 +66,4 @@ func (f *FlattenBase) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	}
 
 	return []tensor.Tensor{out}, nil
-}
-
-// ValidateInputs validates the inputs for the operator.
-func (f *FlattenBase) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(f, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors.
-func (f *FlattenBase) GetMinInputs() int {
-	return f.minInputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors.
-func (f *FlattenBase) GetMaxInputs() int {
-	return f.maxInputs
-}
-
-// GetInputTypeConstraints returns allowed input types.
-func (f *FlattenBase) GetInputTypeConstraints() [][]tensor.Dtype {
-	return f.inputTypeConstraints
-}
-
-func (f *FlattenBase) String() string {
-	return fmt.Sprintf("flatten<%d> operator", f.version)
 }

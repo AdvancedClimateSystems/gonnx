@@ -98,7 +98,7 @@ const (
 
 type InputError struct {
 	kind     InputErrorKind
-	operator Operator
+	Operator BaseOperator
 	reason   string
 
 	// Attributes for input type error.
@@ -116,61 +116,61 @@ type InputError struct {
 func (i *InputError) Error() string {
 	switch i.kind {
 	case InputErrorType:
-		return fmt.Sprintf("input %d for op %v does not allow dtype %v", i.inputNumber, i.operator, i.actualType)
+		return fmt.Sprintf("input %d for op %v does not allow dtype %v", i.inputNumber, i.Operator, i.actualType)
 	case InputErrorCount:
 		if i.hasOptionalInputs {
-			return fmt.Sprintf(InvalidOptionalInputCountErrTemplate, i.operator, i.operator.GetMinInputs(), i.operator.GetMaxInputs(), i.actualCount)
+			return fmt.Sprintf(InvalidOptionalInputCountErrTemplate, i.Operator, i.Operator.GetMinInputs(), i.Operator.GetMaxInputs(), i.actualCount)
 		}
 
-		return fmt.Sprintf(InvalidInputCountErrTemplate, i.operator, i.operator.GetMinInputs(), i.actualCount)
+		return fmt.Sprintf(InvalidInputCountErrTemplate, i.Operator, i.Operator.GetMinInputs(), i.actualCount)
 	case InputErrorUnsupported:
-		return fmt.Sprintf(UnsupportedInputErrTemplate, i.operator, i.inputName)
+		return fmt.Sprintf(UnsupportedInputErrTemplate, i.Operator, i.inputName)
 	case InputErrorInvalid:
-		return fmt.Sprintf(InvalidInputErrTemplate, i.operator, i.reason)
+		return fmt.Sprintf(InvalidInputErrTemplate, i.Operator, i.reason)
 	default:
-		return fmt.Sprintf("%s unknown error input error kind %s", i.operator.String(), i.kind)
+		return fmt.Sprintf("%s unknown error input error kind %s", i.Operator.String(), i.kind)
 	}
 }
 
-func ErrInvalidInputType(inputNumber int, dType string, operator Operator) error {
+func ErrInvalidInputType(inputNumber int, dType string, operator BaseOperator) error {
 	return &InputError{
 		kind:        InputErrorType,
-		operator:    operator,
+		Operator:    operator,
 		inputNumber: inputNumber,
 		actualType:  dType,
 	}
 }
 
-func ErrInvalidInputCount(actual int, operator Operator) error {
+func ErrInvalidInputCount(actual int, operator BaseOperator) error {
 	return &InputError{
 		kind:        InputErrorCount,
 		actualCount: actual,
-		operator:    operator,
+		Operator:    operator,
 	}
 }
 
-func ErrInvalidOptionalInputCount(actual int, operator Operator) error {
+func ErrInvalidOptionalInputCount(actual int, operator BaseOperator) error {
 	return &InputError{
 		kind:              InputErrorCount,
 		hasOptionalInputs: true,
 		actualCount:       actual,
-		operator:          operator,
+		Operator:          operator,
 	}
 }
 
-func ErrUnsupportedInput(inputName string, operator Operator) error {
+func ErrUnsupportedInput(inputName string, operator BaseOperator) error {
 	return &InputError{
 		kind:      InputErrorUnsupported,
 		inputName: inputName,
-		operator:  operator,
+		Operator:  operator,
 	}
 }
 
-func ErrInvalidInput(reason string, operator Operator) error {
+func ErrInvalidInput(reason string, operator BaseOperator) error {
 	return &InputError{
 		kind:     InputErrorInvalid,
 		reason:   reason,
-		operator: operator,
+		Operator: operator,
 	}
 }
 
