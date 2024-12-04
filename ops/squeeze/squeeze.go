@@ -22,7 +22,7 @@ type Squeeze struct {
 }
 
 // newSqueeze creates a new squeeze operator.
-func newSqueeze(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
+func newSqueeze(version int, typeConstraints [][]tensor.Dtype) *Squeeze {
 	return &Squeeze{
 		BaseOperator: ops.NewBaseOperator(
 			version,

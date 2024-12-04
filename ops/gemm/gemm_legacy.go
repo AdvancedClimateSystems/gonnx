@@ -6,13 +6,10 @@ import (
 	"gorgonia.org/tensor"
 )
 
-const (
-	MinGemm7Inputs = 3
-	MaxGemm7Inputs = 3
-)
+// GemmLegacy represents the ONNX gemm operator, for version <= 9.
+type GemmLegacy struct {
+	ops.BaseOperator
 
-// Gemm7 represents the ONNX gemm operator.
-type Gemm7 struct {
 	alpha  float32
 	beta   float32
 	transA bool
@@ -20,17 +17,18 @@ type Gemm7 struct {
 }
 
 // newGemm7 creates a new gemm operator and initializes it with the default values.
-func newGemm7() ops.Operator {
-	return &Gemm7{
-		alpha:  1.0,
-		beta:   1.0,
-		transA: false,
-		transB: false,
+func newGemmLegacy(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
+	return &GemmLegacy{
+		BaseOperator: ops.NewBaseOperator(version, 3, 3, typeConstraints, "gemm"),
+		alpha:        1.0,
+		beta:         1.0,
+		transA:       false,
+		transB:       false,
 	}
 }
 
 // Init initializes the Gemm7 operator based on the ModelProto attributes.
-func (g *Gemm7) Init(n *onnx.NodeProto) error {
+func (g *GemmLegacy) Init(n *onnx.NodeProto) error {
 	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
 		case alpha:
@@ -50,7 +48,7 @@ func (g *Gemm7) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the gemm operator on the given graph.
-func (g *Gemm7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (g *GemmLegacy) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var err error
 
 	a := inputs[0]
@@ -97,34 +95,4 @@ func (g *Gemm7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	}
 
 	return []tensor.Tensor{output}, nil
-}
-
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (g *Gemm7) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(g, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (g *Gemm7) GetMinInputs() int {
-	return MinGemm7Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (g *Gemm7) GetMaxInputs() int {
-	return MaxGemm7Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (g *Gemm7) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-	}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (g *Gemm7) String() string {
-	return "gemm7 operator"
 }

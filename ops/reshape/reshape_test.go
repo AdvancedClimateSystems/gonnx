@@ -8,42 +8,55 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestReshape13Init(t *testing.T) {
-	r := &Reshape13{}
+func TestReshapeInit(t *testing.T) {
+	tests := []struct {
+		version int64
+		err     error
+	}{
+		{5, nil},
+		{13, nil},
+	}
 
-	// since the reshape does not have any attributes we pass in nil. This should not
-	// fail initializing the reshape.
-	err := r.Init(nil)
-	assert.Nil(t, err)
+	for _, test := range tests {
+		r := reshapeVersions[test.version]()
+		err := r.Init(nil)
+		assert.Equal(t, test.err, err)
+	}
 }
 
-func TestReshape13(t *testing.T) {
+func TestReshape(t *testing.T) {
 	tests := []struct {
+		version    int64
 		inputShape []int
 		newShape   []int64
 		expected   tensor.Shape
 	}{
 		{
+			5,
 			[]int{2, 3},
 			[]int64{1, 6},
 			[]int{1, 6},
 		},
 		{
+			13,
 			[]int{1, 2, 3},
 			[]int64{0, 2, 3},
 			[]int{1, 2, 3},
 		},
 		{
+			13,
 			[]int{1, 2, 3},
 			[]int64{1, -1, 2},
 			[]int{1, 3, 2},
 		},
 		{
+			13,
 			[]int{1, 2, 3},
 			[]int64{1, -1},
 			[]int{1, 6},
 		},
 		{
+			13,
 			[]int{3, 4, 2},
 			[]int64{1, 0, -1},
 			[]int{1, 4, 6},
@@ -51,7 +64,7 @@ func TestReshape13(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		reshape := &Reshape13{}
+		reshape := reshapeVersions[test.version]()
 		inputs := []tensor.Tensor{
 			ops.Float32TensorFixture(test.inputShape...),
 			tensor.New(tensor.WithBacking(test.newShape)),
@@ -62,12 +75,14 @@ func TestReshape13(t *testing.T) {
 	}
 }
 
-func TestInputValidationReshape13(t *testing.T) {
+func TestInputValidationReshape(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			5,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{3, 4}, 2),
@@ -75,6 +90,7 @@ func TestInputValidationReshape13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{3, 4}, 2),
@@ -82,20 +98,27 @@ func TestInputValidationReshape13(t *testing.T) {
 			nil,
 		},
 		{
+			5,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			ops.ErrInvalidInputCount(1, &Reshape13{}),
+			ops.ErrInvalidInputCount(1, reshape5BaseOpFixture()),
 		},
 		{
+			13,
+			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
+			ops.ErrInvalidInputCount(1, reshape13BaseOpFixture()),
+		},
+		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			ops.ErrInvalidInputType(1, "int", &Reshape13{}),
+			ops.ErrInvalidInputType(1, "int", reshape13BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		reshape := &Reshape13{}
+		reshape := reshapeVersions[test.version]()
 		validated, err := reshape.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -104,4 +127,12 @@ func TestInputValidationReshape13(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func reshape5BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(5, 2, 2, reshapeTypeConstraints, "reshape")
+}
+
+func reshape13BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(13, 2, 2, reshapeTypeConstraints, "reshape")
 }

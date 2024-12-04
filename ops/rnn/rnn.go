@@ -7,13 +7,24 @@ import (
 	"gorgonia.org/tensor"
 )
 
+var rnnTypeConstraints = [][]tensor.Dtype{
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+	{tensor.Int32},
+	{tensor.Float32, tensor.Float64},
+}
+
 const (
-	MinRNN7Inputs = 3
-	MaxRNN7Inputs = 6
+	MinRNNInputs = 3
+	MaxRNNInputs = 6
 )
 
-// RNN7 represents the ONNX rnn operator.
-type RNN7 struct {
+// RNN represents the ONNX rnn operator.
+type RNN struct {
+	ops.BaseOperator
+
 	activationAlpha []float32
 	activationBeta  []float32
 	activations     []string
@@ -21,16 +32,23 @@ type RNN7 struct {
 	hiddenSize      int
 }
 
-// newRNN7 creates a new rnn operator.
-func newRNN7() ops.Operator {
-	return &RNN7{
+// newRNN creates a new rnn operator.
+func newRNN(version int, typeConstraints [][]tensor.Dtype) *RNN {
+	return &RNN{
+		BaseOperator: ops.NewBaseOperator(
+			version,
+			MinRNNInputs,
+			MaxRNNInputs,
+			typeConstraints,
+			"rnn",
+		),
 		activations: []string{"tanh"},
 		direction:   ops.Forward,
 	}
 }
 
 // Init initializes the rnn operator.
-func (r *RNN7) Init(n *onnx.NodeProto) error {
+func (r *RNN) Init(n *onnx.NodeProto) error {
 	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
 		case ops.ActivationAlphaAttr:
@@ -62,9 +80,9 @@ func (r *RNN7) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the rnn operator.
-func (r *RNN7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if inputs[4] != nil {
-		return nil, ops.ErrUnsupportedInput("sequence lens", r)
+		return nil, ops.ErrUnsupportedInput("sequence lens", r.BaseOperator)
 	}
 
 	X := inputs[0]
@@ -99,7 +117,7 @@ func (r *RNN7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	}
 
 	// Reshape the hidden tensor without the bidirectional dimension, as
-	// we do not support bidirectional RNN7 yet. This is the dimension at
+	// we do not support bidirectional RNN yet. This is the dimension at
 	// index 0.
 	if err = Ht.Reshape(Ht.Shape().Clone()[1:]...); err != nil {
 		return nil, err
@@ -112,7 +130,7 @@ func (r *RNN7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	outputs := []tensor.Tensor{}
 
-	// Loop over all timesteps of the input, applying the RNN7 calculation to every
+	// Loop over all timesteps of the input, applying the RNN calculation to every
 	// timesteps while updating the hidden tensor.
 	for t := 0; t < seqLength; t++ {
 		Xt, err := X.Slice(ops.NewSlicer(t, t+1), nil, nil)
@@ -142,7 +160,7 @@ func (r *RNN7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	}
 
 	// Reshape the hidden tensor without the bidirectional dimension, as
-	// we do not support bidirectional RNN7 yet. This is the dimension at
+	// we do not support bidirectional RNN yet. This is the dimension at
 	// index 0.
 	if err = Y.Reshape(seqLength, 1, batchSize, r.hiddenSize); err != nil {
 		return nil, err
@@ -155,50 +173,17 @@ func (r *RNN7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return []tensor.Tensor{Y, Yh}, nil
 }
 
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (r *RNN7) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(r, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (r *RNN7) GetMinInputs() int {
-	return MinRNN7Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (r *RNN7) GetMaxInputs() int {
-	return MaxRNN7Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (r *RNN7) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-		{tensor.Int32},
-		{tensor.Float32, tensor.Float64},
-	}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (r *RNN7) String() string {
-	return "rnn7 operator"
-}
-
-// layerCalculation performs the actual RNN7 calculation. By ONNX definition
+// layerCalculation performs the actual RNN calculation. By ONNX definition
 // this is:
 //
 //	Ht = f(Xt*(Wi^T) + Ht-1*(Ri^T) + Wbi + Rbi)
 //
 // We achieve this by two Gemm operations, adding them together and finally
 // putting them through an activation function.
-func (r *RNN7) layerCalculation(
+func (r *RNN) layerCalculation(
 	Xt, H, Wi, Ri, Wbi, Rbi tensor.Tensor, activation ops.Activation,
 ) (tensor.Tensor, error) {
-	gemm := gemm.GemmVersions[13]()
+	gemm := gemm.GetGemmVersions()[13]()
 
 	err := gemm.Init(
 		&onnx.NodeProto{
@@ -236,7 +221,7 @@ func (r *RNN7) layerCalculation(
 // a single weight matrix. W has shape (num_directions, hidden_size, ...).
 // The W tensor, by GONNX definition, has 3 dimensions with 1 weight
 // tensor in it (2 if bidirectional, but that is not supported).
-func (r *RNN7) getWeights(W tensor.Tensor) (tensor.Tensor, error) {
+func (r *RNN) getWeights(W tensor.Tensor) (tensor.Tensor, error) {
 	nWeightMatrices := 1
 	nWeightDimensions := 3
 
@@ -251,7 +236,7 @@ func (r *RNN7) getWeights(W tensor.Tensor) (tensor.Tensor, error) {
 // getBiases splits tensor B into 2 bias matrices.
 // The B tensor, by GONNX definition, has 2 dimensions with 2 bias
 // tensors in it (4 if bidirectional, but that is not supported).
-func (r *RNN7) getBiases(B tensor.Tensor) (Wbi, Rbi tensor.Tensor, err error) {
+func (r *RNN) getBiases(B tensor.Tensor) (Wbi, Rbi tensor.Tensor, err error) {
 	nBiasMatrices := 2
 	nBiasDimensions := 2
 

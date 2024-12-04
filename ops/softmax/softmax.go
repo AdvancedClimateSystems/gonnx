@@ -17,7 +17,7 @@ type Softmax struct {
 }
 
 // newSoftmax creates a new softmax operator.
-func newSoftmax(version, defaultAxis int, typeConstraints [][]tensor.Dtype) ops.Operator {
+func newSoftmax(version, defaultAxis int, typeConstraints [][]tensor.Dtype) *Softmax {
 	return &Softmax{
 		BaseOperator: ops.NewBaseOperator(
 			version,

@@ -6,26 +6,38 @@ import (
 	"gorgonia.org/tensor"
 )
 
+var reshapeTypeConstraints = [][]tensor.Dtype{ops.AllTypes, {tensor.Int64}}
+
 const (
-	Reshape13MinInputs = 2
-	Reshape13MaxInputs = 2
+	ReshapeMinInputs = 2
+	ReshapeMaxInputs = 2
 )
 
-// Reshape13 represents the ONNX reshape operator.
-type Reshape13 struct{}
+// Reshape represents the ONNX reshape operator.
+type Reshape struct {
+	ops.BaseOperator
+}
 
-// newReshape13 creates a new reshape operator.
-func newReshape13() ops.Operator {
-	return &Reshape13{}
+// newReshape creates a new reshape operator.
+func newReshape(version int, typeConstraints [][]tensor.Dtype) *Reshape {
+	return &Reshape{
+		BaseOperator: ops.NewBaseOperator(
+			version,
+			ReshapeMinInputs,
+			ReshapeMaxInputs,
+			typeConstraints,
+			"reshape",
+		),
+	}
 }
 
 // Init initializes the reshape operator.
-func (r *Reshape13) Init(*onnx.NodeProto) error {
+func (r *Reshape) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the reshape operator.
-func (r *Reshape13) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (r *Reshape) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	t := inputs[0]
 
 	newShape, err := ops.AnyToIntSlice(ops.IfScalarToSlice(inputs[1].Data().([]int64)))
@@ -46,32 +58,6 @@ func (r *Reshape13) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	err = out.Reshape(newShape...)
 
 	return []tensor.Tensor{out}, err
-}
-
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (r *Reshape13) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(r, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (r *Reshape13) GetMinInputs() int {
-	return Reshape13MinInputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (r *Reshape13) GetMaxInputs() int {
-	return Reshape13MaxInputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (r *Reshape13) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{ops.AllTypes, {tensor.Int64}}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (r *Reshape13) String() string {
-	return "reshape13 operator"
 }
 
 func processShape(newShape, currentShape []int) error {

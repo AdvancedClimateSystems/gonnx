@@ -2,6 +2,10 @@ package rnn
 
 import "github.com/advancedclimatesystems/gonnx/ops"
 
-var RNNVersions = ops.OperatorVersions{
-	7: newRNN7,
+var rnnVersions = ops.OperatorVersions{
+	7: ops.NewOperatorConstructor(newRNN(7, rnnTypeConstraints)),
+}
+
+func GetRNNVersions() ops.OperatorVersions {
+	return rnnVersions
 }

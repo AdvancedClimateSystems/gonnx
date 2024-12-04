@@ -2,7 +2,11 @@ package relu
 
 import "github.com/advancedclimatesystems/gonnx/ops"
 
-var ReluVersions = ops.OperatorVersions{
-	6:  newRelu6, // Only bfloat16 type differs
-	13: newRelu13,
+var reluVersions = ops.OperatorVersions{
+	6:  ops.NewOperatorConstructor(newRelu(6, reluTypeConstraints)),
+	13: ops.NewOperatorConstructor(newRelu(13, reluTypeConstraints)),
+}
+
+func GetReluVersions() ops.OperatorVersions {
+	return reluVersions
 }

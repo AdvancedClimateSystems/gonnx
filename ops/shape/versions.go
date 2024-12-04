@@ -2,7 +2,11 @@ package shape
 
 import "github.com/advancedclimatesystems/gonnx/ops"
 
-var ShapeVersions = ops.OperatorVersions{
-	1:  newShape1, // Only bfloat16 type differs
-	13: newShape13,
+var shapeVersions = ops.OperatorVersions{
+	1:  ops.NewOperatorConstructor(newShape(1, shapeTypeConstraints)),
+	13: ops.NewOperatorConstructor(newShape(13, shapeTypeConstraints)),
+}
+
+func GetShapeVersions() ops.OperatorVersions {
+	return shapeVersions
 }

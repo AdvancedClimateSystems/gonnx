@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestShape13Init(t *testing.T) {
-	s := &Shape13{}
+func TestShapeInit(t *testing.T) {
+	s := &Shape{}
 
 	// since 'shape' does not have any attributes we pass in nil. This should not
 	// fail initializing the shape operator.
@@ -17,25 +17,28 @@ func TestShape13Init(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestShape13(t *testing.T) {
+func TestShape(t *testing.T) {
 	tests := []struct {
-		inputShape13 []int
-		expected     []int64
+		version    int64
+		inputShape []int
+		expected   []int64
 	}{
 		{
+			1,
 			[]int{1, 2, 3, 4},
 			[]int64{1, 2, 3, 4},
 		},
 		{
+			13,
 			[]int{2, 3},
 			[]int64{2, 3},
 		},
 	}
 
 	for _, test := range tests {
-		shape := &Shape13{}
+		shape := shapeVersions[test.version]()
 		inputs := []tensor.Tensor{
-			ops.Float32TensorFixture(test.inputShape13...),
+			ops.Float32TensorFixture(test.inputShape...),
 		}
 
 		res, err := shape.Apply(inputs)
@@ -44,31 +47,36 @@ func TestShape13(t *testing.T) {
 	}
 }
 
-func TestInputValidationShape13(t *testing.T) {
+func TestInputValidationShape(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			1,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]uint32{3, 4}, 2)},
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]float32{3, 4}, 2)},
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Shape13{}),
+			ops.ErrInvalidInputCount(0, shape13BaseOpFixture()),
 		},
 		{
+			13,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			ops.ErrInvalidInputType(0, "int", &Shape13{}),
+			ops.ErrInvalidInputType(0, "int", shape13BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		shape := &Shape13{}
+		shape := shapeVersions[test.version]()
 		validated, err := shape.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -77,4 +85,12 @@ func TestInputValidationShape13(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func shape1BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(1, 1, 1, shapeTypeConstraints, "shape")
+}
+
+func shape13BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(13, 1, 1, shapeTypeConstraints, "shape")
 }

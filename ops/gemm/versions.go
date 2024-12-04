@@ -1,10 +1,24 @@
 package gemm
 
-import "github.com/advancedclimatesystems/gonnx/ops"
+import (
+	"github.com/advancedclimatesystems/gonnx/ops"
+	"gorgonia.org/tensor"
+)
 
-var GemmVersions = ops.OperatorVersions{
-	7:  newGemm7,
-	9:  newGemm9,
-	11: newGemm11,
-	13: newGemm13,
+var gemmVersions = ops.OperatorVersions{
+	7: ops.NewOperatorConstructor(
+		newGemmLegacy(7, [][]tensor.Dtype{
+			{tensor.Float32, tensor.Float64},
+			{tensor.Float32, tensor.Float64},
+			{tensor.Float32, tensor.Float64},
+		},
+		),
+	),
+	9:  ops.NewOperatorConstructor(newGemmLegacy(9, gemmTypeConstraints)),
+	11: ops.NewOperatorConstructor(newGemm(11, gemmTypeConstraints)),
+	13: ops.NewOperatorConstructor(newGemm(13, gemmTypeConstraints)),
+}
+
+func GetGemmVersions() ops.OperatorVersions {
+	return gemmVersions
 }
