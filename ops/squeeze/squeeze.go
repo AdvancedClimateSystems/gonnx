@@ -6,26 +6,41 @@ import (
 	"gorgonia.org/tensor"
 )
 
+var squeezeTypeConstraints = [][]tensor.Dtype{
+	ops.AllTypes,
+	{tensor.Int64},
+}
+
 const (
-	MinSqueeze13Inputs = 1
-	MaxSqueeze13Inputs = 2
+	MinSqueezeInputs = 1
+	MaxSqueezeInputs = 2
 )
 
-// Squeeze13 represents the ONNX squeeze operator.
-type Squeeze13 struct{}
+// Squeeze represents the ONNX squeeze operator.
+type Squeeze struct {
+	ops.BaseOperator
+}
 
-// newSqueeze13 creates a new squeeze operator.
-func newSqueeze13() ops.Operator {
-	return &Squeeze13{}
+// newSqueeze creates a new squeeze operator.
+func newSqueeze(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
+	return &Squeeze{
+		BaseOperator: ops.NewBaseOperator(
+			version,
+			MinSqueezeInputs,
+			MaxSqueezeInputs,
+			typeConstraints,
+			"squeeze",
+		),
+	}
 }
 
 // Init initializes the squeeze operator.
-func (s *Squeeze13) Init(*onnx.NodeProto) error {
+func (s *Squeeze) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the squeeze operator.
-func (s *Squeeze13) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (s *Squeeze) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var err error
 
 	currentShape := inputs[0].Shape()
@@ -57,32 +72,6 @@ func (s *Squeeze13) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	err = out.Reshape(newShape...)
 
 	return []tensor.Tensor{out}, err
-}
-
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (s *Squeeze13) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(s, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (s *Squeeze13) GetMinInputs() int {
-	return MinSqueeze13Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (s *Squeeze13) GetMaxInputs() int {
-	return MaxSqueeze13Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (s *Squeeze13) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{ops.AllTypes, {tensor.Int64}}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (s *Squeeze13) String() string {
-	return "squeeze13 operator"
 }
 
 // getDimsToSqueezeFromTensor creates a list with ints representing the dimensions/axes to squeeze

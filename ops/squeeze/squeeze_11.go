@@ -6,19 +6,24 @@ import (
 	"gorgonia.org/tensor"
 )
 
-const (
-	MinSqueeze11Inputs = 1
-	MaxSqueeze11Inputs = 2
-)
-
 // Squeeze11 represents the ONNX squeeze operator.
 type Squeeze11 struct {
+	ops.BaseOperator
+
 	axes []int
 }
 
 // newSqueeze11 creates a new squeeze operator.
 func newSqueeze11() ops.Operator {
-	return &Squeeze11{}
+	return &Squeeze11{
+		BaseOperator: ops.NewBaseOperator(
+			11,
+			1,
+			1,
+			[][]tensor.Dtype{ops.AllTypes},
+			"squeeze",
+		),
+	}
 }
 
 // Init initializes the squeeze operator.
@@ -70,32 +75,6 @@ func (s *Squeeze11) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	err = out.Reshape(newShape...)
 
 	return []tensor.Tensor{out}, err
-}
-
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (s *Squeeze11) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(s, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (s *Squeeze11) GetMinInputs() int {
-	return MinSqueeze11Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (s *Squeeze11) GetMaxInputs() int {
-	return MaxSqueeze11Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (s *Squeeze11) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{ops.AllTypes, {tensor.Int64}}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (s *Squeeze11) String() string {
-	return "squeeze11 operator"
 }
 
 // getDimsToSqueezeFromList creates a list with ints representing the dimensions/axes to squeeze

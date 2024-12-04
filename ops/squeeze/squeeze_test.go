@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestSqueeze13Init(t *testing.T) {
-	s := &Squeeze13{}
+func TestSqueezeInit(t *testing.T) {
+	s := &Squeeze{}
 
 	// since the squeeze does not have any attributes we pass in nil. This should not
 	// fail initializing the squeeze.
@@ -17,28 +17,33 @@ func TestSqueeze13Init(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestSqueeze13CustomDims(t *testing.T) {
+func TestSqueezeCustomDims(t *testing.T) {
 	tests := []struct {
+		version       int64
 		shape         []int
 		dimsToDrop    []int64
 		expectedShape tensor.Shape
 	}{
 		{
+			13,
 			[]int{3, 1, 2},
 			[]int64{1},
 			[]int{3, 2},
 		},
 		{
+			13,
 			[]int{3, 1, 2},
 			[]int64{-2},
 			[]int{3, 2},
 		},
 		{
+			13,
 			[]int{1, 4, 3, 1},
 			[]int64{0, -1},
 			[]int{4, 3},
 		},
 		{
+			13,
 			[]int{1, 4, 3, 1},
 			[]int64{0},
 			[]int{4, 3, 1},
@@ -46,7 +51,7 @@ func TestSqueeze13CustomDims(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		squeeze := &Squeeze13{}
+		squeeze := squeezeVersions[test.version]()
 		inputs := []tensor.Tensor{
 			ops.Float32TensorFixture(test.shape...),
 			ops.TensorWithBackingFixture(test.dimsToDrop, len(test.dimsToDrop)),
@@ -58,23 +63,26 @@ func TestSqueeze13CustomDims(t *testing.T) {
 	}
 }
 
-func TestSqueeze13NoDims(t *testing.T) {
+func TestSqueezeNoDims(t *testing.T) {
 	tests := []struct {
+		version       int64
 		shape         []int
 		expectedShape tensor.Shape
 	}{
 		{
+			13,
 			[]int{3, 1, 2},
 			[]int{3, 2},
 		},
 		{
+			13,
 			[]int{1, 4, 3, 1},
 			[]int{4, 3},
 		},
 	}
 
 	for _, test := range tests {
-		squeeze := &Squeeze13{}
+		squeeze := squeezeVersions[test.version]()
 		inputs := []tensor.Tensor{ops.Float32TensorFixture(test.shape...), nil}
 
 		res, err := squeeze.Apply(inputs)
@@ -83,7 +91,7 @@ func TestSqueeze13NoDims(t *testing.T) {
 	}
 }
 
-func TestGetDimsToSqueeze13FromNode(t *testing.T) {
+func TestGetDimsToSqueezeFromNode(t *testing.T) {
 	tests := []struct {
 		nDims       int
 		squeezeDims []int64
@@ -103,9 +111,9 @@ func TestGetDimsToSqueeze13FromNode(t *testing.T) {
 
 	for _, test := range tests {
 		input := ops.TensorWithBackingFixture(test.squeezeDims, len(test.squeezeDims))
-		dimsToSqueeze13, err := getDimsToSqueezeFromTensor(input, test.nDims)
+		dimsToSqueeze, err := getDimsToSqueezeFromTensor(input, test.nDims)
 		assert.Nil(t, err)
-		assert.Equal(t, test.expected, dimsToSqueeze13)
+		assert.Equal(t, test.expected, dimsToSqueeze)
 	}
 }
 
@@ -126,13 +134,31 @@ func TestKeepDim(t *testing.T) {
 	assert.Equal(t, true, keepDim(0, []int{1, 3}))
 }
 
-func TestInputValidationSqueeze13(t *testing.T) {
+func TestInputValidationSqueeze(t *testing.T) {
 	tests := []struct {
+		version  int64
 		inputs   []tensor.Tensor
 		expected []tensor.Tensor
 		err      error
 	}{
 		{
+			1,
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
+			},
+			nil,
+			nil,
+		},
+		{
+			11,
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
+			},
+			nil,
+			nil,
+		},
+		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{3, 4}, 2),
@@ -141,36 +167,40 @@ func TestInputValidationSqueeze13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]float32{1, 2}, 2)},
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]float32{1, 2}, 2), nil},
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{},
 			nil,
-			ops.ErrInvalidOptionalInputCount(0, &Squeeze13{}),
+			ops.ErrInvalidOptionalInputCount(0, squeeze13BaseOpFixture()),
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
 			nil,
-			ops.ErrInvalidOptionalInputCount(3, &Squeeze13{}),
+			ops.ErrInvalidOptionalInputCount(3, squeeze13BaseOpFixture()),
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
 			nil,
-			ops.ErrInvalidInputType(1, "int", &Squeeze13{}),
+			ops.ErrInvalidInputType(1, "int", squeeze13BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		squeeze := &Squeeze13{}
+		squeeze := squeezeVersions[test.version]()
 		validated, err := squeeze.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -183,4 +213,16 @@ func TestInputValidationSqueeze13(t *testing.T) {
 			}
 		}
 	}
+}
+
+func squeeze1BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(1, 1, 1, [][]tensor.Dtype{ops.AllTypes}, "squeeze")
+}
+
+func squeeze11BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(11, 1, 1, [][]tensor.Dtype{ops.AllTypes}, "squeeze")
+}
+
+func squeeze13BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(13, 1, 2, squeezeTypeConstraints, "squeeze")
 }

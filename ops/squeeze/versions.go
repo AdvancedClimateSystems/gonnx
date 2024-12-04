@@ -2,8 +2,12 @@ package squeeze
 
 import "github.com/advancedclimatesystems/gonnx/ops"
 
-var SqueezeVersions = ops.OperatorVersions{
-	1:  newSqueeze1,  // Supports negative dimensions as only difference
-	11: newSqueeze11, // Switch from input to attribute, implementation fairly same
-	13: newSqueeze13,
+var squeezeVersions = ops.OperatorVersions{
+	1:  ops.NewOperatorConstructor(newSqueeze1()),
+	11: ops.NewOperatorConstructor(newSqueeze11()),
+	13: ops.NewOperatorConstructor(newSqueeze(13, squeezeTypeConstraints)),
+}
+
+func GetSqueezeVersions() ops.OperatorVersions {
+	return squeezeVersions
 }
