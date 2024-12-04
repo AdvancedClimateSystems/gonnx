@@ -3,22 +3,58 @@ package slice
 import (
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
 	"gorgonia.org/tensor"
 )
 
-func TestSlice13Init(t *testing.T) {
-	s := &Slice13{}
+func TestSliceInit(t *testing.T) {
+	tests := []struct {
+		version int64
+		attrs   *onnx.NodeProto
+		err     error
+	}{
+		{
+			1,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "axes", Ints: []int64{1, 0}},
+					{Name: "starts", Ints: []int64{1, 0}},
+					{Name: "ends", Ints: []int64{2, 2}},
+				},
+			},
+			nil,
+		},
+		{
+			10,
+			nil,
+			nil,
+		},
+		{
+			11,
+			nil,
+			nil,
+		},
+		{
+			13,
+			nil,
+			nil,
+		},
+	}
 
-	// since the slice does not have any attributes we pass in nil. This should not
-	// fail initializing the slice.
-	err := s.Init(nil)
-	assert.Nil(t, err)
+	for _, test := range tests {
+		op := sliceVersions[test.version]()
+		err := op.Init(test.attrs)
+		assert.Equal(t, test.err, err)
+	}
 }
 
-func TestSlice13(t *testing.T) {
+func TestSlice(t *testing.T) {
 	tests := []struct {
+		version int64
+		attrs   *onnx.NodeProto
+
 		shape           []int
 		starts          []int64
 		ends            []int64
@@ -28,6 +64,25 @@ func TestSlice13(t *testing.T) {
 		expectedBacking []float32
 	}{
 		{
+			1,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "axes", Ints: []int64{0, 1}},
+					{Name: "starts", Ints: []int64{1, 0}},
+					{Name: "ends", Ints: []int64{2, 3}},
+				},
+			},
+			[]int{2, 4},
+			nil,
+			nil,
+			nil,
+			nil,
+			[]int{3},
+			[]float32{4, 5, 6},
+		},
+		{
+			13,
+			nil,
 			[]int{2, 3},
 			[]int64{1, 0},
 			[]int64{2, 2},
@@ -37,6 +92,19 @@ func TestSlice13(t *testing.T) {
 			[]float32{3, 4},
 		},
 		{
+			13,
+			nil,
+			[]int{2, 3},
+			[]int64{1, 0},
+			[]int64{2, 2},
+			nil,
+			nil,
+			[]int{2},
+			[]float32{3, 4},
+		},
+		{
+			13,
+			nil,
 			[]int{3, 3},
 			[]int64{1},
 			[]int64{3},
@@ -46,6 +114,8 @@ func TestSlice13(t *testing.T) {
 			[]float32{3, 4, 5, 6, 7, 8},
 		},
 		{
+			13,
+			nil,
 			[]int{3, 3},
 			[]int64{1},
 			[]int64{3},
@@ -55,6 +125,8 @@ func TestSlice13(t *testing.T) {
 			[]float32{1, 2, 4, 5, 7, 8},
 		},
 		{
+			13,
+			nil,
 			[]int{2, 3, 3},
 			[]int64{0, 1, 1},
 			[]int64{1, 3, 3},
@@ -64,6 +136,8 @@ func TestSlice13(t *testing.T) {
 			[]float32{4, 5, 7, 8},
 		},
 		{
+			13,
+			nil,
 			[]int{4, 4},
 			[]int64{0},
 			[]int64{4},
@@ -75,11 +149,20 @@ func TestSlice13(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		slice := &Slice13{}
-		inputs := []tensor.Tensor{
-			ops.Float32TensorFixture(test.shape...),
-			ops.TensorWithBackingFixture(test.starts, len(test.starts)),
-			ops.TensorWithBackingFixture(test.ends, len(test.ends)),
+		slice := sliceVersions[test.version]()
+		slice.Init(test.attrs)
+
+		var inputs []tensor.Tensor
+		if test.version >= 10 {
+			inputs = []tensor.Tensor{
+				ops.Float32TensorFixture(test.shape...),
+				ops.TensorWithBackingFixture(test.starts, len(test.starts)),
+				ops.TensorWithBackingFixture(test.ends, len(test.ends)),
+			}
+		} else {
+			inputs = []tensor.Tensor{
+				ops.Float32TensorFixture(test.shape...),
+			}
 		}
 
 		if test.axes != nil {
@@ -105,7 +188,6 @@ func TestSlice13(t *testing.T) {
 
 func TestConstructSlices(t *testing.T) {
 	tests := []struct {
-		slice          *Slice13
 		starts         []int
 		ends           []int
 		axes           []int
@@ -114,7 +196,6 @@ func TestConstructSlices(t *testing.T) {
 		expectedSlices []tensor.Slice
 	}{
 		{
-			&Slice13{},
 			[]int{1, 0},
 			[]int{2, 3},
 			[]int{0, 1},
@@ -123,7 +204,6 @@ func TestConstructSlices(t *testing.T) {
 			[]tensor.Slice{ops.NewSlicer(1, 2, 1), ops.NewSlicer(0, 3, 1)},
 		},
 		{
-			&Slice13{},
 			[]int{0, 2},
 			[]int{2, 5},
 			[]int{2, 0},
@@ -134,7 +214,7 @@ func TestConstructSlices(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		slices := test.slice.constructSlices(
+		slices := constructSlices(
 			test.starts, test.ends, test.steps, test.axes, test.nSlices,
 		)
 
@@ -153,24 +233,24 @@ func TestConstructSlices(t *testing.T) {
 }
 
 func TestGetDefaultAxes(t *testing.T) {
-	slice := &Slice13{}
-	res := slice.getDefaultAxes(3)
+	res := getDefaultAxes(3)
 	assert.Equal(t, []int{0, 1, 2}, res)
 }
 
 func TestGetDefaultSteps(t *testing.T) {
-	slice := &Slice13{}
-	res := slice.getDefaultSteps(3)
+	res := getDefaultSteps(3)
 	assert.Equal(t, []int{1, 1, 1}, res)
 }
 
-func TestInputValidationSlice13(t *testing.T) {
+func TestInputValidationSlice(t *testing.T) {
 	tests := []struct {
+		version  int64
 		inputs   []tensor.Tensor
 		expected []tensor.Tensor
 		err      error
 	}{
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int32{3, 4}, 2),
@@ -182,6 +262,7 @@ func TestInputValidationSlice13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{3, 4}, 2),
@@ -197,23 +278,43 @@ func TestInputValidationSlice13(t *testing.T) {
 			nil,
 		},
 		{
+			1,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
 			nil,
-			ops.ErrInvalidOptionalInputCount(1, &Slice13{}),
+			ops.ErrInvalidOptionalInputCount(1, slice1BaseOpFixture()),
 		},
 		{
+			10,
+			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
+			nil,
+			ops.ErrInvalidOptionalInputCount(1, slice10BaseOpFixture()),
+		},
+		{
+			11,
+			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
+			nil,
+			ops.ErrInvalidOptionalInputCount(1, slice11BaseOpFixture()),
+		},
+		{
+			13,
+			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
+			nil,
+			ops.ErrInvalidOptionalInputCount(1, slice13BaseOpFixture()),
+		},
+		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
 			nil,
-			ops.ErrInvalidInputType(1, "int", &Slice13{}),
+			ops.ErrInvalidInputType(1, "int", slice13BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		slice := &Slice13{}
+		slice := sliceVersions[test.version]()
 		validated, err := slice.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -226,4 +327,20 @@ func TestInputValidationSlice13(t *testing.T) {
 			}
 		}
 	}
+}
+
+func slice1BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(1, 3, 5, sliceTypeConstraints, "slice")
+}
+
+func slice10BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(10, 3, 5, sliceTypeConstraints, "slice")
+}
+
+func slice11BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(11, 3, 5, sliceTypeConstraints, "slice")
+}
+
+func slice13BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(13, 3, 5, sliceTypeConstraints, "slice")
 }

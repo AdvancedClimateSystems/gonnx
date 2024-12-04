@@ -1,4 +1,4 @@
-package sin
+package sinh
 
 import (
 	"testing"
@@ -8,39 +8,39 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestSin7Init(t *testing.T) {
-	a := &Sin7{}
+func TestSinhInit(t *testing.T) {
+	s := &Sinh{}
 
-	// since 'sin' does not have any attributes we pass in nil. This should not
-	// fail initializing the sin.
-	err := a.Init(nil)
+	// since 'sinh' does not have any attributes we pass in nil. This should not
+	// fail initializing the sinh.
+	err := s.Init(nil)
 	assert.Nil(t, err)
 }
 
-func TestSin7(t *testing.T) {
+func TestSinh(t *testing.T) {
 	tests := []struct {
-		sin      *Sin7
+		sinh     *Sinh
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Sin7{},
+			&Sinh{},
 			[]float32{-2, -1, 0, 1},
 			[]int{2, 2},
-			[]float32{-0.9092974, -0.84147096, 0, 0.84147096},
+			[]float32{-3.6268604, -1.1752012, 0, 1.1752012},
 		},
 		{
-			&Sin7{},
+			&Sinh{},
 			[]float32{1, 3, 4, 5},
 			[]int{1, 4},
-			[]float32{0.84147096, 0.14112, -0.7568025, -0.9589243},
+			[]float32{1.1752012, 10.017875, 27.289917, 74.20321},
 		},
 		{
-			&Sin7{},
+			&Sinh{},
 			[]float32{-1, -1, -1, -1},
 			[]int{1, 4},
-			[]float32{-0.84147096, -0.84147096, -0.84147096, -0.84147096},
+			[]float32{-1.1752012, -1.1752012, -1.1752012, -1.1752012},
 		},
 	}
 
@@ -49,7 +49,7 @@ func TestSin7(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		res, err := test.sin.Apply(inputs)
+		res, err := test.sinh.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Nil(t, err)
@@ -57,38 +57,43 @@ func TestSin7(t *testing.T) {
 	}
 }
 
-func TestInputValidationSin7(t *testing.T) {
+func TestInputValidationSinh(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			9,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			9,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			9,
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Sin7{}),
+			ops.ErrInvalidInputCount(0, sinh9BaseOpFixture()),
 		},
 		{
+			9,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Sin7{}),
+			ops.ErrInvalidInputType(0, "int", sinh9BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		sin := &Sin7{}
-		validated, err := sin.ValidateInputs(test.inputs)
+		sinh := sinhVersions[test.version]()
+		validated, err := sinh.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
 
@@ -96,4 +101,8 @@ func TestInputValidationSin7(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func sinh9BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(9, 1, 1, sinhTypeConstraints, "sinh")
 }

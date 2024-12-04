@@ -2,9 +2,13 @@ package slice
 
 import "github.com/advancedclimatesystems/gonnx/ops"
 
-var SliceVersions = ops.OperatorVersions{
-	1:  newSlice1,  // Different attributes and implementation
-	10: newSlice10, // Only negative indexing differs
-	11: newSlice11, // Only bfloat16 type differs
-	13: newSlice13,
+var sliceVersions = ops.OperatorVersions{
+	1:  ops.NewOperatorConstructor(newSlice1()),
+	10: ops.NewOperatorConstructor(newSlice(10, sliceTypeConstraints)),
+	11: ops.NewOperatorConstructor(newSlice(11, sliceTypeConstraints)),
+	13: ops.NewOperatorConstructor(newSlice(13, sliceTypeConstraints)),
+}
+
+func GetSliceVersions() ops.OperatorVersions {
+	return sliceVersions
 }
