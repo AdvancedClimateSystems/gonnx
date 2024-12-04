@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestSub13Init(t *testing.T) {
-	sub := &Sub13{}
+func TestSubInit(t *testing.T) {
+	sub := &Sub{}
 
 	// since the sub does not have any attributes we pass in nil. This should not
 	// fail initializing the sub.
@@ -17,7 +17,7 @@ func TestSub13Init(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestSub13(t *testing.T) {
+func TestSub(t *testing.T) {
 	tests := []struct {
 		shapes   [][]int
 		backings [][]float32
@@ -41,7 +41,7 @@ func TestSub13(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		sub := &Sub13{}
+		sub := &Sub{}
 		inputs := []tensor.Tensor{
 			ops.TensorWithBackingFixture(test.backings[0], test.shapes[0]...),
 			ops.TensorWithBackingFixture(test.backings[1], test.shapes[1]...),
@@ -52,12 +52,14 @@ func TestSub13(t *testing.T) {
 	}
 }
 
-func TestInputValidationSub13(t *testing.T) {
+func TestInputValidationSub(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]uint32{3, 4}, 2),
@@ -65,6 +67,7 @@ func TestInputValidationSub13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]uint64{3, 4}, 2),
@@ -72,6 +75,7 @@ func TestInputValidationSub13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int32{3, 4}, 2),
@@ -79,6 +83,7 @@ func TestInputValidationSub13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{3, 4}, 2),
@@ -86,6 +91,7 @@ func TestInputValidationSub13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{3, 4}, 2),
@@ -93,6 +99,7 @@ func TestInputValidationSub13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float64{3, 4}, 2),
@@ -100,22 +107,39 @@ func TestInputValidationSub13(t *testing.T) {
 			nil,
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(1, &Sub13{}),
+			ops.ErrInvalidInputCount(1, sub7BaseOpFixture()),
 		},
 		{
+			13,
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]int{1, 2}, 2),
+			},
+			ops.ErrInvalidInputCount(1, sub13BaseOpFixture()),
+		},
+		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Sub13{}),
+			ops.ErrInvalidInputType(0, "int", sub7BaseOpFixture()),
+		},
+		{
+			13,
+			[]tensor.Tensor{
+				ops.TensorWithBackingFixture([]int{1, 2}, 2),
+				ops.TensorWithBackingFixture([]int{3, 4}, 2),
+			},
+			ops.ErrInvalidInputType(0, "int", sub13BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		sub := &Sub13{}
+		sub := subVersions[test.version]()
 		validated, err := sub.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -124,4 +148,12 @@ func TestInputValidationSub13(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func sub7BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(7, 2, 2, subTypeConstraints, "sub")
+}
+
+func sub13BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(13, 2, 2, subTypeConstraints, "sub")
 }

@@ -92,7 +92,7 @@ func TestInputValidationTan(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		tan := TanVersions[test.version]()
+		tan := tanVersions[test.version]()
 		validated, err := tan.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

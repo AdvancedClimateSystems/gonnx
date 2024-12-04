@@ -41,14 +41,14 @@ func TestUnsqueezeInit(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		op := UnsqueezeVersions[test.version]()
+		op := unsqueezeVersions[test.version]()
 		err := op.Init(test.attrs)
 		assert.Equal(t, test.err, err)
 	}
 }
 
 func TestAxesOutRangeError(t *testing.T) {
-	op := UnsqueezeVersions[13]()
+	op := unsqueezeVersions[13]()
 	err := op.Init(nil)
 	assert.Nil(t, err)
 
@@ -63,7 +63,7 @@ func TestAxesOutRangeError(t *testing.T) {
 }
 
 func TestDuplicateEntriesAfterOffsetNotAllowed(t *testing.T) {
-	op := UnsqueezeVersions[13]()
+	op := unsqueezeVersions[13]()
 	err := op.Init(nil)
 	assert.Nil(t, err)
 
@@ -78,7 +78,7 @@ func TestDuplicateEntriesAfterOffsetNotAllowed(t *testing.T) {
 }
 
 func TestDuplicateEntriesNotAllowed(t *testing.T) {
-	op := UnsqueezeVersions[13]()
+	op := unsqueezeVersions[13]()
 	err := op.Init(nil)
 	assert.Nil(t, err)
 
@@ -233,7 +233,7 @@ func TestInputValidationUnsqueeze(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		unsqueeze := UnsqueezeVersions[test.version]()
+		unsqueeze := unsqueezeVersions[test.version]()
 		validated, err := unsqueeze.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

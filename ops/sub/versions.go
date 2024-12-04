@@ -2,7 +2,11 @@ package sub
 
 import "github.com/advancedclimatesystems/gonnx/ops"
 
-var SubVersions = ops.OperatorVersions{
-	7:  newSub7,
-	13: newSub13,
+var subVersions = ops.OperatorVersions{
+	7:  ops.NewOperatorConstructor(newSub(7, subTypeConstraints)),
+	13: ops.NewOperatorConstructor(newSub(13, subTypeConstraints)),
+}
+
+func GetSubVersions() ops.OperatorVersions {
+	return subVersions
 }

@@ -106,7 +106,7 @@ func TestInputValidationTranspose(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		transpose := TransposeVersions[test.version]()
+		transpose := transposeVersions[test.version]()
 		validated, err := transpose.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

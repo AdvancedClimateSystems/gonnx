@@ -99,7 +99,7 @@ func TestInputValidationTanh(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		tanh := TanhVersions[test.version]()
+		tanh := tanhVersions[test.version]()
 		validated, err := tanh.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
