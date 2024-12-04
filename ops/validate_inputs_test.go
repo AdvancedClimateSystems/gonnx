@@ -10,16 +10,19 @@ import (
 
 func TestValidateInputs(t *testing.T) {
 	tests := []struct {
-		op          Operator
+		op          *MockOp
 		inputs      []tensor.Tensor
 		expectedNil int
 		err         error
 	}{
 		{
 			&MockOp{
-				minInputs:            1,
-				maxInputs:            1,
-				inputTypeConstraints: [][]tensor.Dtype{{tensor.Float32}},
+				BaseOperator: BaseOperator{
+					version:              1,
+					minInputs:            1,
+					maxInputs:            1,
+					inputTypeConstraints: [][]tensor.Dtype{{tensor.Float32}},
+				},
 			},
 			PaddedInputsFixture(1, 0),
 			0,
@@ -27,9 +30,12 @@ func TestValidateInputs(t *testing.T) {
 		},
 		{
 			&MockOp{
-				minInputs:            2,
-				maxInputs:            2,
-				inputTypeConstraints: [][]tensor.Dtype{{tensor.Float32}, {tensor.Float32}},
+				BaseOperator: BaseOperator{
+					version:              1,
+					minInputs:            2,
+					maxInputs:            2,
+					inputTypeConstraints: [][]tensor.Dtype{{tensor.Float32}, {tensor.Float32}},
+				},
 			},
 			PaddedInputsFixture(2, 0),
 			0,
@@ -37,14 +43,17 @@ func TestValidateInputs(t *testing.T) {
 		},
 		{
 			&MockOp{
-				minInputs: 3,
-				maxInputs: 5,
-				inputTypeConstraints: [][]tensor.Dtype{
-					{tensor.Float32},
-					{tensor.Float32},
-					{tensor.Float32},
-					{tensor.Float32},
-					{tensor.Float32},
+				BaseOperator: BaseOperator{
+					version:   1,
+					minInputs: 3,
+					maxInputs: 5,
+					inputTypeConstraints: [][]tensor.Dtype{
+						{tensor.Float32},
+						{tensor.Float32},
+						{tensor.Float32},
+						{tensor.Float32},
+						{tensor.Float32},
+					},
 				},
 			},
 			PaddedInputsFixture(3, 0),
@@ -53,14 +62,17 @@ func TestValidateInputs(t *testing.T) {
 		},
 		{
 			&MockOp{
-				minInputs: 3,
-				maxInputs: 5,
-				inputTypeConstraints: [][]tensor.Dtype{
-					{tensor.Float32},
-					{tensor.Float32},
-					{tensor.Float32},
-					{tensor.Float32},
-					{tensor.Float32},
+				BaseOperator: BaseOperator{
+					version:   1,
+					minInputs: 3,
+					maxInputs: 5,
+					inputTypeConstraints: [][]tensor.Dtype{
+						{tensor.Float32},
+						{tensor.Float32},
+						{tensor.Float32},
+						{tensor.Float32},
+						{tensor.Float32},
+					},
 				},
 			},
 			PaddedInputsFixture(4, 0),
@@ -69,44 +81,56 @@ func TestValidateInputs(t *testing.T) {
 		},
 		{
 			&MockOp{
-				minInputs:            2,
-				maxInputs:            2,
-				inputTypeConstraints: [][]tensor.Dtype{{tensor.Float32}, {tensor.Float32}},
+				BaseOperator: BaseOperator{
+					version:   1,
+					minInputs: 2,
+					maxInputs: 2,
+					inputTypeConstraints: [][]tensor.Dtype{
+						{tensor.Float32},
+						{tensor.Float32},
+					},
+				},
 			},
 			PaddedInputsFixture(1, 0),
 			0,
-			ErrInvalidInputCount(1, &MockOp{minInputs: 2, maxInputs: 2}),
+			ErrInvalidInputCount(1, NewBaseOperator(1, 2, 2, [][]tensor.Dtype{{tensor.Float32}, {tensor.Float32}}, "mockop")),
 		},
 		{
 			&MockOp{
-				minInputs: 3,
-				maxInputs: 5,
-				inputTypeConstraints: [][]tensor.Dtype{
-					{tensor.Float32},
-					{tensor.Float32},
-					{tensor.Float32},
-					{tensor.Float32},
-					{tensor.Float32},
+				BaseOperator: BaseOperator{
+					version:   1,
+					minInputs: 3,
+					maxInputs: 5,
+					inputTypeConstraints: [][]tensor.Dtype{
+						{tensor.Float32},
+						{tensor.Float32},
+						{tensor.Float32},
+						{tensor.Float32},
+						{tensor.Float32},
+					},
 				},
 			},
 			PaddedInputsFixture(7, 0),
 			0,
-			ErrInvalidOptionalInputCount(7, &MockOp{minInputs: 3, maxInputs: 5}),
+			ErrInvalidOptionalInputCount(7, NewBaseOperator(1, 3, 5, [][]tensor.Dtype{{tensor.Float32}, {tensor.Float32}, {tensor.Float32}, {tensor.Float32}, {tensor.Float32}}, "mockop")),
 		},
 		{
 			&MockOp{
-				minInputs:            2,
-				maxInputs:            2,
-				inputTypeConstraints: [][]tensor.Dtype{{tensor.Float32}, {tensor.Float64}},
+				BaseOperator: BaseOperator{
+					version:              1,
+					minInputs:            2,
+					maxInputs:            2,
+					inputTypeConstraints: [][]tensor.Dtype{{tensor.Float32}, {tensor.Float64}},
+				},
 			},
 			PaddedInputsFixture(2, 0),
 			0,
-			ErrInvalidInputType(1, "float32", &MockOp{}),
+			ErrInvalidInputType(1, "float32", NewBaseOperator(1, 2, 2, [][]tensor.Dtype{{tensor.Float32}, {tensor.Float32}}, "mockop")),
 		},
 	}
 
 	for _, test := range tests {
-		inputs, err := ValidateInputs(test.op, test.inputs)
+		inputs, err := ValidateInputs(test.op.BaseOperator, test.inputs)
 		if test.err != nil {
 			assert.EqualError(t, err, test.err.Error())
 		}
@@ -150,9 +174,7 @@ func PaddedInputsFixture(nTensors, nNil int) []tensor.Tensor {
 }
 
 type MockOp struct {
-	minInputs            int
-	maxInputs            int
-	inputTypeConstraints [][]tensor.Dtype
+	BaseOperator
 }
 
 func (m *MockOp) Init(*onnx.NodeProto) error {
@@ -161,24 +183,4 @@ func (m *MockOp) Init(*onnx.NodeProto) error {
 
 func (m *MockOp) Apply(_ []tensor.Tensor) ([]tensor.Tensor, error) {
 	return nil, nil
-}
-
-func (m *MockOp) String() string {
-	return "mock op"
-}
-
-func (m *MockOp) GetMinInputs() int {
-	return m.minInputs
-}
-
-func (m *MockOp) GetMaxInputs() int {
-	return m.maxInputs
-}
-
-func (m *MockOp) GetInputTypeConstraints() [][]tensor.Dtype {
-	return m.inputTypeConstraints
-}
-
-func (m *MockOp) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return inputs, nil
 }
