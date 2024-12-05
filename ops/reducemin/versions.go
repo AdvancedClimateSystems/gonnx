@@ -2,9 +2,13 @@ package reducemin
 
 import "github.com/advancedclimatesystems/gonnx/ops"
 
-var ReduceMinVersions = ops.OperatorVersions{
-	1:  newReduceMin1,  // Only negative dimensions differ
-	11: newReduceMin11, // Only int types differ
-	12: newReduceMin12, // Only bfloat16 type differs
-	13: newReduceMin13,
+var reduceMinVersions = ops.OperatorVersions{
+	1:  ops.NewOperatorConstructor(newReduceMin(1, reduceMin11TypeConstraints)),
+	11: ops.NewOperatorConstructor(newReduceMin(11, reduceMin11TypeConstraints)),
+	12: ops.NewOperatorConstructor(newReduceMin(12, reduceMinTypeConstraints)),
+	13: ops.NewOperatorConstructor(newReduceMin(13, reduceMinTypeConstraints)),
+}
+
+func GetReduceMinVersions() ops.OperatorVersions {
+	return reduceMinVersions
 }
