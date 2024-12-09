@@ -1,4 +1,4 @@
-package reducemin
+package reducemax
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestReduceMinInit(t *testing.T) {
+func TestReduceMaxInit(t *testing.T) {
 	tests := []struct {
 		version int64
 		err     error
@@ -21,7 +21,7 @@ func TestReduceMinInit(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		r := reduceMinVersions[test.version]()
+		r := reduceMaxVersions[test.version]()
 		err := r.Init(&onnx.NodeProto{
 			Attribute: []*onnx.AttributeProto{
 				{Name: "axes", Ints: []int64{1, 3}},
@@ -30,12 +30,12 @@ func TestReduceMinInit(t *testing.T) {
 		})
 
 		assert.Equal(t, test.err, err)
-		assert.Equal(t, []int{1, 3}, r.(*ReduceMin).axes)
-		assert.Equal(t, false, r.(*ReduceMin).keepDims)
+		assert.Equal(t, []int{1, 3}, r.(*ReduceMax).axes)
+		assert.Equal(t, false, r.(*ReduceMax).keepDims)
 	}
 }
 
-func TestReduceMin(t *testing.T) {
+func TestReduceMax(t *testing.T) {
 	tests := []struct {
 		version         int64
 		attrs           *onnx.NodeProto
@@ -54,7 +54,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
-			[]float32{0, 1},
+			[]float32{2, 3},
 			[]int{2},
 		},
 		{
@@ -67,7 +67,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
-			[]float32{0, 1},
+			[]float32{2, 3},
 			[]int{1, 2},
 		},
 		{
@@ -80,7 +80,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
-			[]float32{0, 2},
+			[]float32{1, 3},
 			[]int{2},
 		},
 		{
@@ -93,7 +93,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
-			[]float32{0, 2},
+			[]float32{1, 3},
 			[]int{2, 1},
 		},
 		{
@@ -106,7 +106,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
-			[]float32{0, 1, 2},
+			[]float32{3, 4, 5},
 			[]int{3},
 		},
 		{
@@ -119,7 +119,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
-			[]float32{0, 1, 2},
+			[]float32{3, 4, 5},
 			[]int{1, 3},
 		},
 		{
@@ -132,7 +132,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
-			[]float32{0, 3},
+			[]float32{2, 5},
 			[]int{2},
 		},
 		{
@@ -145,7 +145,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{2, 3},
-			[]float32{0, 3},
+			[]float32{2, 5},
 			[]int{2, 1},
 		},
 		{
@@ -158,7 +158,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
-			[]float32{0, 1, 2, 6, 7, 8},
+			[]float32{3, 4, 5, 9, 10, 11},
 			[]int{2, 3},
 		},
 		{
@@ -171,7 +171,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
-			[]float32{0, 1, 2, 6, 7, 8},
+			[]float32{3, 4, 5, 9, 10, 11},
 			[]int{2, 1, 3},
 		},
 		{
@@ -184,7 +184,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
-			[]float32{0, 1, 2},
+			[]float32{9, 10, 11},
 			[]int{3},
 		},
 		{
@@ -197,7 +197,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
-			[]float32{0, 1, 2},
+			[]float32{9, 10, 11},
 			[]int{1, 1, 3},
 		},
 		{
@@ -210,7 +210,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
-			[]float32{0, 6},
+			[]float32{5, 11},
 			[]int{2},
 		},
 		{
@@ -223,7 +223,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			[]int{2, 2, 3},
-			[]float32{0, 6},
+			[]float32{5, 11},
 			[]int{2, 1, 1},
 		},
 		{
@@ -236,7 +236,7 @@ func TestReduceMin(t *testing.T) {
 			},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
-			[]float32{0, 2},
+			[]float32{1, 3},
 			[]int{2, 1},
 		},
 	}
@@ -246,10 +246,10 @@ func TestReduceMin(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		reduceMin := reduceMinVersions[test.version]()
-		reduceMin.Init(test.attrs)
+		reduceMax := reduceMaxVersions[test.version]()
+		reduceMax.Init(test.attrs)
 
-		res, err := reduceMin.Apply(inputs)
+		res, err := reduceMax.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Equal(t, test.expectedShape, res[0].Shape())
@@ -257,7 +257,7 @@ func TestReduceMin(t *testing.T) {
 	}
 }
 
-func TestInputValidationReduceMin(t *testing.T) {
+func TestInputValidationReduceMax(t *testing.T) {
 	tests := []struct {
 		version int64
 		inputs  []tensor.Tensor
@@ -325,41 +325,41 @@ func TestInputValidationReduceMin(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			ops.ErrInvalidInputCount(2, reduceMin13BaseOpFixture()),
+			ops.ErrInvalidInputCount(2, reduceMax13BaseOpFixture()),
 		},
 		{
 			1,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int8{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int8", reduceMin1BaseOpFixture()),
+			ops.ErrInvalidInputType(0, "int8", reduceMax1BaseOpFixture()),
 		},
 		{
 			11,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint8{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "uint8", reduceMin11BaseOpFixture()),
+			ops.ErrInvalidInputType(0, "uint8", reduceMax11BaseOpFixture()),
 		},
 		{
 			12,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", reduceMin12BaseOpFixture()),
+			ops.ErrInvalidInputType(0, "int", reduceMax12BaseOpFixture()),
 		},
 		{
 			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", reduceMin13BaseOpFixture()),
+			ops.ErrInvalidInputType(0, "int", reduceMax13BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		reduceMin := reduceMinVersions[test.version]()
-		validated, err := reduceMin.ValidateInputs(test.inputs)
+		reduceMax := reduceMaxVersions[test.version]()
+		validated, err := reduceMax.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
 
@@ -369,18 +369,18 @@ func TestInputValidationReduceMin(t *testing.T) {
 	}
 }
 
-func reduceMin1BaseOpFixture() ops.BaseOperator {
-	return ops.NewBaseOperator(1, 1, 1, reduceMin11TypeConstraints, "reducemin")
+func reduceMax1BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(1, 1, 1, reduceMax11TypeConstraints, "reducemax")
 }
 
-func reduceMin11BaseOpFixture() ops.BaseOperator {
-	return ops.NewBaseOperator(11, 1, 1, reduceMin11TypeConstraints, "reducemin")
+func reduceMax11BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(11, 1, 1, reduceMax11TypeConstraints, "reducemax")
 }
 
-func reduceMin12BaseOpFixture() ops.BaseOperator {
-	return ops.NewBaseOperator(12, 1, 1, reduceMinTypeConstraints, "reducemin")
+func reduceMax12BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(12, 1, 1, reduceMaxTypeConstraints, "reducemax")
 }
 
-func reduceMin13BaseOpFixture() ops.BaseOperator {
-	return ops.NewBaseOperator(13, 1, 1, reduceMinTypeConstraints, "reducemin")
+func reduceMax13BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(13, 1, 1, reduceMaxTypeConstraints, "reducemax")
 }

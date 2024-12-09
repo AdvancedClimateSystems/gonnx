@@ -2,9 +2,13 @@ package reducemax
 
 import "github.com/advancedclimatesystems/gonnx/ops"
 
-var ReduceMaxVersions = ops.OperatorVersions{
-	1:  newReduceMax1,  // Only negative dimensions differ
-	11: newReduceMax11, // Only int types differ
-	12: newReduceMax12, // Only bfloat16 type differs
-	13: newReduceMax13,
+var reduceMaxVersions = ops.OperatorVersions{
+	1:  ops.NewOperatorConstructor(newReduceMax(1, reduceMax11TypeConstraints)),
+	11: ops.NewOperatorConstructor(newReduceMax(11, reduceMax11TypeConstraints)),
+	12: ops.NewOperatorConstructor(newReduceMax(12, reduceMaxTypeConstraints)),
+	13: ops.NewOperatorConstructor(newReduceMax(13, reduceMaxTypeConstraints)),
+}
+
+func GetReduceMaxVersions() ops.OperatorVersions {
+	return reduceMaxVersions
 }
