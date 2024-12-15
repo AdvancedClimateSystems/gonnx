@@ -1,8 +1,15 @@
 package prelu
 
-import "github.com/advancedclimatesystems/gonnx/ops"
+import (
+	"github.com/advancedclimatesystems/gonnx/ops"
+	"gorgonia.org/tensor"
+)
 
-var PReluVersions = ops.OperatorVersions{
-	7: newPRelu7, // Only float types
-	9: newPRelu9,
+var preluVersions = ops.OperatorVersions{
+	7: ops.NewOperatorConstructor(newPRelu(7, [][]tensor.Dtype{{tensor.Float32, tensor.Float64}, {tensor.Float32, tensor.Float64}})),
+	9: ops.NewOperatorConstructor(newPRelu(9, preluTypeConstraints)),
+}
+
+func GetPReluVersions() ops.OperatorVersions {
+	return preluVersions
 }
