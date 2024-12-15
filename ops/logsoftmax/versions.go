@@ -2,8 +2,12 @@ package logsoftmax
 
 import "github.com/advancedclimatesystems/gonnx/ops"
 
-var LogSoftmaxVersions = ops.OperatorVersions{
-	1:  newLogSoftmax1,  // Only adds negative dimension support
-	11: newLogSoftmax11, // Only bfloat16 type differs and default differs
-	13: newLogSoftmax13,
+var logSoftmaxVersions = ops.OperatorVersions{
+	1:  ops.NewOperatorConstructor(newLogSoftmax(1, logSoftmaxTypeConstraints)),
+	11: ops.NewOperatorConstructor(newLogSoftmax(11, logSoftmaxTypeConstraints)),
+	13: ops.NewOperatorConstructor(newLogSoftmax(13, logSoftmaxTypeConstraints)),
+}
+
+func GetLogSoftmaxVersions() ops.OperatorVersions {
+	return logSoftmaxVersions
 }

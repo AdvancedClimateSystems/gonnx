@@ -8,12 +8,25 @@ import (
 )
 
 const (
-	MinLSTM7Inputs = 3
-	MaxLSTM7Inputs = 8
+	MinLSTMInputs = 3
+	MaxLSTMInputs = 8
 )
 
-// LSTM7 represents the ONNX lstm operator.
-type LSTM7 struct {
+var lstmTypeConstraints = [][]tensor.Dtype{
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+	{tensor.Int32},
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+}
+
+// LSTM represents the ONNX lstm operator.
+type LSTM struct {
+	ops.BaseOperator
+
 	activationAlpha []float32
 	activationBeta  []float32
 	activations     []string
@@ -24,9 +37,16 @@ type LSTM7 struct {
 	outputs []string
 }
 
-// newLSTM7 creates a new lstm operator.
-func newLSTM7() ops.Operator {
-	return &LSTM7{
+// newLSTM creates a new lstm operator.
+func newLSTM(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
+	return &LSTM{
+		BaseOperator: ops.NewBaseOperator(
+			version,
+			MinLSTMInputs,
+			MaxLSTMInputs,
+			typeConstraints,
+			"lstm",
+		),
 		activations: []string{"sigmoid", "tanh", "tanh"},
 		direction:   ops.Forward,
 		inputForget: false,
@@ -35,7 +55,7 @@ func newLSTM7() ops.Operator {
 }
 
 // Init initializes the lstm operator.
-func (l *LSTM7) Init(n *onnx.NodeProto) error {
+func (l *LSTM) Init(n *onnx.NodeProto) error {
 	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
 		case ops.ActivationAlphaAttr:
@@ -71,9 +91,9 @@ func (l *LSTM7) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the lstm operator.
-func (l *LSTM7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if inputs[4] != nil {
-		return nil, ops.ErrUnsupportedInput("sequence_lens", l)
+		return nil, ops.ErrUnsupportedInput("sequence_lens", l.BaseOperator)
 	}
 
 	X := inputs[0]
@@ -150,7 +170,7 @@ func (l *LSTM7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	outputs := []tensor.Tensor{}
 
-	// Loop over all timesteps of the input, applying the LSTM7 calculation to every
+	// Loop over all timesteps of the input, applying the LSTM calculation to every
 	// timesteps while updating the hidden tensor.
 	for t := 0; t < seqLength; t++ {
 		Xt, err := X.Slice(ops.NewSlicer(t, t+1), nil, nil)
@@ -236,42 +256,7 @@ func (l *LSTM7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return result, nil
 }
 
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (l *LSTM7) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(l, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (l *LSTM7) GetMinInputs() int {
-	return MinLSTM7Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (l *LSTM7) GetMaxInputs() int {
-	return MaxLSTM7Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (l *LSTM7) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-		{tensor.Int32},
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-	}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (l *LSTM7) String() string {
-	return "lstm7 operator"
-}
-
-// gateCalculation performs a standard gate calculation for an LSTM7 gate defined as:
+// gateCalculation performs a standard gate calculation for an LSTM gate defined as:
 //
 //	o = f(Xt*(W^T) + Wb + H*(R^T) + Rb + P (.) C)
 //
@@ -290,10 +275,10 @@ func (l *LSTM7) String() string {
 // 'o' is the result tensor that is returned.
 // This calculation can be used for the forget gate, input gate, cell gate
 // and output gate calculations.
-func (l *LSTM7) gateCalculation(
+func (l *LSTM) gateCalculation(
 	Xt, W, Wb, H, R, Rb, P, C tensor.Tensor, activation ops.Activation,
 ) (tensor.Tensor, error) {
-	gemm := gemm.GemmVersions[13]()
+	gemm := gemm.GetGemmVersions()[13]()
 
 	err := gemm.Init(
 		&onnx.NodeProto{
@@ -344,7 +329,7 @@ func (l *LSTM7) gateCalculation(
 	return activation(output)
 }
 
-// cellCalculation performs the calculation of the LSTM7 cell update defined by:
+// cellCalculation performs the calculation of the LSTM cell update defined by:
 //
 //	Ct = ft (.) Ct-1 + it (.) ct
 //
@@ -352,7 +337,7 @@ func (l *LSTM7) gateCalculation(
 // multiplication, 'Ct-1' denotes the cell state at time t-1, 'it' denotes the input
 // gate activation at time t and 'ct' denotes the cell state activation at time t (which)
 // is not the same as Ct or Ct-1).
-func (l *LSTM7) cellCalculation(ft, it, ct, Ct tensor.Tensor) (tensor.Tensor, error) {
+func (l *LSTM) cellCalculation(ft, it, ct, Ct tensor.Tensor) (tensor.Tensor, error) {
 	cellForget, err := tensor.Mul(ft, Ct)
 	if err != nil {
 		return nil, err
@@ -366,14 +351,14 @@ func (l *LSTM7) cellCalculation(ft, it, ct, Ct tensor.Tensor) (tensor.Tensor, er
 	return tensor.Add(cellForget, cellInput)
 }
 
-// hiddenCalculation performs the calculation of the new LSTM7 hidden state defined by:
+// hiddenCalculation performs the calculation of the new LSTM hidden state defined by:
 //
 //	Ht = ot (.) h(Ct)
 //
 // Where Ht is the new hidden state at time t, 'ot' is the output at time t, (.) denotes
 // element-wise multiplication, 'h()' denotes an activation function and 'Ct' denotes the
 // cell state at time t.
-func (l *LSTM7) hiddenCalculation(ot, Ct tensor.Tensor, activation ops.Activation) (tensor.Tensor, error) {
+func (l *LSTM) hiddenCalculation(ot, Ct tensor.Tensor, activation ops.Activation) (tensor.Tensor, error) {
 	cellActivated, err := activation(Ct)
 	if err != nil {
 		return nil, err
@@ -385,7 +370,7 @@ func (l *LSTM7) hiddenCalculation(ot, Ct tensor.Tensor, activation ops.Activatio
 // getWeights splits tensor W into 4 weight matrices.
 // The W tensor, by GONNX definition, has 3 dimensions with 4 weight
 // tensors in it (8 if bidirectional, but that is not supported).
-func (l *LSTM7) getWeights(W tensor.Tensor) (Wi, Wo, Wf, Wh tensor.Tensor, err error) {
+func (l *LSTM) getWeights(W tensor.Tensor) (Wi, Wo, Wf, Wh tensor.Tensor, err error) {
 	nWeightMatrices := 4
 	nWeightDimensions := 3
 
@@ -400,7 +385,7 @@ func (l *LSTM7) getWeights(W tensor.Tensor) (Wi, Wo, Wf, Wh tensor.Tensor, err e
 // getBiases splits tensor B into 8 bias matrices.
 // The B tensor, by GONNX definition, has 2 dimensions with 8 bias
 // tensors in it (16 if bidirectional, but that is not supported).
-func (l *LSTM7) getBiases(B tensor.Tensor) (Wbi, Wbo, Wbf, Wbc, Rbi, Rbo, Rbf, Rbc tensor.Tensor, err error) {
+func (l *LSTM) getBiases(B tensor.Tensor) (Wbi, Wbo, Wbf, Wbc, Rbi, Rbo, Rbf, Rbc tensor.Tensor, err error) {
 	nBiasMatrices := 8
 	nBiasDimensions := 2
 
@@ -415,7 +400,7 @@ func (l *LSTM7) getBiases(B tensor.Tensor) (Wbi, Wbo, Wbf, Wbc, Rbi, Rbo, Rbf, R
 // getPeepholes splits tensor P into 3 bias matrices.
 // The P tensor, by GONNX definition, has 2 dimensions with 3 peephole
 // tensors in it (6 if bidirectional, but that is not supported).
-func (l *LSTM7) getPeepholes(P tensor.Tensor) (Pi, Po, Pf tensor.Tensor, err error) {
+func (l *LSTM) getPeepholes(P tensor.Tensor) (Pi, Po, Pf tensor.Tensor, err error) {
 	nPeepholeMatrices := 3
 	nPeepholeDimensions := 2
 

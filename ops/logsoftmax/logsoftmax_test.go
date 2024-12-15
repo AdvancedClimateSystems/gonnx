@@ -3,13 +3,14 @@ package logsoftmax
 import (
 	"testing"
 
+	"github.com/advancedclimatesystems/gonnx/onnx"
 	"github.com/advancedclimatesystems/gonnx/ops"
 	"github.com/stretchr/testify/assert"
 	"gorgonia.org/tensor"
 )
 
-func TestLogSoftmax13Init(t *testing.T) {
-	l := &LogSoftmax13{}
+func TestLogSoftmaxInit(t *testing.T) {
+	l := &LogSoftmax{}
 
 	// since 'logsoftmax' does not have any attributes we pass in nil. This should not
 	// fail initializing the logsoftmax.
@@ -17,48 +18,64 @@ func TestLogSoftmax13Init(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestLogSoftmax13(t *testing.T) {
+func TestLogSoftmax(t *testing.T) {
 	tests := []struct {
-		logsoftmax *LogSoftmax13
-		backing    []float32
-		shape      []int
-		expected   []float32
+		version  int64
+		attrs    *onnx.NodeProto
+		backing  []float32
+		shape    []int
+		expected []float32
 	}{
 		{
-			&LogSoftmax13{
-				axis: -1,
+			13,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "axis", I: -1},
+				},
 			},
 			[]float32{0, 1, 2, 3},
 			[]int{1, 4},
 			[]float32{-3.4401898, -2.4401898, -1.4401897, -0.44018975},
 		},
 		{
-			&LogSoftmax13{
-				axis: 1,
+			13,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "axis", I: 1},
+				},
 			},
 			[]float32{0, 1, 2, 3},
 			[]int{1, 4},
 			[]float32{-3.4401898, -2.4401898, -1.4401897, -0.44018975},
 		},
 		{
-			&LogSoftmax13{
-				axis: -1,
+			13,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "axis", I: -1},
+				},
 			},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]float32{-1.3132616, -0.31326166, -1.3132616, -0.31326166},
 		},
 		{
-			&LogSoftmax13{
-				axis: -1,
+			13,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "axis", I: -1},
+				},
 			},
 			[]float32{0, 1, 2, 3, 4, 5},
 			[]int{1, 2, 3},
 			[]float32{-2.407606, -1.4076059, -0.40760595, -2.407606, -1.4076059, -0.40760595},
 		},
 		{
-			&LogSoftmax13{
-				axis: -1,
+			13,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "axis", I: -1},
+				},
 			},
 			[]float32{0, 1, 2, 3},
 			[]int{4, 1},
@@ -71,19 +88,22 @@ func TestLogSoftmax13(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		res, err := test.logsoftmax.Apply(inputs)
+		logsoftmax := logSoftmaxVersions[test.version]()
+		logsoftmax.Init(test.attrs)
+
+		res, err := logsoftmax.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Equal(t, test.expected, res[0].Data())
 	}
 }
 
-func TestLogSoftmax13Fail(t *testing.T) {
+func TestLogSoftmaxFail(t *testing.T) {
 	inputs := []tensor.Tensor{
 		ops.TensorWithBackingFixture([]float32{1, 2, 3, 4}, 2, 2),
 	}
 
-	logsoftmax := &LogSoftmax13{
+	logsoftmax := &LogSoftmax{
 		axis: 3, // This axis is out of range.
 	}
 	_, err := logsoftmax.Apply(inputs)
@@ -94,40 +114,46 @@ func TestLogSoftmax13Fail(t *testing.T) {
 	)
 }
 
-func TestInputValidationLogSoftmax13(t *testing.T) {
+func TestInputValidationLogSoftmax(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(2, &LogSoftmax13{}),
+			ops.ErrInvalidInputCount(2, logSoftmax13BaseOpFixture()),
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &LogSoftmax13{}),
+			ops.ErrInvalidInputType(0, "int", logSoftmax13BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		logsoftmax := &LogSoftmax13{}
+		logsoftmax := logSoftmaxVersions[test.version]()
+
 		validated, err := logsoftmax.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -136,4 +162,8 @@ func TestInputValidationLogSoftmax13(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func logSoftmax13BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(13, 1, 1, logSoftmaxTypeConstraints, "logsoftmax")
 }
