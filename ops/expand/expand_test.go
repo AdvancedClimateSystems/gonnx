@@ -8,16 +8,16 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestExpand13Init(t *testing.T) {
-	e := &Expand13{}
+func TestExpandInit(t *testing.T) {
+	e := &Expand{}
 
 	err := e.Init(nil)
 	assert.Nil(t, err)
 }
 
-func TestExpand13(t *testing.T) {
+func TestExpand(t *testing.T) {
 	tests := []struct {
-		expand          *Expand13
+		version         int64
 		backing         []float32
 		shape           []int
 		newShapeBacking []int64
@@ -25,7 +25,7 @@ func TestExpand13(t *testing.T) {
 		expectedData    []float32
 	}{
 		{
-			&Expand13{},
+			13,
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]int64{1, 1, 1},
@@ -33,7 +33,7 @@ func TestExpand13(t *testing.T) {
 			[]float32{0, 1, 2, 3},
 		},
 		{
-			&Expand13{},
+			13,
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]int64{1, 3, 1, 1},
@@ -48,7 +48,9 @@ func TestExpand13(t *testing.T) {
 			ops.TensorWithBackingFixture(test.newShapeBacking, len(test.newShapeBacking)),
 		}
 
-		res, err := test.expand.Apply(inputs)
+		expand := expandVersions[test.version]()
+
+		res, err := expand.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Equal(t, test.expectedShape, res[0].Shape())
@@ -56,12 +58,14 @@ func TestExpand13(t *testing.T) {
 	}
 }
 
-func TestInputValidationExpand13(t *testing.T) {
+func TestInputValidationExpand(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{1, 1, 1}, 3),
@@ -69,6 +73,7 @@ func TestInputValidationExpand13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{1, 1, 1}, 3),
@@ -76,6 +81,7 @@ func TestInputValidationExpand13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{1, 1, 1}, 3),
@@ -83,6 +89,7 @@ func TestInputValidationExpand13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{1, 1, 1}, 3),
@@ -90,6 +97,7 @@ func TestInputValidationExpand13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{1, 1, 1}, 3),
@@ -97,6 +105,7 @@ func TestInputValidationExpand13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{1, 1, 1}, 3),
@@ -104,24 +113,26 @@ func TestInputValidationExpand13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{1, 1, 1}, 3),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(3, &Expand13{}),
+			ops.ErrInvalidInputCount(3, expand13BaseOpFixture()),
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{1, 1, 1}, 3),
 			},
-			ops.ErrInvalidInputType(0, "int", &Expand13{}),
+			ops.ErrInvalidInputType(0, "int", expand13BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		expand := &Expand13{}
+		expand := expandVersions[test.version]()
 		validated, err := expand.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -130,4 +141,8 @@ func TestInputValidationExpand13(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func expand13BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(13, 2, 2, expandTypeConstraints, "expand")
 }

@@ -4,7 +4,10 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops"
 )
 
-var ExpandVersions = ops.OperatorVersions{
-	8:  newExpand8, // Same, but float16 type differs
-	13: newExpand13,
+var expandVersions = ops.OperatorVersions{
+	13: ops.NewOperatorConstructor(newExpand(13, expandTypeConstraints)),
+}
+
+func GetExpandVersions() ops.OperatorVersions {
+	return expandVersions
 }

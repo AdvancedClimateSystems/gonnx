@@ -230,7 +230,7 @@ func TestInputValidationAbs(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		abs := AbsVersions[test.version]()
+		abs := absVersions[test.version]()
 		validated, err := abs.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
