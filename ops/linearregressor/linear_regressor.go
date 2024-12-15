@@ -6,10 +6,9 @@ import (
 	"gorgonia.org/tensor"
 )
 
-const (
-	MinLinearRegressor1Inputs = 1
-	MaxLinearRegressor1Inputs = 1
-)
+var linearRegressorTypeConstraints = [][]tensor.Dtype{
+	{tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
+}
 
 // PostTransformOption describes all possible post transform options for the
 // linear regressor operator.
@@ -23,24 +22,33 @@ const (
 	probitTransform      postTransformOption = "PROBIT"
 )
 
-// LinearRegressor1 represents the ONNX-ml linearRegressor operator.
-type LinearRegressor1 struct {
+// LinearRegressor represents the ONNX-ml linearRegressor operator.
+type LinearRegressor struct {
+	ops.BaseOperator
+
 	coefficients  tensor.Tensor
 	intercepts    tensor.Tensor
 	postTransform postTransformOption
 	targets       int
 }
 
-// newLinearRegressor1 creates a new linearRegressor operator.
-func newLinearRegressor1() ops.Operator {
-	return &LinearRegressor1{
+// newLinearRegressor creates a new linearRegressor operator.
+func newLinearRegressor(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
+	return &LinearRegressor{
+		BaseOperator: ops.NewBaseOperator(
+			version,
+			1,
+			1,
+			typeConstraints,
+			"linearregressor",
+		),
 		postTransform: noTransform,
 		targets:       1,
 	}
 }
 
 // Init initializes the linearRegressor operator.
-func (l *LinearRegressor1) Init(n *onnx.NodeProto) error {
+func (l *LinearRegressor) Init(n *onnx.NodeProto) error {
 	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
 		case "coefficients":
@@ -67,7 +75,7 @@ func (l *LinearRegressor1) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the linearRegressor operator.
-func (l *LinearRegressor1) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (l *LinearRegressor) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	X := inputs[0]
 
 	result, err := tensor.MatMul(X, l.coefficients)
@@ -86,32 +94,4 @@ func (l *LinearRegressor1) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error
 	}
 
 	return []tensor.Tensor{Y}, nil
-}
-
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (l *LinearRegressor1) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(l, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (l *LinearRegressor1) GetMinInputs() int {
-	return MinLinearRegressor1Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (l *LinearRegressor1) GetMaxInputs() int {
-	return MaxLinearRegressor1Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (l *LinearRegressor1) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{
-		{tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
-	}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (l *LinearRegressor1) String() string {
-	return "linearregressor1 operator"
 }

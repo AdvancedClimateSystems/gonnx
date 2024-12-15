@@ -9,9 +9,9 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestLinearRegressor1Init(t *testing.T) {
-	linearRegressor := &LinearRegressor1{}
-	err := linearRegressor.Init(LinearRegressor1OnnxNodeProtoFixture())
+func TestLinearRegressorInit(t *testing.T) {
+	linearRegressor := &LinearRegressor{}
+	err := linearRegressor.Init(LinearRegressorOnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
 	assert.Equal(t, []float32{1.5, 2.5, 3.5}, linearRegressor.coefficients.Data())
@@ -19,24 +19,25 @@ func TestLinearRegressor1Init(t *testing.T) {
 	assert.Equal(t, 1, linearRegressor.targets)
 }
 
-func TestLinearRegressor1InitFailUnsupportedAttribute(t *testing.T) {
-	linearRegressor := &LinearRegressor1{}
+func TestLinearRegressorInitFailUnsupportedAttribute(t *testing.T) {
+	linearRegressor := &LinearRegressor{}
 	err := linearRegressor.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "post_transform"}, {Name: "Another"}}})
 
 	expected := ops.ErrUnsupportedAttribute("post_transform", linearRegressor)
 	assert.Equal(t, expected, err)
 }
 
-func TestLinearRegressor1InitFailInvalidAttribute(t *testing.T) {
-	linearRegressor := &LinearRegressor1{}
+func TestLinearRegressorInitFailInvalidAttribute(t *testing.T) {
+	linearRegressor := &LinearRegressor{}
 	err := linearRegressor.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "much_invalid"}}})
 
 	expected := ops.ErrInvalidAttribute("much_invalid", linearRegressor)
 	assert.Equal(t, expected, err)
 }
 
-func TestLinearRegressor1(t *testing.T) {
+func TestLinearRegressor(t *testing.T) {
 	tests := []struct {
+		version         int64
 		attrs           []*onnx.AttributeProto
 		shape           []int
 		backing         []float32
@@ -45,6 +46,7 @@ func TestLinearRegressor1(t *testing.T) {
 		description     string
 	}{
 		{
+			1,
 			[]*onnx.AttributeProto{
 				{Name: "coefficients", Floats: []float32{-0.45977323}},
 				{Name: "intercepts", Floats: []float32{0.21509616}},
@@ -57,6 +59,7 @@ func TestLinearRegressor1(t *testing.T) {
 			"linear regressor with 1 input and 1 output variable, 1 sample",
 		},
 		{
+			1,
 			[]*onnx.AttributeProto{
 				{Name: "coefficients", Floats: []float32{-0.45977323}},
 				{Name: "intercepts", Floats: []float32{0.21509616}},
@@ -69,6 +72,7 @@ func TestLinearRegressor1(t *testing.T) {
 			"linear regressor with 1 input and 1 output variable, 5 samples",
 		},
 		{
+			1,
 			[]*onnx.AttributeProto{
 				{Name: "coefficients", Floats: []float32{0.24118852, 0.22617804, 0.27858477}},
 				{Name: "intercepts", Floats: []float32{-0.43156273}},
@@ -81,6 +85,7 @@ func TestLinearRegressor1(t *testing.T) {
 			"linear regressor with 3 inputs and 1 output variable, 1 sample",
 		},
 		{
+			1,
 			[]*onnx.AttributeProto{
 				{Name: "coefficients", Floats: []float32{0.24118852, 0.22617804, 0.27858477}},
 				{Name: "intercepts", Floats: []float32{-0.43156273}},
@@ -93,6 +98,7 @@ func TestLinearRegressor1(t *testing.T) {
 			"linear regressor with 3 inputs and 1 output variable, 2 samples",
 		},
 		{
+			1,
 			[]*onnx.AttributeProto{
 				{Name: "coefficients", Floats: []float32{
 					0.5384742, 0.36729308, 0.13292366, -0.03843413,
@@ -109,6 +115,7 @@ func TestLinearRegressor1(t *testing.T) {
 			"linear regressor with 4 input and 3 output variables, 1 samples",
 		},
 		{
+			1,
 			[]*onnx.AttributeProto{
 				{Name: "coefficients", Floats: []float32{
 					0.5384742, 0.36729308, 0.13292366, -0.03843413,
@@ -131,7 +138,7 @@ func TestLinearRegressor1(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		linearRegressor := newLinearRegressor1()
+		linearRegressor := linearRegressorVersions[test.version]()
 		err := linearRegressor.Init(&onnx.NodeProto{Attribute: test.attrs})
 		assert.Nil(t, err, test.description)
 
@@ -142,39 +149,46 @@ func TestLinearRegressor1(t *testing.T) {
 	}
 }
 
-func TestInputValidationLinearRegressor1(t *testing.T) {
+func TestInputValidationLinearRegressor(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			1,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int32{1, 2}, 2)},
 			nil,
 		},
 		{
+			1,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int64{1, 2}, 2)},
 			nil,
 		},
 		{
+			1,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]float32{1, 2}, 2)},
 			nil,
 		},
 		{
+			1,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]float64{1, 2}, 2)},
 			nil,
 		},
 		{
+			1,
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &LinearRegressor1{}),
+			ops.ErrInvalidInputCount(0, linearRegressor1BaseOpFixture()),
 		},
 		{
+			1,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			ops.ErrInvalidInputType(0, "int", &LinearRegressor1{}),
+			ops.ErrInvalidInputType(0, "int", linearRegressor1BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		linearRegressor := &LinearRegressor1{}
+		linearRegressor := linearRegressorVersions[test.version]()
 		validated, err := linearRegressor.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -185,7 +199,7 @@ func TestInputValidationLinearRegressor1(t *testing.T) {
 	}
 }
 
-func LinearRegressor1OnnxNodeProtoFixture() *onnx.NodeProto {
+func LinearRegressorOnnxNodeProtoFixture() *onnx.NodeProto {
 	return &onnx.NodeProto{
 		Attribute: []*onnx.AttributeProto{
 			{Name: "coefficients", Floats: []float32{1.5, 2.5, 3.5}},
@@ -193,4 +207,14 @@ func LinearRegressor1OnnxNodeProtoFixture() *onnx.NodeProto {
 			{Name: "targets", I: 1},
 		},
 	}
+}
+
+func linearRegressor1BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(
+		1,
+		1,
+		1,
+		linearRegressorTypeConstraints,
+		"linearregressor",
+	)
 }
