@@ -9,39 +9,42 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestConcat13Init(t *testing.T) {
-	concat := &Concat13{}
+func TestConcatInit(t *testing.T) {
+	concat := &Concat{}
 	err := concat.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 3}}})
 
 	assert.Nil(t, err)
 	assert.Equal(t, 3, concat.axis)
 }
 
-func TestConcat13InitFail(t *testing.T) {
-	concat := &Concat13{}
+func TestConcatInitFail(t *testing.T) {
+	concat := &Concat{}
 	err := concat.Init(ops.EmptyNodeProto())
 
 	expected := ops.ErrInvalidAttributeCount(1, 0, concat)
 	assert.Equal(t, expected, err)
 }
 
-func TestConcat13(t *testing.T) {
+func TestConcat(t *testing.T) {
 	tests := []struct {
-		concat          *Concat13
+		version         int64
+		node            *onnx.NodeProto
 		backings        [][]float32
 		shapes          [][]int
 		expectedShape   tensor.Shape
 		expectedBacking []float32
 	}{
 		{
-			&Concat13{1, 2, [][]tensor.Dtype{ops.AllTypes, ops.AllTypes}},
+			13,
+			&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 1}}},
 			[][]float32{{0, 1, 2, 3}, {10, 20}},
 			[][]int{{2, 2}, {2, 1}},
 			[]int{2, 3},
 			[]float32{0, 1, 10, 2, 3, 20},
 		},
 		{
-			&Concat13{1, 2, [][]tensor.Dtype{ops.AllTypes, ops.AllTypes}},
+			13,
+			&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 1}}},
 			[][]float32{{0, 1, 2, 3}, {10, 20, 30, 40, 50, 60}},
 			[][]int{{2, 2}, {2, 3}},
 			[]int{2, 5},
@@ -55,7 +58,11 @@ func TestConcat13(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backings[1], test.shapes[1]...),
 		}
 
-		res, err := test.concat.Apply(inputs)
+		concat := concatVersions[test.version]()
+		concat.Init(test.node)
+		concat.ValidateInputs(inputs)
+
+		res, err := concat.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Equal(t, test.expectedShape, res[0].Shape())
@@ -63,26 +70,32 @@ func TestConcat13(t *testing.T) {
 	}
 }
 
-func TestInputValidationConcat13(t *testing.T) {
+func TestInputValidationConcat(t *testing.T) {
 	tests := []struct {
-		concat ops.Operator
-		inputs []tensor.Tensor
+		version int64
+		node    *onnx.NodeProto
+		inputs  []tensor.Tensor
 	}{
 		{
-			&Concat13{1, 2, [][]tensor.Dtype{ops.AllTypes, ops.AllTypes}},
+			13,
+			&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 1}}},
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]uint32{3, 4}, 2),
 			},
 		},
 		{
-			&Concat13{1, 1, [][]tensor.Dtype{ops.AllTypes}},
+			13,
+			&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 1}}},
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]float32{1, 2}, 2)},
 		},
 	}
 
 	for _, test := range tests {
-		validated, err := test.concat.ValidateInputs(test.inputs)
+		concat := concatVersions[test.version]()
+		concat.Init(test.node)
+
+		validated, err := concat.ValidateInputs(test.inputs)
 		assert.Nil(t, err)
 		assert.Equal(t, test.inputs, validated)
 	}

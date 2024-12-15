@@ -10,8 +10,8 @@ import (
 )
 
 func TestGruInit(t *testing.T) {
-	gru := &GRU7{}
-	err := gru.Init(GRU7OnnxNodeProtoFixture())
+	gru := GRU{}
+	err := gru.Init(GRUOnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
 	assert.Equal(t, []float32{1.0}, gru.activationAlpha)
@@ -23,7 +23,7 @@ func TestGruInit(t *testing.T) {
 }
 
 func TestGruInitUnkownAttr(t *testing.T) {
-	gru := GRU7{}
+	gru := GRU{}
 	tests := []struct {
 		attr []*onnx.AttributeProto
 		err  error
@@ -46,58 +46,71 @@ func TestGruInitUnkownAttr(t *testing.T) {
 
 func TestGru(t *testing.T) {
 	tests := []struct {
-		gru      *GRU7
+		version  int64
+		node     *onnx.NodeProto
 		inputs   ops.InputFixture
 		expected []float32
 		err      error
 	}{
 		{
-			&GRU7{
-				activationAlpha:   []float32{},
-				activationBeta:    []float32{},
-				activations:       []string{"sigmoid", "tanh"},
-				direction:         ops.Forward,
-				hiddenSize:        4,
-				linearBeforeReset: true,
+			7,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "activation_alpha", Floats: []float32{}},
+					{Name: "activation_beta", Floats: []float32{}},
+					{Name: "activations", Strings: [][]byte{[]byte("sigmoid"), []byte("tanh")}},
+					{Name: "direction", S: []byte("forward")},
+					{Name: "hidden_size", I: 4},
+					{Name: "linear_before_reset", I: 1},
+				},
 			},
 			gruInput0,
 			[]float32{6.6936556e-03, 8.3446503e-07, 0.0000000e+00, 0.0000000e+00},
 			nil,
 		},
 		{
-			&GRU7{
-				activationAlpha:   []float32{},
-				activationBeta:    []float32{},
-				activations:       []string{"sigmoid", "tanh"},
-				direction:         ops.Forward,
-				hiddenSize:        4,
-				linearBeforeReset: false,
+			7,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "activation_alpha", Floats: []float32{}},
+					{Name: "activation_beta", Floats: []float32{}},
+					{Name: "activations", Strings: [][]byte{[]byte("sigmoid"), []byte("tanh")}},
+					{Name: "direction", S: []byte("forward")},
+					{Name: "hidden_size", I: 4},
+					{Name: "linear_before_reset", I: 0},
+				},
 			},
 			gruInput0,
 			[]float32{6.6936556e-03, 8.3446503e-07, 0.0000000e+00, 0.0000000e+00},
 			nil,
 		},
 		{
-			&GRU7{
-				activationAlpha:   []float32{},
-				activationBeta:    []float32{},
-				activations:       []string{"sigmoid", "tanh"},
-				direction:         ops.Forward,
-				hiddenSize:        4,
-				linearBeforeReset: false,
+			7,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "activation_alpha", Floats: []float32{}},
+					{Name: "activation_beta", Floats: []float32{}},
+					{Name: "activations", Strings: [][]byte{[]byte("sigmoid"), []byte("tanh")}},
+					{Name: "direction", S: []byte("forward")},
+					{Name: "hidden_size", I: 4},
+					{Name: "linear_before_reset", I: 0},
+				},
 			},
 			gruInput1,
 			[]float32{0.44905475, 0.4406946, 0.43368173, 0.42782417},
 			nil,
 		},
 		{
-			&GRU7{
-				activationAlpha:   []float32{},
-				activationBeta:    []float32{},
-				activations:       []string{"sigmoid", "tanh"},
-				direction:         ops.Forward,
-				hiddenSize:        4,
-				linearBeforeReset: false,
+			7,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "activation_alpha", Floats: []float32{}},
+					{Name: "activation_beta", Floats: []float32{}},
+					{Name: "activations", Strings: [][]byte{[]byte("sigmoid"), []byte("tanh")}},
+					{Name: "direction", S: []byte("forward")},
+					{Name: "hidden_size", I: 4},
+					{Name: "linear_before_reset", I: 0},
+				},
 			},
 			gruInputNoBNoH,
 			[]float32{0.24553154, 0.24553154, 0.24553154, 0.24553154},
@@ -107,7 +120,11 @@ func TestGru(t *testing.T) {
 
 	for _, test := range tests {
 		inputs := test.inputs()
-		res, err := test.gru.Apply(inputs)
+
+		gru := gruVersions[test.version]()
+		gru.Init(test.node)
+
+		res, err := gru.Apply(inputs)
 		assert.Equal(t, test.err, err)
 
 		if err == nil {
@@ -116,13 +133,15 @@ func TestGru(t *testing.T) {
 	}
 }
 
-func TestInputValidationGRU7(t *testing.T) {
+func TestInputValidationGRU(t *testing.T) {
 	tests := []struct {
+		version  int64
 		inputs   []tensor.Tensor
 		expected []tensor.Tensor
 		err      error
 	}{
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
@@ -135,6 +154,7 @@ func TestInputValidationGRU7(t *testing.T) {
 			nil,
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
@@ -151,47 +171,53 @@ func TestInputValidationGRU7(t *testing.T) {
 			nil,
 		},
 		{
+			7,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]float32{1, 2}, 2)},
 			nil,
-			ops.ErrInvalidOptionalInputCount(1, &GRU7{}),
+			ops.ErrInvalidOptionalInputCount(1, gru7BaseOpFixture()),
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
-			ops.ErrInvalidInputType(1, "int", &GRU7{}),
+			ops.ErrInvalidInputType(1, "int", gru7BaseOpFixture()),
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
-			ops.ErrInvalidInputType(0, "int", &GRU7{}),
+			ops.ErrInvalidInputType(0, "int", gru7BaseOpFixture()),
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
-			ops.ErrInvalidInputType(1, "int", &GRU7{}),
+			ops.ErrInvalidInputType(1, "int", gru7BaseOpFixture()),
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
 			nil,
-			ops.ErrInvalidInputType(2, "int", &GRU7{}),
+			ops.ErrInvalidInputType(2, "int", gru7BaseOpFixture()),
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
@@ -199,9 +225,10 @@ func TestInputValidationGRU7(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
 			nil,
-			ops.ErrInvalidInputType(3, "int", &GRU7{}),
+			ops.ErrInvalidInputType(3, "int", gru7BaseOpFixture()),
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
@@ -210,9 +237,10 @@ func TestInputValidationGRU7(t *testing.T) {
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
-			ops.ErrInvalidInputType(4, "float32", &GRU7{}),
+			ops.ErrInvalidInputType(4, "float32", gru7BaseOpFixture()),
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
@@ -222,12 +250,12 @@ func TestInputValidationGRU7(t *testing.T) {
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
 			nil,
-			ops.ErrInvalidInputType(5, "int", &GRU7{}),
+			ops.ErrInvalidInputType(5, "int", gru7BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		gru := &GRU7{}
+		gru := gruVersions[test.version]()
 		validated, err := gru.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -284,7 +312,7 @@ func gruInputNoBNoH() []tensor.Tensor {
 	return inputs
 }
 
-func GRU7OnnxNodeProtoFixture() *onnx.NodeProto {
+func GRUOnnxNodeProtoFixture() *onnx.NodeProto {
 	return &onnx.NodeProto{
 		Attribute: []*onnx.AttributeProto{
 			{Name: "activation_alpha", Floats: []float32{1.0}},
@@ -295,4 +323,8 @@ func GRU7OnnxNodeProtoFixture() *onnx.NodeProto {
 			{Name: "linear_before_reset", I: 1},
 		},
 	}
+}
+
+func gru7BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(7, 3, 6, gruTypeConstraints, "gru")
 }

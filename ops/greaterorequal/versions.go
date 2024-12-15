@@ -2,6 +2,10 @@ package greaterorequal
 
 import "github.com/advancedclimatesystems/gonnx/ops"
 
-var GreaterOrEqualVersions = ops.OperatorVersions{
-	12: newGreaterOrEqual12,
+var greaterOrEqualVersions = ops.OperatorVersions{
+	12: ops.NewOperatorConstructor(newGreaterOrEqual(12, greaterOrEqualTypeConstraints)),
+}
+
+func GetGreaterOrEqualVersions() ops.OperatorVersions {
+	return greaterOrEqualVersions
 }

@@ -5,15 +5,13 @@ import (
 	"gorgonia.org/tensor"
 )
 
-var FlattenVersions = ops.OperatorVersions{
+var flattenVersions = ops.OperatorVersions{
 	1:  ops.NewOperatorConstructor(newFlatten(1, [][]tensor.Dtype{{tensor.Float32, tensor.Float64}})),
 	9:  ops.NewOperatorConstructor(newFlatten(9, [][]tensor.Dtype{ops.AllTypes})),
 	11: ops.NewOperatorConstructor(newFlatten(11, [][]tensor.Dtype{ops.AllTypes})),
 	13: ops.NewOperatorConstructor(newFlatten(13, [][]tensor.Dtype{ops.AllTypes})),
 }
 
-func newConstructor(base *Flatten) func() ops.Operator {
-	return func() ops.Operator {
-		return base
-	}
+func GetFlattenVersions() ops.OperatorVersions {
+	return flattenVersions
 }

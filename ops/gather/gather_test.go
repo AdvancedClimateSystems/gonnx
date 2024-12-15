@@ -16,41 +16,43 @@ func makeAxisProto(n int) *onnx.NodeProto {
 	}
 }
 
-func TestGather13Init(t *testing.T) {
+func TestGatherInit(t *testing.T) {
 	attrs := makeAxisProto(1)
-	op := Gather13{}
+	op := Gather{}
 	err := op.Init(attrs)
 	assert.NoError(t, err)
 	assert.Equal(t, op.axis, 1)
 }
 
-func TestGather13InitDefault(t *testing.T) {
-	op := Gather13{}
+func TestGatherInitDefault(t *testing.T) {
+	op := Gather{}
 	err := op.Init(ops.EmptyNodeProto())
 	assert.NoError(t, err)
 	assert.Equal(t, op.axis, 0)
 }
 
-func TestGather13InitTooManyAttrs(t *testing.T) {
-	op := Gather13{}
+func TestGatherInitTooManyAttrs(t *testing.T) {
+	op := Gather{BaseOperator: ops.NewBaseOperator(13, 2, 2, gatherTypeConstraints, "gather")}
 	err := op.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis"}, {Name: "default"}}})
-	assert.EqualError(t, err, "gather13 operator attribute error: invalid count 2 expected 1")
+	assert.EqualError(t, err, "gather v13 attribute error: invalid count 2 expected 1")
 }
 
-func TestGather13InitInvalidAttrName(t *testing.T) {
-	op := Gather13{}
+func TestGatherInitInvalidAttrName(t *testing.T) {
+	op := Gather{BaseOperator: ops.NewBaseOperator(13, 2, 2, gatherTypeConstraints, "gather")}
 	err := op.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axes"}}}) // should be axis
-	assert.EqualError(t, err, "gather13 operator attribute error: invalid attribute axes")
+	assert.EqualError(t, err, "gather v13 attribute error: invalid attribute axes")
 }
 
-func TestGather13(t *testing.T) {
+func TestGather(t *testing.T) {
 	tests := []struct {
+		version int64
+
 		data  interface{}
 		shape []int
 
 		indices  interface{}
 		indShape []int
-		axis     int
+		node     *onnx.NodeProto
 
 		expected      interface{}
 		expectedShape tensor.Shape
@@ -66,128 +68,141 @@ func TestGather13(t *testing.T) {
 		// Out: (1, 2)
 
 		{
+			13,
 			[]float32{1, 2, 3, 4},
 			[]int{4},
 			[]int64{0},
 			[]int{1},
-			0,
+			makeAxisProto(0),
 			[]float32{1},
 			tensor.Shape([]int{1}),
 		},
 
 		{
+			13,
 			[]float32{1, 2, 3, 4},
 			[]int{2, 2},
 			[]int64{0},
 			[]int{1},
-			0,
+			makeAxisProto(0),
 			[]float32{1, 2},
 			tensor.Shape([]int{1, 2}),
 		},
 
 		{
+			13,
 			[]float32{1, 2, 3, 4},
 			[]int{2, 2},
 			[]int64{0},
 			[]int{1},
-			1,
+			makeAxisProto(1),
 			[]float32{1, 3},
 			tensor.Shape([]int{2, 1}),
 		},
 
 		{
+			13,
 			[]float32{1, 2, 3, 4},
 			[]int{2, 2},
 			[]int64{0},
 			[]int{1},
-			-1,
+			makeAxisProto(-1),
 			[]float32{1, 3},
 			tensor.Shape([]int{2, 1}),
 		},
 
 		{
+			13,
 			[]float32{1, 2, 3, 4},
 			[]int{2, 2},
 			[]int64{1},
 			[]int{1},
-			1,
+			makeAxisProto(1),
 			[]float32{2, 4},
 			tensor.Shape([]int{2, 1}),
 		},
 
 		{
+			13,
 			[]float32{1, 2, 3, 4},
 			[]int{2, 2},
 			[]int64{0},
 			[]int{1, 1},
-			1,
+			makeAxisProto(1),
 			[]float32{1, 3},
 			tensor.Shape([]int{2, 1, 1}),
 		},
 
 		{
+			13,
 			[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
 			[]int{3, 2, 2},
 			[]int64{0},
 			[]int{1},
-			2,
+			makeAxisProto(2),
 			[]float32{1, 3, 5, 7, 9, 11},
 			tensor.Shape([]int{3, 2, 1}),
 		},
 
 		{
+			13,
 			[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
 			[]int{3, 2, 2},
 			[]int64{0},
 			[]int{1},
-			1,
+			makeAxisProto(1),
 			[]float32{1, 2, 5, 6, 9, 10},
 			tensor.Shape([]int{3, 1, 2}),
 		},
 
 		{
+			13,
 			[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9},
 			[]int{3, 3},
 			[]int64{0, 2},
 			[]int{1, 2},
-			1,
+			makeAxisProto(1),
 			[]float32{1, 3, 4, 6, 7, 9},
 			tensor.Shape([]int{3, 1, 2}),
 		},
 
 		{
+			13,
 			[]float32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
 			[]int{3, 2, 2},
 			[]int64{-2},
 			[]int{1},
-			1,
+			makeAxisProto(1),
 			[]float32{1, 2, 5, 6, 9, 10},
 			tensor.Shape([]int{3, 1, 2}),
 		},
 
 		{
+			13,
 			[]float32{1, 2, 3, 4},
 			[]int{4},
 			[]int64{-4},
 			[]int{1},
-			0,
+			makeAxisProto(0),
 			[]float32{1},
 			tensor.Shape([]int{1}),
 		},
 
 		{
+			13,
 			[]float32{1, 2, 3, 4},
 			[]int{2, 2},
 			[]int64{0},
 			[]int{1},
-			-1,
+			makeAxisProto(-1),
 			[]float32{1, 3},
 			tensor.Shape([]int{2, 1}),
 		},
 	}
 
 	for _, test := range tests {
-		op := &Gather13{test.axis}
+		op := gatherVersions[test.version]()
+		op.Init(test.node)
 
 		indices := test.indices
 		data := test.data
@@ -203,7 +218,7 @@ func TestGather13(t *testing.T) {
 }
 
 func TestCombinedWithOtherOp(t *testing.T) {
-	concat := &concat.Concat13{}
+	concat := &concat.Concat{}
 	err := concat.Init(&onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "axis", I: 0}}})
 	assert.NoError(t, err)
 
@@ -213,7 +228,7 @@ func TestCombinedWithOtherOp(t *testing.T) {
 	data, err := concat.Apply([]tensor.Tensor{data0, data1})
 	assert.NoError(t, err)
 
-	gather := &Gather13{0}
+	gather := gatherVersions[13]()
 	indices := tensor.New(tensor.WithBacking([]int64{1}), tensor.WithShape(1))
 
 	res, err := gather.Apply([]tensor.Tensor{data[0], indices})
@@ -222,7 +237,7 @@ func TestCombinedWithOtherOp(t *testing.T) {
 }
 
 func TestScalarInput(t *testing.T) {
-	op := &Gather13{0}
+	op := gatherVersions[13]()
 
 	dataIn := tensor.New(tensor.WithBacking([]int64{1}), tensor.WithShape(1))
 
@@ -234,8 +249,8 @@ func TestScalarInput(t *testing.T) {
 	assert.Equal(t, int64(1), res[0].Data())
 }
 
-func TestGather13AxesIndexOutOfRange(t *testing.T) {
-	op := &Gather13{}
+func TestGatherAxesIndexOutOfRange(t *testing.T) {
+	op := &Gather{}
 	err := op.Init(makeAxisProto(1))
 	assert.NoError(t, err)
 
@@ -247,8 +262,8 @@ func TestGather13AxesIndexOutOfRange(t *testing.T) {
 	assert.EqualError(t, err, "axis out of range: axis argument must be in the range -1 <= x < 1, was 1")
 }
 
-func TestGather13IndexOutOfRange(t *testing.T) {
-	op := &Gather13{0}
+func TestGatherIndexOutOfRange(t *testing.T) {
+	op := gatherVersions[13]()
 
 	dataIn := tensor.New(tensor.WithBacking([]int64{1}), tensor.WithShape(1))
 	indicesIn := tensor.New(tensor.WithBacking([]int64{2}), tensor.WithShape(1))
@@ -258,12 +273,14 @@ func TestGather13IndexOutOfRange(t *testing.T) {
 	assert.EqualError(t, err, "axis out of range: all indices entries must be in the range -1 <= x < 1")
 }
 
-func TestInputValidationGather13(t *testing.T) {
+func TestInputValidationGather(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int32{3, 4}, 2),
@@ -271,6 +288,7 @@ func TestInputValidationGather13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{3, 4}, 2),
@@ -278,20 +296,23 @@ func TestInputValidationGather13(t *testing.T) {
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{ops.TensorWithBackingFixture([]int{1, 2}, 2)},
-			ops.ErrInvalidInputCount(1, &Gather13{}),
+			ops.ErrInvalidInputCount(1, gather13BaseOpFixture()),
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{3, 4}, 2),
 			},
-			ops.ErrInvalidInputType(1, "float32", &Gather13{}),
+			ops.ErrInvalidInputType(1, "float32", gather13BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		gather := &Gather13{}
+		gather := gatherVersions[test.version]()
+
 		validated, err := gather.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -300,4 +321,8 @@ func TestInputValidationGather13(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func gather13BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(13, 2, 2, gatherTypeConstraints, "gather")
 }

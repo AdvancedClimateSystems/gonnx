@@ -330,7 +330,7 @@ func TestInputValidationFlatten(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		flatten := FlattenVersions[test.version]()
+		flatten := flattenVersions[test.version]()
 		validated, err := flatten.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)

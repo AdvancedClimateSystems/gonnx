@@ -7,14 +7,25 @@ import (
 	"gorgonia.org/tensor"
 )
 
+var gruTypeConstraints = [][]tensor.Dtype{
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+	{tensor.Int32},
+	{tensor.Float32, tensor.Float64},
+}
+
 const (
-	MinGRU7Inputs = 3
-	MaxGRU7Inputs = 6
+	MinGRUInputs = 3
+	MaxGRUInputs = 6
 )
 
-// GRU7 represents the ONNX gru operator. It only supports a simple forward gru
+// GRU represents the ONNX gru operator. It only supports a simple forward gru
 // operation with default activations.
-type GRU7 struct {
+type GRU struct {
+	ops.BaseOperator
+
 	activationAlpha   []float32
 	activationBeta    []float32
 	activations       []string
@@ -23,19 +34,26 @@ type GRU7 struct {
 	linearBeforeReset bool
 }
 
-// newGRU7 creates a new gru operator.
-func newGRU7() ops.Operator {
-	return &GRU7{
+// newGRU creates a new gru operator.
+func newGRU(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
+	return &GRU{
+		BaseOperator: ops.NewBaseOperator(
+			version,
+			MinGRUInputs,
+			MaxGRUInputs,
+			typeConstraints,
+			"gru",
+		),
 		activations:       []string{"sigmoid", "tanh"},
 		direction:         ops.Forward,
 		linearBeforeReset: false,
 	}
 }
 
-// Init initializes the gru operator. Currently, our GRU7 operator does not support all
+// Init initializes the gru operator. Currently, our GRU operator does not support all
 // attributes as specified by the ONNX operator. The basic functionality is working and
 // the other attributes can be added later on.
-func (g *GRU7) Init(n *onnx.NodeProto) error {
+func (g *GRU) Init(n *onnx.NodeProto) error {
 	attributes := n.GetAttribute()
 	for _, attr := range attributes {
 		switch attr.GetName() {
@@ -70,9 +88,9 @@ func (g *GRU7) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the gru operator.
-func (g *GRU7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if inputs[4] != nil {
-		return nil, ops.ErrUnsupportedInput("sequence lens", g)
+		return nil, ops.ErrUnsupportedInput("sequence lens", g.BaseOperator)
 	}
 
 	X := inputs[0]
@@ -107,7 +125,7 @@ func (g *GRU7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	}
 
 	// Extract the shape of the hidden dimensions without the bidirectional dimension, as
-	// we do not support bidirectional GRU7 yet.
+	// we do not support bidirectional GRU yet.
 	shapeWithoutBidir := prevH.Shape().Clone()[1:]
 
 	err = prevH.Reshape(shapeWithoutBidir...)
@@ -186,48 +204,15 @@ func (g *GRU7) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return []tensor.Tensor{Y, Yh}, nil
 }
 
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (g *GRU7) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(g, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (g *GRU7) GetMinInputs() int {
-	return MinGRU7Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (g *GRU7) GetMaxInputs() int {
-	return MaxGRU7Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (g *GRU7) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-		{tensor.Int32},
-		{tensor.Float32, tensor.Float64},
-	}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (g *GRU7) String() string {
-	return "gru7 operator"
-}
-
 // extractXt extracts the value of x for timestep t.
-func (g *GRU7) extractXt(X tensor.Tensor, t int) (tensor.Tensor, error) {
+func (g *GRU) extractXt(X tensor.Tensor, t int) (tensor.Tensor, error) {
 	return X.Slice(ops.NewSlicer(t, t+1), nil, nil)
 }
 
-func (g *GRU7) gateCalculation(
+func (g *GRU) gateCalculation(
 	Xt, H, W, R, Wb, Rb tensor.Tensor, activation ops.Activation,
 ) (tensor.Tensor, error) {
-	gemm := gemm.GemmVersions[13]()
+	gemm := gemm.GetGemmVersions()[13]()
 
 	err := gemm.Init(
 		&onnx.NodeProto{
@@ -261,7 +246,7 @@ func (g *GRU7) gateCalculation(
 	return activation(gate)
 }
 
-func (g *GRU7) htCalculation(
+func (g *GRU) htCalculation(
 	Xt, prevH, rt, W, R, Wb, Rb tensor.Tensor, activation ops.Activation,
 ) (tensor.Tensor, error) {
 	if !g.linearBeforeReset {
@@ -273,7 +258,7 @@ func (g *GRU7) htCalculation(
 		return g.gateCalculation(Xt, temp1, W, R, Wb, Rb, activation)
 	}
 
-	gemm := gemm.GemmVersions[13]()
+	gemm := gemm.GetGemmVersions()[13]()
 
 	err := gemm.Init(
 		&onnx.NodeProto{
@@ -312,7 +297,7 @@ func (g *GRU7) htCalculation(
 	return activation(temp2)
 }
 
-func (g *GRU7) hiddenCalculation(zt, ht, prevH tensor.Tensor) (tensor.Tensor, error) {
+func (g *GRU) hiddenCalculation(zt, ht, prevH tensor.Tensor) (tensor.Tensor, error) {
 	temp1, err := tensor.Sub(ops.OnesTensor(zt), zt)
 	if err != nil {
 		return nil, err
@@ -334,7 +319,7 @@ func (g *GRU7) hiddenCalculation(zt, ht, prevH tensor.Tensor) (tensor.Tensor, er
 // getWeights splits tensor W into 3 weight matrices.
 // The W tensor, by GONNX definition, has 3 dimensions with 3 weight
 // tensors in it (6 if bidirectional, but that is not supported).
-func (g *GRU7) getWeights(W tensor.Tensor) (Wz, Wr, Wh tensor.Tensor, err error) {
+func (g *GRU) getWeights(W tensor.Tensor) (Wz, Wr, Wh tensor.Tensor, err error) {
 	nWeightMatrices := 3
 	nWeightDimensions := 3
 
@@ -349,7 +334,7 @@ func (g *GRU7) getWeights(W tensor.Tensor) (Wz, Wr, Wh tensor.Tensor, err error)
 // getBiases returns the biases from the Bias node as specified by the ONNX standard.
 // The B tensor, by GONNX definition, has 2 dimensions with 6 bias
 // tensors in it (12 if bidirectional, but that is not supported).
-func (g *GRU7) getBiases(B tensor.Tensor) (Wbz, Wbr, Wbh, Rbz, Rbr, Rbh tensor.Tensor, err error) {
+func (g *GRU) getBiases(B tensor.Tensor) (Wbz, Wbr, Wbh, Rbz, Rbr, Rbh tensor.Tensor, err error) {
 	nBiasMatrices := 6
 	nBiasDimensions := 2
 
