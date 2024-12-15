@@ -4,7 +4,11 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops"
 )
 
-var DivVersions = ops.OperatorVersions{
-	7:  newDiv7, // Same, but float16 type differs
-	13: newDiv13,
+var divVersions = ops.OperatorVersions{
+	7:  ops.NewOperatorConstructor(newDiv(7, divTypeConstraints)),
+	13: ops.NewOperatorConstructor(newDiv(13, divTypeConstraints)),
+}
+
+func GetDivVersions() ops.OperatorVersions {
+	return divVersions
 }

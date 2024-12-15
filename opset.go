@@ -88,7 +88,7 @@ var operators = map[string]ops.OperatorVersions{
 	"Conv":            conv.ConvVersions,
 	"Cos":             cos.CosVersions,
 	"Cosh":            cosh.CoshVersions,
-	"Div":             div.DivVersions,
+	"Div":             div.GetDivVersions(),
 	"Equal":           equal.GetEqualVersions(),
 	"Expand":          expand.GetExpandVersions(),
 	"Flatten":         flatten.GetFlattenVersions(),
