@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestCosh9Init(t *testing.T) {
-	c := &Cosh9{}
+func TestCoshInit(t *testing.T) {
+	c := &Cosh{}
 
 	// since 'cosh' does not have any attributes we pass in nil. This should not
 	// fail initializing the cosh.
@@ -17,27 +17,27 @@ func TestCosh9Init(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestCosh9(t *testing.T) {
+func TestCosh(t *testing.T) {
 	tests := []struct {
-		cosh     *Cosh9
+		version  int64
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Cosh9{},
+			9,
 			[]float32{-2, -1, 0, 1},
 			[]int{2, 2},
 			[]float32{3.7621956, 1.5430807, 1, 1.5430807},
 		},
 		{
-			&Cosh9{},
+			9,
 			[]float32{1, 3, 4, 5},
 			[]int{1, 4},
 			[]float32{1.5430807, 10.067662, 27.308233, 74.209946},
 		},
 		{
-			&Cosh9{},
+			9,
 			[]float32{-1, -1, -1, -1},
 			[]int{1, 4},
 			[]float32{1.5430807, 1.5430807, 1.5430807, 1.5430807},
@@ -49,7 +49,9 @@ func TestCosh9(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		res, err := test.cosh.Apply(inputs)
+		cosh := coshVersions[test.version]()
+
+		res, err := cosh.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Nil(t, err)
@@ -57,37 +59,42 @@ func TestCosh9(t *testing.T) {
 	}
 }
 
-func TestInputValidationCosh9(t *testing.T) {
+func TestInputValidationCosh(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			9,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			9,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			9,
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Cosh9{}),
+			ops.ErrInvalidInputCount(0, cosh9BaseOpFixture()),
 		},
 		{
+			9,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Cosh9{}),
+			ops.ErrInvalidInputType(0, "int", cosh9BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		cosh := &Cosh9{}
+		cosh := coshVersions[test.version]()
 		validated, err := cosh.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -96,4 +103,8 @@ func TestInputValidationCosh9(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func cosh9BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(9, 1, 1, coshTypeConstraints, "cosh")
 }
