@@ -2,8 +2,12 @@ package less
 
 import "github.com/advancedclimatesystems/gonnx/ops"
 
-var LessVersions = ops.OperatorVersions{
-	7:  newLess7, // Only float types
-	9:  newLess9, // bfloat16 type
-	13: newLess13,
+var lessVersions = ops.OperatorVersions{
+	7:  ops.NewOperatorConstructor(newLess(7, less7TypeConstraints)),
+	9:  ops.NewOperatorConstructor(newLess(9, lessTypeConstraints)),
+	13: ops.NewOperatorConstructor(newLess(13, lessTypeConstraints)),
+}
+
+func GetLessVersions() ops.OperatorVersions {
+	return lessVersions
 }
