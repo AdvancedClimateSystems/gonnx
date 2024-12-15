@@ -4,6 +4,10 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops"
 )
 
-var ConstantOfShapeVersions = ops.OperatorVersions{
-	9: newConstantOfShape9,
+var constantOfShapeVersions = ops.OperatorVersions{
+	9: ops.NewOperatorConstructor(newConstantOfShape(9, constantOfShapeTypeConstraints)),
+}
+
+func GetConstantOfShapeVersions() ops.OperatorVersions {
+	return constantOfShapeVersions
 }
