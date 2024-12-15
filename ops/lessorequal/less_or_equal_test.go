@@ -8,36 +8,42 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestLessOrEqual12Init(t *testing.T) {
-	l := &LessOrEqual12{}
+func TestLessOrEqualInit(t *testing.T) {
+	tests := []struct {
+		version int64
+		err     error
+	}{
+		{12, nil},
+	}
 
-	// since 'lessOrEqual' does not have any attributes we pass in nil. This should not
-	// fail initializing the lessOrEqual.
-	err := l.Init(ops.EmptyNodeProto())
-	assert.Nil(t, err)
+	for _, test := range tests {
+		l := lessOrEqualVersions[test.version]()
+		err := l.Init(nil)
+		assert.Equal(t, test.err, err)
+	}
 }
 
-func TestLessOrEqual12(t *testing.T) {
+func TestLessOrEqual(t *testing.T) {
 	tests := []struct {
-		lessOrEqual *LessOrEqual12
-		backings    [][]float32
-		shapes      [][]int
-		expected    []bool
+		version  int64
+		backings [][]float32
+		shapes   [][]int
+		expected []bool
 	}{
 		{
-			&LessOrEqual12{},
+			12,
 			[][]float32{{0, 1, 2, 3}, {1, 1, 1, 1}},
 			[][]int{{2, 2}, {2, 2}},
 			[]bool{true, true, false, false},
 		},
 		{
-			&LessOrEqual12{},
+			12,
 			[][]float32{{0, 1, 2, 3, 4, 5}, {2, 2, 2, 2, 2, 2}},
 			[][]int{{3, 2}, {3, 2}},
 			[]bool{true, true, true, false, false, false},
 		},
 		{
-			&LessOrEqual12{},
+			12,
 			[][]float32{{0, 1}, {0, 1, 2, 3}},
 			[][]int{{2}, {2, 2}},
 			[]bool{true, true, true, true},
@@ -50,7 +56,8 @@ func TestLessOrEqual12(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backings[1], test.shapes[1]...),
 		}
 
-		res, err := test.lessOrEqual.Apply(inputs)
+		lessOrEqual := lessOrEqualVersions[test.version]()
+		res, err := lessOrEqual.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Nil(t, err)
@@ -58,12 +65,14 @@ func TestLessOrEqual12(t *testing.T) {
 	}
 }
 
-func TestInputValidationLessOrEqual12(t *testing.T) {
+func TestInputValidationLessOrEqual(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			12,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]uint32{3, 4}, 2),
@@ -71,6 +80,7 @@ func TestInputValidationLessOrEqual12(t *testing.T) {
 			nil,
 		},
 		{
+			12,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]uint64{3, 4}, 2),
@@ -78,6 +88,7 @@ func TestInputValidationLessOrEqual12(t *testing.T) {
 			nil,
 		},
 		{
+			12,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int32{3, 4}, 2),
@@ -85,6 +96,7 @@ func TestInputValidationLessOrEqual12(t *testing.T) {
 			nil,
 		},
 		{
+			12,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int64{3, 4}, 2),
@@ -92,6 +104,7 @@ func TestInputValidationLessOrEqual12(t *testing.T) {
 			nil,
 		},
 		{
+			12,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{3, 4}, 2),
@@ -99,6 +112,7 @@ func TestInputValidationLessOrEqual12(t *testing.T) {
 			nil,
 		},
 		{
+			12,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float64{3, 4}, 2),
@@ -106,22 +120,24 @@ func TestInputValidationLessOrEqual12(t *testing.T) {
 			nil,
 		},
 		{
+			12,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(1, &LessOrEqual12{}),
+			ops.ErrInvalidInputCount(1, lessOrEqual12BaseOpFixture()),
 		},
 		{
+			12,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &LessOrEqual12{}),
+			ops.ErrInvalidInputType(0, "int", lessOrEqual12BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		lessOrEqual := &LessOrEqual12{}
+		lessOrEqual := lessOrEqualVersions[test.version]()
 		validated, err := lessOrEqual.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -130,4 +146,8 @@ func TestInputValidationLessOrEqual12(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func lessOrEqual12BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(12, 2, 2, lessOrEqualTypeConstraints, "lessorequal")
 }

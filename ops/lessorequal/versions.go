@@ -2,6 +2,10 @@ package lessorequal
 
 import "github.com/advancedclimatesystems/gonnx/ops"
 
-var LessOrEqualVersions = ops.OperatorVersions{
-	12: newLessOrEqual12,
+var lessOrEqualVersions = ops.OperatorVersions{
+	12: ops.NewOperatorConstructor(newLessOrEqual(12, lessOrEqualTypeConstraints)),
+}
+
+func GetLessOrEqualVersions() ops.OperatorVersions {
+	return lessOrEqualVersions
 }
