@@ -6,26 +6,41 @@ import (
 	"gorgonia.org/tensor"
 )
 
-const (
-	MinMatMul9Inputs = 2
-	MaxMatMul9Inputs = 2
-)
+var matmul1TypeConstraints = [][]tensor.Dtype{
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+}
 
-// MatMul9 represents the ONNX matmul operator.
-type MatMul9 struct{}
+var matmulTypeConstraints = [][]tensor.Dtype{
+	{tensor.Uint32, tensor.Uint64, tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
+	{tensor.Uint32, tensor.Uint64, tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
+}
 
-// newMatMul9 returns a new MatMul9 operator.
-func newMatMul9() ops.Operator {
-	return &MatMul9{}
+// MatMul represents the ONNX matmul operator.
+type MatMul struct {
+	ops.BaseOperator
+}
+
+// newMatMul returns a new MatMul operator.
+func newMatMul(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
+	return &MatMul{
+		BaseOperator: ops.NewBaseOperator(
+			version,
+			2,
+			2,
+			typeConstraints,
+			"matmul",
+		),
+	}
 }
 
 // Init initializes the matmul operator.
-func (m *MatMul9) Init(*onnx.NodeProto) error {
+func (m *MatMul) Init(*onnx.NodeProto) error {
 	return nil
 }
 
 // Apply applies the matmul operator.
-func (m *MatMul9) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (m *MatMul) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	A := inputs[0]
 	B := inputs[1]
 
@@ -108,40 +123,11 @@ func (m *MatMul9) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return []tensor.Tensor{out}, err
 }
 
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (m *MatMul9) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(m, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (m *MatMul9) GetMinInputs() int {
-	return MinMatMul9Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (m *MatMul9) GetMaxInputs() int {
-	return MaxMatMul9Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (m *MatMul9) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{
-		{tensor.Uint32, tensor.Uint64, tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
-		{tensor.Uint32, tensor.Uint64, tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
-	}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (m *MatMul9) String() string {
-	return "matmul9 operator"
-}
-
 // broadcastTensors broadcasts both tensors for the matmul operator. It is almost identical
 // to multidirectional broadcast, but here we need to treat the 2 trailing dimensions as
 // matrices, and we do not want to broadcast those. All leading dimensions to the matrices
 // are broadcasted the normal way.
-func (m *MatMul9) broadcastTensors(A, B tensor.Tensor) (tensor.Tensor, tensor.Tensor, error) {
+func (m *MatMul) broadcastTensors(A, B tensor.Tensor) (tensor.Tensor, tensor.Tensor, error) {
 	A, B, err := ops.ReshapeTensorsForMultidirBroadcast(A, B)
 	if err != nil {
 		return nil, nil, err
@@ -182,7 +168,7 @@ func (m *MatMul9) broadcastTensors(A, B tensor.Tensor) (tensor.Tensor, tensor.Te
 // batchedMatMul performs the matmul operator on all matrices present in the A and B tensors.
 // The trailing two dimensions of the tensors are the matrices that need to be multiplied.
 // It is assumed that the tensors are broadcasted accordingly in advance.
-func (m *MatMul9) batchedMatMul(A, B tensor.Tensor) (tensor.Tensor, error) {
+func (m *MatMul) batchedMatMul(A, B tensor.Tensor) (tensor.Tensor, error) {
 	shapeA := A.Shape()
 	shapeB := B.Shape()
 
@@ -231,4 +217,28 @@ func (m *MatMul9) batchedMatMul(A, B tensor.Tensor) (tensor.Tensor, error) {
 	}
 
 	return out, nil
+}
+
+// incrementSlices increments all slice by 1. It is used to extract the next matrices
+// in the batchedMatMul operation. If the incrementing fails, false is returned.
+func incrementSlices(slices []tensor.Slice, shape []int) bool {
+	for i := len(shape) - 1; i >= 0; i-- {
+		dimSliceStart := slices[i].Start()
+		dimSize := shape[i]
+
+		if dimSize == (dimSliceStart + 1) {
+			// If we are at the first dimension, we cannot increment the slices anymore.
+			if i == 0 {
+				return false
+			}
+
+			slices[i] = ops.NewSlicer(0) // Else we start again for this dimension.
+		} else {
+			slices[i] = ops.NewSlicer(dimSliceStart + 1)
+
+			return true
+		}
+	}
+
+	return false
 }
