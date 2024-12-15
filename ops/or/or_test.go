@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestOr7Init(t *testing.T) {
-	o := &Or7{}
+func TestOrInit(t *testing.T) {
+	o := &Or{}
 
 	// since 'or' does not have any attributes we pass in nil. This should not
 	// fail initializing the or.
@@ -17,33 +17,33 @@ func TestOr7Init(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestOr7(t *testing.T) {
+func TestOr(t *testing.T) {
 	tests := []struct {
-		or       *Or7
+		version  int64
 		backings [][]bool
 		shapes   [][]int
 		expected []bool
 	}{
 		{
-			&Or7{},
+			7,
 			[][]bool{{true, false, true, false}, {true, true, true, false}},
 			[][]int{{2, 2}, {2, 2}},
 			[]bool{true, true, true, false},
 		},
 		{
-			&Or7{},
+			7,
 			[][]bool{{true, false, true, false}, {true, false}},
 			[][]int{{2, 2}, {1, 2}},
 			[]bool{true, false, true, false},
 		},
 		{
-			&Or7{},
+			7,
 			[][]bool{{true, false, true, false}, {true, false}},
 			[][]int{{2, 2}, {2, 1}},
 			[]bool{true, true, true, false},
 		},
 		{
-			&Or7{},
+			7,
 			[][]bool{{true, false, true, false, true, false}, {false, false}},
 			[][]int{{3, 2}, {1, 2}},
 			[]bool{true, false, true, false, true, false},
@@ -56,7 +56,8 @@ func TestOr7(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backings[1], test.shapes[1]...),
 		}
 
-		res, err := test.or.Apply(inputs)
+		or := orVersions[test.version]()
+		res, err := or.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Nil(t, err)
@@ -64,12 +65,14 @@ func TestOr7(t *testing.T) {
 	}
 }
 
-func TestInputValidationOr7(t *testing.T) {
+func TestInputValidationOr(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
@@ -77,22 +80,24 @@ func TestInputValidationOr7(t *testing.T) {
 			nil,
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
 			},
-			ops.ErrInvalidInputCount(1, &Or7{}),
+			ops.ErrInvalidInputCount(1, or7BaseOpFixture()),
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(1, "int", &Or7{}),
+			ops.ErrInvalidInputType(1, "int", or7BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		or := &Or7{}
+		or := orVersions[test.version]()
 		validated, err := or.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -101,4 +106,14 @@ func TestInputValidationOr7(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func or7BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(
+		7,
+		2,
+		2,
+		orTypeConstraints,
+		"or",
+	)
 }

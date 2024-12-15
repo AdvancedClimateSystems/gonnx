@@ -2,6 +2,10 @@ package not
 
 import "github.com/advancedclimatesystems/gonnx/ops"
 
-var NotVersions = ops.OperatorVersions{
-	1: newNot1,
+var notVersions = ops.OperatorVersions{
+	1: ops.NewOperatorConstructor(newNot(1, notTypeConstraints)),
+}
+
+func GetNotVersions() ops.OperatorVersions {
+	return notVersions
 }
