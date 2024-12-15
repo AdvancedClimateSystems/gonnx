@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestCos7Init(t *testing.T) {
-	c := &Cos7{}
+func TestCosInit(t *testing.T) {
+	c := &Cos{}
 
 	// since 'cos' does not have any attributes we pass in nil. This should not
 	// fail initializing the cos.
@@ -17,27 +17,27 @@ func TestCos7Init(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestCos7(t *testing.T) {
+func TestCos(t *testing.T) {
 	tests := []struct {
-		cos      *Cos7
+		version  int64
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Cos7{},
+			7,
 			[]float32{-2, -1, 0, 1},
 			[]int{2, 2},
 			[]float32{-0.41614684, 0.5403023, 1, 0.5403023},
 		},
 		{
-			&Cos7{},
+			7,
 			[]float32{1, 3, 4, 5},
 			[]int{1, 4},
 			[]float32{0.5403023, -0.9899925, -0.6536436, 0.2836622},
 		},
 		{
-			&Cos7{},
+			7,
 			[]float32{-1, -1, -1, -1},
 			[]int{1, 4},
 			[]float32{0.5403023, 0.5403023, 0.5403023, 0.5403023},
@@ -49,7 +49,9 @@ func TestCos7(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		res, err := test.cos.Apply(inputs)
+		cos := cosVersions[test.version]()
+
+		res, err := cos.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Nil(t, err)
@@ -57,37 +59,42 @@ func TestCos7(t *testing.T) {
 	}
 }
 
-func TestInputValidationCos7(t *testing.T) {
+func TestInputValidationCos(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			7,
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Cos7{}),
+			ops.ErrInvalidInputCount(0, cos7BaseOperator()),
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Cos7{}),
+			ops.ErrInvalidInputType(0, "int", cos7BaseOperator()),
 		},
 	}
 
 	for _, test := range tests {
-		cos := &Cos7{}
+		cos := cosVersions[test.version]()
 		validated, err := cos.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -96,4 +103,8 @@ func TestInputValidationCos7(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func cos7BaseOperator() ops.BaseOperator {
+	return ops.NewBaseOperator(7, 1, 1, cosTypeConstraints, "cos")
 }
