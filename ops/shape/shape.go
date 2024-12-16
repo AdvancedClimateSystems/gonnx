@@ -14,7 +14,7 @@ type Shape struct {
 }
 
 // newShape creates a new shape operator.
-func newShape(version int, typeConstraints [][]tensor.Dtype) *Shape {
+func newShape(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &Shape{
 		BaseOperator: ops.NewBaseOperator(
 			version,

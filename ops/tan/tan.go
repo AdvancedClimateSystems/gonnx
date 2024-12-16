@@ -16,7 +16,7 @@ type Tan struct {
 }
 
 // newTan creates a new tan operator.
-func newTan(version int, typeConstraints [][]tensor.Dtype) *Tan {
+func newTan(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &Tan{
 		BaseOperator: ops.NewBaseOperator(
 			version,

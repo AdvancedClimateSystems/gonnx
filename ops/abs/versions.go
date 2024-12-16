@@ -5,8 +5,8 @@ import (
 )
 
 var absVersions = ops.OperatorVersions{
-	6:  ops.NewOperatorConstructor(newAbs(6, absTypeConstraint)),  // Same, but bfloat16 type is added
-	13: ops.NewOperatorConstructor(newAbs(13, absTypeConstraint)), // Same, but bfloat16 type is added
+	6:  ops.NewOperatorConstructor(newAbs, 6, absTypeConstraint),
+	13: ops.NewOperatorConstructor(newAbs, 13, absTypeConstraint),
 }
 
 func GetAbsVersions() ops.OperatorVersions {

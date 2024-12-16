@@ -16,7 +16,7 @@ type Unsqueeze1 struct {
 }
 
 // newUnsqueeze1 creates a new unsqueeze operator.
-func newUnsqueeze1() *Unsqueeze1 {
+func newUnsqueeze1() ops.Operator {
 	return &Unsqueeze1{
 		BaseOperator: ops.NewBaseOperator(
 			1,

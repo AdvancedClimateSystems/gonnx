@@ -14,7 +14,7 @@ type Xor struct {
 }
 
 // newXor creates a new xor operator.
-func newXor(version int, typeConstraint [][]tensor.Dtype) *Xor {
+func newXor(version int, typeConstraint [][]tensor.Dtype) ops.Operator {
 	return &Xor{
 		BaseOperator: ops.NewBaseOperator(
 			version,

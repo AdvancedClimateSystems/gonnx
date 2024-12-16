@@ -33,7 +33,7 @@ type RNN struct {
 }
 
 // newRNN creates a new rnn operator.
-func newRNN(version int, typeConstraints [][]tensor.Dtype) *RNN {
+func newRNN(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &RNN{
 		BaseOperator: ops.NewBaseOperator(
 			version,

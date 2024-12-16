@@ -16,7 +16,7 @@ type Sin struct {
 }
 
 // newSin creates a new sin operator.
-func newSin(version int, typeConstraints [][]tensor.Dtype) *Sin {
+func newSin(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &Sin{
 		BaseOperator: ops.NewBaseOperator(
 			version,

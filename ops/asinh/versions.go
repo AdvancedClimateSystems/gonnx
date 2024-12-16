@@ -5,7 +5,7 @@ import (
 )
 
 var asinhVersions = ops.OperatorVersions{
-	9: ops.NewOperatorConstructor(newAsinh(9, asinhTypeConstraints)),
+	9: ops.NewOperatorConstructor(newAsinh, 9, asinhTypeConstraints),
 }
 
 func GetAsinhVersions() ops.OperatorVersions {

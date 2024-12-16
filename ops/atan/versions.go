@@ -5,7 +5,7 @@ import (
 )
 
 var atanVersions = ops.OperatorVersions{
-	7: ops.NewOperatorConstructor(newAtan(7, atanTypeConstraints)),
+	7: ops.NewOperatorConstructor(newAtan, 7, atanTypeConstraints),
 }
 
 func GetAtanVersions() ops.OperatorVersions {

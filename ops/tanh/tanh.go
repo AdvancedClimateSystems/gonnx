@@ -16,7 +16,7 @@ type Tanh struct {
 }
 
 // newTanh returns a new tanh operator.
-func newTanh(version int, typeConstraint [][]tensor.Dtype) *Tanh {
+func newTanh(version int, typeConstraint [][]tensor.Dtype) ops.Operator {
 	return &Tanh{
 		BaseOperator: ops.NewBaseOperator(
 			version,

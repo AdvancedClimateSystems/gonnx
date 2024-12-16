@@ -19,7 +19,7 @@ type Reshape struct {
 }
 
 // newReshape creates a new reshape operator.
-func newReshape(version int, typeConstraints [][]tensor.Dtype) *Reshape {
+func newReshape(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &Reshape{
 		BaseOperator: ops.NewBaseOperator(
 			version,

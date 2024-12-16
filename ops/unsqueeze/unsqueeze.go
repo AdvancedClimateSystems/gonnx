@@ -24,7 +24,7 @@ type Unsqueeze struct {
 }
 
 // newUnsqueeze creates a new unsqueeze operator.
-func newUnsqueeze(version int, typeConstraint [][]tensor.Dtype) *Unsqueeze {
+func newUnsqueeze(version int, typeConstraint [][]tensor.Dtype) ops.Operator {
 	return &Unsqueeze{
 		BaseOperator: ops.NewBaseOperator(
 			version,

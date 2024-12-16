@@ -5,7 +5,7 @@ import (
 )
 
 var constantOfShapeVersions = ops.OperatorVersions{
-	9: ops.NewOperatorConstructor(newConstantOfShape(9, constantOfShapeTypeConstraints)),
+	9: ops.NewOperatorConstructor(newConstantOfShape, 9, constantOfShapeTypeConstraints),
 }
 
 func GetConstantOfShapeVersions() ops.OperatorVersions {

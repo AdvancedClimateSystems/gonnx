@@ -16,7 +16,7 @@ type Abs struct {
 }
 
 // newAbs creates a new abs operator.
-func newAbs(version int, typeConstraint [][]tensor.Dtype) *Abs {
+func newAbs(version int, typeConstraint [][]tensor.Dtype) ops.Operator {
 	return &Abs{
 		BaseOperator: ops.NewBaseOperator(
 			version,

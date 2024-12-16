@@ -28,7 +28,7 @@ type Gemm struct {
 }
 
 // newGemm creates a new gemm operator and initializes it with the default values.
-func newGemm(version int, typeConstraints [][]tensor.Dtype) *Gemm {
+func newGemm(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &Gemm{
 		BaseOperator: ops.NewBaseOperator(
 			version,

@@ -23,7 +23,7 @@ type Scaler struct {
 }
 
 // newScaler creates a new scaler operator.
-func newScaler(version int, typeConstraints [][]tensor.Dtype) *Scaler {
+func newScaler(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &Scaler{
 		BaseOperator: ops.NewBaseOperator(
 			version,

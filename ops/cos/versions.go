@@ -5,7 +5,7 @@ import (
 )
 
 var cosVersions = ops.OperatorVersions{
-	7: ops.NewOperatorConstructor(newCos(7, cosTypeConstraints)),
+	7: ops.NewOperatorConstructor(newCos, 7, cosTypeConstraints),
 }
 
 func GetCosVersions() ops.OperatorVersions {

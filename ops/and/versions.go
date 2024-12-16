@@ -5,7 +5,7 @@ import (
 )
 
 var andVersions = ops.OperatorVersions{
-	7: ops.NewOperatorConstructor(newAnd(7, andTypeConstraints)),
+	7: ops.NewOperatorConstructor(newAnd, 7, andTypeConstraints),
 }
 
 func GetAndVersions() ops.OperatorVersions {

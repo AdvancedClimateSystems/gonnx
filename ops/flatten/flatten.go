@@ -12,7 +12,7 @@ type Flatten struct {
 	axis int
 }
 
-func newFlatten(version int, typeConstraint [][]tensor.Dtype) *Flatten {
+func newFlatten(version int, typeConstraint [][]tensor.Dtype) ops.Operator {
 	return &Flatten{
 		BaseOperator: ops.NewBaseOperator(
 			version,

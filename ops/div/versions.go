@@ -5,8 +5,8 @@ import (
 )
 
 var divVersions = ops.OperatorVersions{
-	7:  ops.NewOperatorConstructor(newDiv(7, divTypeConstraints)),
-	13: ops.NewOperatorConstructor(newDiv(13, divTypeConstraints)),
+	7:  ops.NewOperatorConstructor(newDiv, 7, divTypeConstraints),
+	13: ops.NewOperatorConstructor(newDiv, 13, divTypeConstraints),
 }
 
 func GetDivVersions() ops.OperatorVersions {

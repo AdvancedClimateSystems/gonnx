@@ -16,7 +16,7 @@ type Sinh struct {
 }
 
 // newSin creates a new sinh operator.
-func newSinh(version int, typeConstraints [][]tensor.Dtype) *Sinh {
+func newSinh(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &Sinh{
 		BaseOperator: ops.NewBaseOperator(
 			version,

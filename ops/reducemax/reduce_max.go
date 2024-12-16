@@ -28,7 +28,7 @@ type ReduceMax struct {
 }
 
 // newReduceMax creates a new reduceMax operator.
-func newReduceMax(version int, typeConstraints [][]tensor.Dtype) *ReduceMax {
+func newReduceMax(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &ReduceMax{
 		BaseOperator: ops.NewBaseOperator(
 			version,

@@ -6,8 +6,8 @@ import (
 )
 
 var preluVersions = ops.OperatorVersions{
-	7: ops.NewOperatorConstructor(newPRelu(7, [][]tensor.Dtype{{tensor.Float32, tensor.Float64}, {tensor.Float32, tensor.Float64}})),
-	9: ops.NewOperatorConstructor(newPRelu(9, preluTypeConstraints)),
+	7: ops.NewOperatorConstructor(newPRelu, 7, [][]tensor.Dtype{{tensor.Float32, tensor.Float64}, {tensor.Float32, tensor.Float64}}),
+	9: ops.NewOperatorConstructor(newPRelu, 9, preluTypeConstraints),
 }
 
 func GetPReluVersions() ops.OperatorVersions {

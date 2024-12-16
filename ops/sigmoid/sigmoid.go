@@ -14,7 +14,7 @@ type Sigmoid struct {
 }
 
 // newSigmoid returns a new sigmoid operator.
-func newSigmoid(version int, typeConstraints [][]tensor.Dtype) *Sigmoid {
+func newSigmoid(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &Sigmoid{
 		BaseOperator: ops.NewBaseOperator(
 			version,

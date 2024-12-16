@@ -6,8 +6,6 @@ import (
 	"gorgonia.org/tensor"
 )
 
-var constantTypeConstraints = [][]tensor.Dtype{}
-
 // Constant represents the ONNX constant operator.
 type Constant struct {
 	ops.BaseOperator
@@ -16,13 +14,13 @@ type Constant struct {
 }
 
 // newConstant creates a new constant operator.
-func newConstant(version int) ops.Operator {
+func newConstant(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &Constant{
 		BaseOperator: ops.NewBaseOperator(
 			version,
 			0,
 			0,
-			constantTypeConstraints,
+			typeConstraints,
 			"constant",
 		),
 	}

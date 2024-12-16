@@ -28,7 +28,7 @@ type ReduceMin struct {
 }
 
 // newReduceMin creates a new reduceMin operator.
-func newReduceMin(version int, typeConstraints [][]tensor.Dtype) *ReduceMin {
+func newReduceMin(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &ReduceMin{
 		BaseOperator: ops.NewBaseOperator(
 			version,

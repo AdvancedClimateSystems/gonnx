@@ -17,7 +17,7 @@ type Sub struct {
 }
 
 // newSub creates a new sub operator.
-func newSub(version int, typeConstraints [][]tensor.Dtype) *Sub {
+func newSub(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &Sub{
 		BaseOperator: ops.NewBaseOperator(
 			version,

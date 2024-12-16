@@ -6,6 +6,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
+var concatTypeConstraints = [][]tensor.Dtype{ops.AllTypes}
+
 const (
 	MinConcatInputs = 1
 )
@@ -18,13 +20,13 @@ type Concat struct {
 }
 
 // newConcat creates a new concat operator.
-func newConcat(version int) ops.Operator {
+func newConcat(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &Concat{
 		BaseOperator: ops.NewBaseOperator(
 			version,
 			1,
 			1,
-			[][]tensor.Dtype{ops.AllTypes},
+			typeConstraints,
 			"concat",
 		),
 	}

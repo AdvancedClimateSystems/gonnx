@@ -5,7 +5,7 @@ import (
 )
 
 var atanhVersions = ops.OperatorVersions{
-	9: ops.NewOperatorConstructor(newAtanh(9, atanhTypeConstraints)),
+	9: ops.NewOperatorConstructor(newAtanh, 9, atanhTypeConstraints),
 }
 
 func GetAtanhVersions() ops.OperatorVersions {

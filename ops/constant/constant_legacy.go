@@ -14,13 +14,13 @@ type ConstantLegacy struct {
 }
 
 // newConstantLegacy creates a new constant operator.
-func newConstantLegacy(version int) ops.Operator {
+func newConstantLegacy(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &ConstantLegacy{
 		BaseOperator: ops.NewBaseOperator(
 			version,
 			0,
 			0,
-			[][]tensor.Dtype{},
+			typeConstraints,
 			"constant",
 		),
 	}
