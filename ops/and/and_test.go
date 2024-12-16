@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestAnd7Init(t *testing.T) {
-	a := &And7{}
+func TestAndInit(t *testing.T) {
+	a := &And{}
 
 	// since 'and' does not have any attributes we pass in nil. This should not
 	// fail initializing the and.
@@ -17,33 +17,33 @@ func TestAnd7Init(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestAnd7(t *testing.T) {
+func TestAnd(t *testing.T) {
 	tests := []struct {
-		and      *And7
+		version  int64
 		backings [][]bool
 		shapes   [][]int
 		expected []bool
 	}{
 		{
-			&And7{},
+			7,
 			[][]bool{{true, false, true, false}, {true, true, true, false}},
 			[][]int{{2, 2}, {2, 2}},
 			[]bool{true, false, true, false},
 		},
 		{
-			&And7{},
+			7,
 			[][]bool{{true, false, true, false}, {true, false}},
 			[][]int{{2, 2}, {1, 2}},
 			[]bool{true, false, true, false},
 		},
 		{
-			&And7{},
+			7,
 			[][]bool{{true, false, true, false}, {true, false}},
 			[][]int{{2, 2}, {2, 1}},
 			[]bool{true, false, false, false},
 		},
 		{
-			&And7{},
+			7,
 			[][]bool{{true, false, true, false, true, false}, {false, false}},
 			[][]int{{3, 2}, {1, 2}},
 			[]bool{false, false, false, false, false, false},
@@ -56,7 +56,9 @@ func TestAnd7(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backings[1], test.shapes[1]...),
 		}
 
-		res, err := test.and.Apply(inputs)
+		and := andVersions[test.version]()
+
+		res, err := and.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Nil(t, err)
@@ -64,12 +66,14 @@ func TestAnd7(t *testing.T) {
 	}
 }
 
-func TestInputValidationAnd7(t *testing.T) {
+func TestInputValidationAnd(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
@@ -77,22 +81,24 @@ func TestInputValidationAnd7(t *testing.T) {
 			nil,
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
 			},
-			ops.ErrInvalidInputCount(1, &And7{}),
+			ops.ErrInvalidInputCount(1, and7BaseOpFixture()),
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(1, "int", &And7{}),
+			ops.ErrInvalidInputType(1, "int", and7BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		and := &And7{}
+		and := andVersions[test.version]()
 		validated, err := and.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -101,4 +107,8 @@ func TestInputValidationAnd7(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func and7BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(7, 2, 2, andTypeConstraints, "and")
 }

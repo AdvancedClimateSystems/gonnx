@@ -8,8 +8,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestAtanh9Init(t *testing.T) {
-	a := &Atanh9{}
+func TestAtanhInit(t *testing.T) {
+	a := &Atanh{}
 
 	// since 'atanh' does not have any attributes we pass in nil. This should not
 	// fail initializing the atanh.
@@ -17,27 +17,27 @@ func TestAtanh9Init(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestAtanh9(t *testing.T) {
+func TestAtanh(t *testing.T) {
 	tests := []struct {
-		atanh    *Atanh9
+		version  int64
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Atanh9{},
+			9,
 			[]float32{-0.9, -0.5, 0, 0.5},
 			[]int{2, 2},
 			[]float32{-1.4722193, -0.54930615, 0, 0.54930615},
 		},
 		{
-			&Atanh9{},
+			9,
 			[]float32{-0.9, -0.5, 0, 0.5},
 			[]int{1, 4},
 			[]float32{-1.4722193, -0.54930615, 0, 0.54930615},
 		},
 		{
-			&Atanh9{},
+			9,
 			[]float32{0.5, 0.5, 0.5, 0.5},
 			[]int{1, 4},
 			[]float32{0.54930615, 0.54930615, 0.54930615, 0.54930615},
@@ -49,7 +49,9 @@ func TestAtanh9(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		res, err := test.atanh.Apply(inputs)
+		atanh := atanhVersions[test.version]()
+
+		res, err := atanh.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Nil(t, err)
@@ -57,37 +59,42 @@ func TestAtanh9(t *testing.T) {
 	}
 }
 
-func TestInputValidationAtanh9(t *testing.T) {
+func TestInputValidationAtanh(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			9,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			9,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			9,
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Atanh9{}),
+			ops.ErrInvalidInputCount(0, atanh9BaseOpFixture()),
 		},
 		{
+			9,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Atanh9{}),
+			ops.ErrInvalidInputType(0, "int", atanh9BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		atanh := &Atanh9{}
+		atanh := atanhVersions[test.version]()
 		validated, err := atanh.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -96,4 +103,8 @@ func TestInputValidationAtanh9(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func atanh9BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(9, 1, 1, atanhTypeConstraints, "atanh")
 }

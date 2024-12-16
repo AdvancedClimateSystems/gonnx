@@ -6,30 +6,44 @@ import (
 	"gorgonia.org/tensor"
 )
 
-const (
-	MinArgMax11Inputs = 1
-	MaxArgMax11Inputs = 1
-)
+var argMaxTypeConstraints = [][]tensor.Dtype{
+	{tensor.Uint32, tensor.Uint64, tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
+}
 
-// ArgMax11 represents the ONNX argmax operator.
-type ArgMax11 struct {
+// ArgMax represents the ONNX argmax operator.
+type ArgMax struct {
+	ops.BaseOperator
+
 	axis            int
 	keepDims        bool
 	selectLastIndex bool
 }
 
-// newArgMax11 creates a new argmax operator.
-func newArgMax11() ops.Operator {
-	return &ArgMax11{
+// newArgMax creates a new argmax operator.
+func newArgMax(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
+	return &ArgMax{
+		BaseOperator: ops.NewBaseOperator(
+			version,
+			1,
+			1,
+			typeConstraints,
+			"argmax",
+		),
 		keepDims:        true,
 		selectLastIndex: false,
 	}
 }
 
-type ArgMax11Attribute string
+type ArgMaxAttribute string
+
+const (
+	axis            = "axis"
+	keepDims        = "keepdims"
+	selectLastIndex = "select_last_index"
+)
 
 // Init initializes the argmax operator.
-func (a *ArgMax11) Init(n *onnx.NodeProto) error {
+func (a *ArgMax) Init(n *onnx.NodeProto) error {
 	attributes := n.GetAttribute()
 	for _, attr := range attributes {
 		switch attr.GetName() {
@@ -37,6 +51,15 @@ func (a *ArgMax11) Init(n *onnx.NodeProto) error {
 			a.axis = int(attr.GetI())
 		case keepDims:
 			a.keepDims = ops.Int64ToBool(attr.GetI())
+		case selectLastIndex:
+			a.selectLastIndex = ops.Int64ToBool(attr.GetI())
+
+			// We have no way yet to perform argmax and keeping the
+			// last index as max in case of duplicates, so if this
+			// attribute is true, we raise an unsupported error.
+			if a.selectLastIndex {
+				return ops.ErrUnsupportedAttribute(attr.GetName(), a)
+			}
 		default:
 			return ops.ErrInvalidAttribute(attr.GetName(), a)
 		}
@@ -46,7 +69,7 @@ func (a *ArgMax11) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the argmax operator.
-func (a *ArgMax11) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (a *ArgMax) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	axis := ops.ConvertNegativeAxis(a.axis, len(inputs[0].Shape()))
 
 	reduced, err := tensor.Argmax(inputs[0], axis)
@@ -81,32 +104,4 @@ func (a *ArgMax11) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	reduced = tensor.New(tensor.WithShape(reduced.Shape()...), tensor.WithBacking(backing2))
 
 	return []tensor.Tensor{reduced}, nil
-}
-
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (a *ArgMax11) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(a, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (a *ArgMax11) GetMinInputs() int {
-	return MinArgMax11Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (a *ArgMax11) GetMaxInputs() int {
-	return MaxArgMax11Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (a *ArgMax11) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{
-		{tensor.Uint32, tensor.Uint64, tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
-	}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (a *ArgMax11) String() string {
-	return "argmax11 operator"
 }

@@ -4,8 +4,12 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops"
 )
 
-var ArgMaxVersions = ops.OperatorVersions{
-	11: newArgMax11, // Same, but one attribute is added (which we don't support it anyway)
-	12: newArgMax12, // Same, but bfloat16 type differs
-	13: newArgMax13,
+var argMaxVersions = ops.OperatorVersions{
+	11: ops.NewOperatorConstructor(newArgMax(11, argMaxTypeConstraints)),
+	12: ops.NewOperatorConstructor(newArgMax(13, argMaxTypeConstraints)),
+	13: ops.NewOperatorConstructor(newArgMax(13, argMaxTypeConstraints)),
+}
+
+func GetArgMaxVersions() ops.OperatorVersions {
+	return argMaxVersions
 }

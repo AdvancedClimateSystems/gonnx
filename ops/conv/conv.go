@@ -6,15 +6,38 @@ import (
 	"gorgonia.org/tensor"
 )
 
+var convTypeConstraints = [][]tensor.Dtype{
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+	{tensor.Float32, tensor.Float64},
+}
+
 var (
-	MinConv1Inputs      = 2
-	MaxConv1Inputs      = 3
-	NDims1DConv1olution = 3
-	NDims2DConv1olution = 4
+	MinConvInputs      = 2
+	MaxConvInputs      = 3
+	NDims1DConvolution = 3
+	NDims2DConvolution = 4
 )
 
-// Conv1 represents the ONNX conv operator.
-type Conv1 struct {
+type AutoPadSetting string
+
+const (
+	NotSet    AutoPadSetting = "NOTSET"
+	SameUpper AutoPadSetting = "SAME_UPPER"
+	SameLower AutoPadSetting = "SAME_LOWER"
+	Valid     AutoPadSetting = "VALID"
+)
+
+// The number of non spatial dimensions inputs and kernels will always have.
+// For input tensors, the first dimension will be the batch size.
+// For kernel tensors, the first dimension will be the number of kernels.
+// For all tensors, the second dimension will be the number of channels.
+const nNonSpatialDims = 2
+
+// Conv represents the ONNX conv operator.
+type Conv struct {
+	ops.BaseOperator
+
 	autoPad     AutoPadSetting
 	dilations   []int
 	group       int
@@ -23,15 +46,22 @@ type Conv1 struct {
 	strides     []int
 }
 
-// newConv1 creates a new conv operator.
-func newConv1() ops.Operator {
-	return &Conv1{
+// newConv creates a new conv operator.
+func newConv(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
+	return &Conv{
+		BaseOperator: ops.NewBaseOperator(
+			version,
+			MinConvInputs,
+			MaxConvInputs,
+			typeConstraints,
+			"conv",
+		),
 		autoPad: NotSet,
 	}
 }
 
 // Init initializes the conv operator.
-func (c *Conv1) Init(n *onnx.NodeProto) error {
+func (c *Conv) Init(n *onnx.NodeProto) error {
 	var err error
 
 	for _, attr := range n.GetAttribute() {
@@ -72,7 +102,7 @@ func (c *Conv1) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the conv operator.
-func (c *Conv1) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *Conv) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	x := inputs[0]
 	kernel := inputs[1]
 	bias := inputs[2]
@@ -105,12 +135,12 @@ func (c *Conv1) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var out tensor.Tensor
 
 	switch len(x.Shape()) {
-	case NDims1DConv1olution:
-		out, err = c.applyConv11D(x, kernel)
-	case NDims2DConv1olution:
-		out, err = c.applyConv12D(x, kernel)
+	case NDims1DConvolution:
+		out, err = c.applyConv1D(x, kernel)
+	case NDims2DConvolution:
+		out, err = c.applyConv2D(x, kernel)
 	default:
-		return nil, ops.ErrInvalidInput("the convolution operator currently only supports 1D or 2D convolution, i.e. shape [N x C x H (x W)]", c)
+		return nil, ops.ErrInvalidInput("the convolution operator currently only supports 1D or 2D convolution, i.e. shape [N x C x H (x W)]", c.BaseOperator)
 	}
 
 	if err != nil {
@@ -127,39 +157,9 @@ func (c *Conv1) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return []tensor.Tensor{out}, nil
 }
 
-// ValidateInputs validates the inputs that will be given to Apply for this operator.
-func (c *Conv1) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
-	return ops.ValidateInputs(c, inputs)
-}
-
-// GetMinInputs returns the minimum number of input tensors this operator expects.
-func (c *Conv1) GetMinInputs() int {
-	return MinConv1Inputs
-}
-
-// GetMaxInputs returns the maximum number of input tensors this operator expects.
-func (c *Conv1) GetMaxInputs() int {
-	return MaxConv1Inputs
-}
-
-// GetInputTypeConstraints returns a list. Every element represents a set of allowed tensor dtypes
-// for the corresponding input tensor.
-func (c *Conv1) GetInputTypeConstraints() [][]tensor.Dtype {
-	return [][]tensor.Dtype{
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-		{tensor.Float32, tensor.Float64},
-	}
-}
-
-// String implements the stringer interface, and can be used to format errors or messages.
-func (c *Conv1) String() string {
-	return "conv1 operator"
-}
-
 // setDefaultDilations sets the dilations attribute to the default. Can be called when no
 // dilations were set when initializing.
-func (c *Conv1) setDefaultDilations(x tensor.Tensor) {
+func (c *Conv) setDefaultDilations(x tensor.Tensor) {
 	nDims := len(x.Shape()[2:])
 
 	dilations := make([]int, nDims)
@@ -171,13 +171,13 @@ func (c *Conv1) setDefaultDilations(x tensor.Tensor) {
 }
 
 // setKernelShape infers the shape of the kernel when it was not given in the attributes.
-func (c *Conv1) setKernelShape(kernel tensor.Tensor) {
+func (c *Conv) setKernelShape(kernel tensor.Tensor) {
 	c.kernelShape = kernel.Shape()[2:]
 }
 
 // setDefaultPaddings sets default paddings as attribute. Can be called when no paddings
 // were set during initialization.
-func (c *Conv1) setDefaultPaddings(x tensor.Tensor) {
+func (c *Conv) setDefaultPaddings(x tensor.Tensor) {
 	NPadsPerDim := 2
 	paddingLength := len(x.Shape()[2:]) * NPadsPerDim
 
@@ -191,7 +191,7 @@ func (c *Conv1) setDefaultPaddings(x tensor.Tensor) {
 
 // setDefaultStrides sets default strides as attribute. Can be called when no strides
 // were set during initialization.
-func (c *Conv1) setDefaultStrides(x tensor.Tensor) {
+func (c *Conv) setDefaultStrides(x tensor.Tensor) {
 	nDims := len(x.Shape()[2:])
 
 	strides := make([]int, nDims)
@@ -204,7 +204,7 @@ func (c *Conv1) setDefaultStrides(x tensor.Tensor) {
 
 // setPaddingWithAutoPad sets the padding attribute of the operator based on
 // the input tensor `x`, the shape of the kernel and the strides.
-func (c *Conv1) setPaddingWithAutoPad(x tensor.Tensor) {
+func (c *Conv) setPaddingWithAutoPad(x tensor.Tensor) {
 	if c.autoPad == NotSet {
 		return
 	}
@@ -251,7 +251,7 @@ func (c *Conv1) setPaddingWithAutoPad(x tensor.Tensor) {
 //
 // This function updates the given kernel and dilates it by the given amount
 // for each dimensions separately. It returns a new tensor with the new kernel.
-func (c *Conv1) getDilatedKernel(kernel tensor.Tensor) (tensor.Tensor, error) {
+func (c *Conv) getDilatedKernel(kernel tensor.Tensor) (tensor.Tensor, error) {
 	oldKernelShape := kernel.Shape()
 	newKernelShape := make([]int, len(oldKernelShape))
 
@@ -306,7 +306,7 @@ func (c *Conv1) getDilatedKernel(kernel tensor.Tensor) (tensor.Tensor, error) {
 // getNewCoordsAfterDilation returns the new coordinates of a value given the old coordinates of that
 // value in the old kernel and its shape. The new coordinates can be used to store the value/weight
 // in the dilated kernel.
-func (c *Conv1) getNewCoordsAfterDilation(oldCoords []int) []int {
+func (c *Conv) getNewCoordsAfterDilation(oldCoords []int) []int {
 	newCoords := make([]int, len(oldCoords))
 
 	for i := 0; i < nNonSpatialDims; i++ {
@@ -325,7 +325,7 @@ func (c *Conv1) getNewCoordsAfterDilation(oldCoords []int) []int {
 // of channels and H is the number of dimensions on which to apply the convolutions.
 // The kernel will have shape [kernelDim], where 'kernelDim' is the size of the kernel
 // size of the kernel.
-func (c *Conv1) applyConv11D(x, kernel tensor.Tensor) (tensor.Tensor, error) {
+func (c *Conv) applyConv1D(x, kernel tensor.Tensor) (tensor.Tensor, error) {
 	outputShape := c.getOutputShape(x, kernel)
 	out := tensor.Tensor(tensor.NewDense(x.Dtype(), outputShape))
 	out.Zero()
@@ -390,7 +390,7 @@ func (c *Conv1) applyConv11D(x, kernel tensor.Tensor) (tensor.Tensor, error) {
 // X will have 4 dimensions: [N, C, H, W] where N is the batch size, C is the number
 // of channels, H and W are the height and width dimensions on which to apply the convolutions.
 // The kernel will have shape [M, C, H, W].
-func (c *Conv1) applyConv12D(x, kernel tensor.Tensor) (tensor.Tensor, error) {
+func (c *Conv) applyConv2D(x, kernel tensor.Tensor) (tensor.Tensor, error) {
 	outputShape := c.getOutputShape(x, kernel)
 	out := tensor.Tensor(tensor.NewDense(x.Dtype(), outputShape))
 	out.Zero()
@@ -466,7 +466,7 @@ func (c *Conv1) applyConv12D(x, kernel tensor.Tensor) (tensor.Tensor, error) {
 // `x` has shape [N, C, H, W, ...] and `kernel` has shape [M, C, H, W, ...].
 // The output shape will be [N, M, newH, newW, ...], where values like `newH`
 // are calculated based on the input shape, kernel size, padding and strides.
-func (c *Conv1) getOutputShape(x, kernel tensor.Tensor) tensor.Shape {
+func (c *Conv) getOutputShape(x, kernel tensor.Tensor) tensor.Shape {
 	outputShape := make([]int, len(x.Shape()))
 
 	outputShape[0] = x.Shape()[0]
@@ -489,7 +489,7 @@ func (c *Conv1) getOutputShape(x, kernel tensor.Tensor) tensor.Shape {
 // array with pads as [x1_begin, x2_begin, ..., x1_after, x2_after].
 // This method achieves padding by concatting tensors with zero values
 // before and after each spatial dimension of the input tensor `x`.
-func (c *Conv1) padInput(x tensor.Tensor) (tensor.Tensor, error) {
+func (c *Conv) padInput(x tensor.Tensor) (tensor.Tensor, error) {
 	var err error
 
 	nSpatialDims := len(x.Shape()[nNonSpatialDims:])
@@ -526,7 +526,7 @@ func (c *Conv1) padInput(x tensor.Tensor) (tensor.Tensor, error) {
 // getSubImage returns a the subimage for a specific example in the batch, based on the
 // kernel shape and the given start coordinates. The resulting sub image will be of
 // shape [C, kernelShape[0], kernelShape[1], ...].
-func (c *Conv1) getSubImage(x tensor.Tensor, batchIdx int, startSpatialCoords ...int) (tensor.Tensor, error) {
+func (c *Conv) getSubImage(x tensor.Tensor, batchIdx int, startSpatialCoords ...int) (tensor.Tensor, error) {
 	if len(startSpatialCoords) != len(c.kernelShape) {
 		return nil, ops.ErrDimension("expected the coordinates to have the same number of dimensions as the kernel")
 	}
@@ -553,7 +553,7 @@ func (c *Conv1) getSubImage(x tensor.Tensor, batchIdx int, startSpatialCoords ..
 // addBias adds a bias to the output of the convolution. It reshapes the
 // bias such that it can be broadcasted, and then is added to the output
 // tensor.
-func (c *Conv1) addBias(out, bias tensor.Tensor) (tensor.Tensor, error) {
+func (c *Conv) addBias(out, bias tensor.Tensor) (tensor.Tensor, error) {
 	biasShape := make([]int, len(out.Shape()))
 	for i := 0; i < len(out.Shape()); i++ {
 		biasShape[i] = 1

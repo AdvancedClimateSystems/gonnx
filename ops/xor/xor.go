@@ -6,9 +6,7 @@ import (
 	"gorgonia.org/tensor"
 )
 
-var xorTypeConstraint = [][]tensor.Dtype{
-	{tensor.Uint8, tensor.Uint16, tensor.Uint32, tensor.Uint64, tensor.Int8, tensor.Int16, tensor.Int32, tensor.Int64, tensor.Float32, tensor.Float64},
-}
+var xorTypeConstraints = [][]tensor.Dtype{{tensor.Bool}, {tensor.Bool}}
 
 // Xor represents the ONNX xor operator.
 type Xor struct {
@@ -20,8 +18,8 @@ func newXor(version int, typeConstraint [][]tensor.Dtype) *Xor {
 	return &Xor{
 		BaseOperator: ops.NewBaseOperator(
 			version,
-			1,
-			1,
+			2,
+			2,
 			typeConstraint,
 			"xor",
 		),

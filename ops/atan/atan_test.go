@@ -1,4 +1,4 @@
-package asinh
+package atan
 
 import (
 	"testing"
@@ -8,39 +8,39 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestAsinh9Init(t *testing.T) {
-	c := &Asinh9{}
+func TestAtanInit(t *testing.T) {
+	a := &Atan{}
 
-	// since 'asinh' does not have any attributes we pass in nil. This should not
-	// fail initializing the asinh.
-	err := c.Init(nil)
+	// since 'atan' does not have any attributes we pass in nil. This should not
+	// fail initializing the atan.
+	err := a.Init(nil)
 	assert.Nil(t, err)
 }
 
-func TestAsinh9(t *testing.T) {
+func TestAtan(t *testing.T) {
 	tests := []struct {
-		asinh    *Asinh9
+		version  int64
 		backing  []float32
 		shape    []int
 		expected []float32
 	}{
 		{
-			&Asinh9{},
+			7,
 			[]float32{1, 2, 3, 4},
 			[]int{2, 2},
-			[]float32{0.8813736, 1.4436355, 1.8184465, 2.0947125},
+			[]float32{0.7853982, 1.1071488, 1.2490457, 1.3258177},
 		},
 		{
-			&Asinh9{},
+			7,
 			[]float32{1, 2, 3, 4},
 			[]int{1, 4},
-			[]float32{0.8813736, 1.4436355, 1.8184465, 2.0947125},
+			[]float32{0.7853982, 1.1071488, 1.2490457, 1.3258177},
 		},
 		{
-			&Asinh9{},
+			7,
 			[]float32{2, 2, 2, 2},
 			[]int{1, 4},
-			[]float32{1.4436355, 1.4436355, 1.4436355, 1.4436355},
+			[]float32{1.1071488, 1.1071488, 1.1071488, 1.1071488},
 		},
 	}
 
@@ -49,7 +49,9 @@ func TestAsinh9(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		res, err := test.asinh.Apply(inputs)
+		atan := atanVersions[test.version]()
+
+		res, err := atan.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Nil(t, err)
@@ -57,38 +59,43 @@ func TestAsinh9(t *testing.T) {
 	}
 }
 
-func TestInputValidationAsinh9(t *testing.T) {
+func TestInputValidationAtan(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			7,
 			[]tensor.Tensor{},
-			ops.ErrInvalidInputCount(0, &Asinh9{}),
+			ops.ErrInvalidInputCount(0, atan7BaseOpFixture()),
 		},
 		{
+			7,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Asinh9{}),
+			ops.ErrInvalidInputType(0, "int", atan7BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		asinh := &Asinh9{}
-		validated, err := asinh.ValidateInputs(test.inputs)
+		atan := atanVersions[test.version]()
+		validated, err := atan.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
 
@@ -96,4 +103,8 @@ func TestInputValidationAsinh9(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func atan7BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(7, 1, 1, atanTypeConstraints, "atan")
 }

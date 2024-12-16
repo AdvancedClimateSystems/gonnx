@@ -9,8 +9,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestArgMax13Init(t *testing.T) {
-	a := &ArgMax13{}
+func TestArgMaxInit(t *testing.T) {
+	a := &ArgMax{}
 
 	err := a.Init(
 		&onnx.NodeProto{
@@ -28,23 +28,36 @@ func TestArgMax13Init(t *testing.T) {
 	assert.Equal(t, false, a.selectLastIndex)
 }
 
-func TestArgMax13(t *testing.T) {
+func TestArgMax(t *testing.T) {
 	tests := []struct {
-		argmax        *ArgMax13
+		version       int64
+		node          *onnx.NodeProto
 		backing       []float32
 		shape         []int
 		expectedShape tensor.Shape
 		expectedData  []int64
 	}{
 		{
-			&ArgMax13{axis: 0, keepDims: true},
+			13,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "axis", I: 0},
+					{Name: "keepdims", I: 1},
+				},
+			},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]int{1, 2},
 			[]int64{1, 1},
 		},
 		{
-			&ArgMax13{axis: -1, keepDims: true},
+			13,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "axis", I: -1},
+					{Name: "keepdims", I: 1},
+				},
+			},
 			[]float32{0, 1, 2, 3},
 			[]int{2, 2},
 			[]int{2, 1},
@@ -57,7 +70,10 @@ func TestArgMax13(t *testing.T) {
 			ops.TensorWithBackingFixture(test.backing, test.shape...),
 		}
 
-		res, err := test.argmax.Apply(inputs)
+		argmax := argMaxVersions[test.version]()
+		argmax.Init(test.node)
+
+		res, err := argmax.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Equal(t, test.expectedShape, res[0].Shape())
@@ -65,64 +81,73 @@ func TestArgMax13(t *testing.T) {
 	}
 }
 
-func TestInputValidationArgMax13(t *testing.T) {
+func TestInputValidationArgMax(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint32{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]uint64{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int32{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int64{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 			},
 			nil,
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 			},
-			ops.ErrInvalidInputCount(2, &ArgMax13{}),
+			ops.ErrInvalidInputCount(2, argMax13BaseOpFixture()),
 		},
 		{
+			13,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &ArgMax13{}),
+			ops.ErrInvalidInputType(0, "int", argMax13BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		argmax := &ArgMax13{}
+		argmax := argMaxVersions[test.version]()
 		validated, err := argmax.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -131,4 +156,8 @@ func TestInputValidationArgMax13(t *testing.T) {
 			assert.Equal(t, test.inputs, validated)
 		}
 	}
+}
+
+func argMax13BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(13, 1, 1, argMaxTypeConstraints, "argmax")
 }

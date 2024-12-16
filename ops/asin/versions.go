@@ -4,6 +4,10 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops"
 )
 
-var AsinVersions = ops.OperatorVersions{
-	7: newAsin7,
+var asinVersions = ops.OperatorVersions{
+	7: ops.NewOperatorConstructor(newAsin(7, asinTypeConstraints)),
+}
+
+func GetAsinVersions() ops.OperatorVersions {
+	return asinVersions
 }

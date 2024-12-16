@@ -9,9 +9,9 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func TestConv11Init(t *testing.T) {
-	c := &Conv11{}
-	err := c.Init(Conv112DOnnxNodeProtoFixture())
+func TestConvInit(t *testing.T) {
+	c := &Conv{}
+	err := c.Init(Conv2DOnnxNodeProtoFixture())
 
 	assert.Nil(t, err)
 
@@ -24,9 +24,9 @@ func TestConv11Init(t *testing.T) {
 	assert.Equal(t, []int{1, 1}, c.strides)
 }
 
-func TestConv11InitUnsupported(t *testing.T) {
-	c := &Conv11{}
-	err := c.Init(Conv11UnsupportedOnnxNodeProtoFixture())
+func TestConvInitUnsupported(t *testing.T) {
+	c := &Conv{}
+	err := c.Init(ConvUnsupportedOnnxNodeProtoFixture())
 
 	assert.Equal(
 		t,
@@ -35,38 +35,45 @@ func TestConv11InitUnsupported(t *testing.T) {
 	)
 }
 
-func TestConv11(t *testing.T) {
+func TestConv(t *testing.T) {
 	tests := []struct {
-		conv          *Conv11
+		version       int64
+		node          *onnx.NodeProto
 		shapes        [][]int
 		backings      [][]float32
 		expectedShape tensor.Shape
 		expected      []float32
 	}{
-		// Test 1D Conv11olution.
+		// Test 1D Convolution.
 		{
-			&Conv11{
-				autoPad:     "NOTSET",
-				dilations:   []int{},
-				group:       1,
-				kernelShape: []int{3},
-				pads:        []int{0, 0},
-				strides:     []int{1, 1},
+			11,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "auto_pad", S: []byte("NOTSET")},
+					{Name: "dilations", Ints: []int64{}},
+					{Name: "group", I: 1},
+					{Name: "kernel_shape", Ints: []int64{3}},
+					{Name: "pads", Ints: []int64{0, 0}},
+					{Name: "strides", Ints: []int64{1, 1}},
+				},
 			},
 			[][]int{{1, 1, 6}, {1, 1, 3}},
 			[][]float32{{0, 1, 2, 3, 4, 5}, {1, 1, 1}},
 			[]int{1, 1, 4},
 			[]float32{3, 6, 9, 12},
 		},
-		// Test 2D Conv11olution.
+		// Test 2D Convolution.
 		{
-			&Conv11{
-				autoPad:     "NOTSET",
-				dilations:   []int{},
-				group:       1,
-				kernelShape: []int{2, 2},
-				pads:        []int{0, 0, 0, 0},
-				strides:     []int{1, 1},
+			11,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "auto_pad", S: []byte("NOTSET")},
+					{Name: "dilations", Ints: []int64{}},
+					{Name: "group", I: 1},
+					{Name: "kernel_shape", Ints: []int64{2, 2}},
+					{Name: "pads", Ints: []int64{0, 0, 0, 0}},
+					{Name: "strides", Ints: []int64{1, 1}},
+				},
 			},
 			[][]int{{1, 1, 3, 3}, {1, 1, 2, 2}},
 			[][]float32{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {1, 1, 1, 1}},
@@ -75,13 +82,16 @@ func TestConv11(t *testing.T) {
 		},
 		// Test SAME_LOWER autopad setting.
 		{
-			&Conv11{
-				autoPad:     "SAME_LOWER",
-				dilations:   []int{},
-				group:       1,
-				kernelShape: []int{2, 2},
-				pads:        []int{},
-				strides:     []int{1, 1},
+			11,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "auto_pad", S: []byte("SAME_LOWER")},
+					{Name: "dilations", Ints: []int64{}},
+					{Name: "group", I: 1},
+					{Name: "kernel_shape", Ints: []int64{2, 2}},
+					{Name: "pads", Ints: []int64{}},
+					{Name: "strides", Ints: []int64{1, 1}},
+				},
 			},
 			[][]int{{1, 1, 3, 3}, {1, 1, 2, 2}},
 			[][]float32{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {1, 1, 1, 1}},
@@ -90,13 +100,16 @@ func TestConv11(t *testing.T) {
 		},
 		// Test SAME_UPPER autopad setting.
 		{
-			&Conv11{
-				autoPad:     "SAME_UPPER",
-				dilations:   []int{},
-				group:       1,
-				kernelShape: []int{2, 2},
-				pads:        []int{},
-				strides:     []int{1, 1},
+			11,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "auto_pad", S: []byte("SAME_UPPER")},
+					{Name: "dilations", Ints: []int64{}},
+					{Name: "group", I: 1},
+					{Name: "kernel_shape", Ints: []int64{2, 2}},
+					{Name: "pads", Ints: []int64{}},
+					{Name: "strides", Ints: []int64{1, 1}},
+				},
 			},
 			[][]int{{1, 1, 3, 3}, {1, 1, 2, 2}},
 			[][]float32{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {1, 1, 1, 1}},
@@ -105,13 +118,16 @@ func TestConv11(t *testing.T) {
 		},
 		// Test VALID autopad setting.
 		{
-			&Conv11{
-				autoPad:     "VALID",
-				dilations:   []int{},
-				group:       1,
-				kernelShape: []int{2, 2},
-				pads:        []int{},
-				strides:     []int{1, 1},
+			11,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "auto_pad", S: []byte("VALID")},
+					{Name: "dilations", Ints: []int64{}},
+					{Name: "group", I: 1},
+					{Name: "kernel_shape", Ints: []int64{2, 2}},
+					{Name: "pads", Ints: []int64{}},
+					{Name: "strides", Ints: []int64{1, 1}},
+				},
 			},
 			[][]int{{1, 1, 3, 3}, {1, 1, 2, 2}},
 			[][]float32{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {1, 1, 1, 1}},
@@ -120,13 +136,16 @@ func TestConv11(t *testing.T) {
 		},
 		// Test dilation attribute.
 		{
-			&Conv11{
-				autoPad:     "NOTSET",
-				dilations:   []int{2, 2},
-				group:       1,
-				kernelShape: []int{2, 2},
-				pads:        []int{0, 0, 0, 0},
-				strides:     []int{1, 1},
+			11,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "auto_pad", S: []byte("NOTSET")},
+					{Name: "dilations", Ints: []int64{2, 2}},
+					{Name: "group", I: 1},
+					{Name: "kernel_shape", Ints: []int64{2, 2}},
+					{Name: "pads", Ints: []int64{0, 0, 0, 0}},
+					{Name: "strides", Ints: []int64{1, 1}},
+				},
 			},
 			[][]int{{1, 1, 4, 4}, {1, 1, 2, 2}},
 			[][]float32{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, {1, 1, 1, 1}},
@@ -135,13 +154,16 @@ func TestConv11(t *testing.T) {
 		},
 		// Test pads attribute.
 		{
-			&Conv11{
-				autoPad:     "NOTSET",
-				dilations:   []int{1, 1},
-				group:       1,
-				kernelShape: []int{2, 2},
-				pads:        []int{1, 1, 2, 2},
-				strides:     []int{1, 1},
+			11,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "auto_pad", S: []byte("NOTSET")},
+					{Name: "dilations", Ints: []int64{1, 1}},
+					{Name: "group", I: 1},
+					{Name: "kernel_shape", Ints: []int64{2, 2}},
+					{Name: "pads", Ints: []int64{1, 1, 2, 2}},
+					{Name: "strides", Ints: []int64{1, 1}},
+				},
 			},
 			[][]int{{1, 1, 2, 2}, {1, 1, 2, 2}},
 			[][]float32{{0, 1, 2, 3}, {1, 1, 1, 1}},
@@ -150,13 +172,16 @@ func TestConv11(t *testing.T) {
 		},
 		// Test strides attribute.
 		{
-			&Conv11{
-				autoPad:     "NOTSET",
-				dilations:   []int{},
-				group:       1,
-				kernelShape: []int{2, 2},
-				pads:        []int{0, 0, 0, 0},
-				strides:     []int{2, 2},
+			11,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "auto_pad", S: []byte("NOTSET")},
+					{Name: "dilations", Ints: []int64{}},
+					{Name: "group", I: 1},
+					{Name: "kernel_shape", Ints: []int64{2, 2}},
+					{Name: "pads", Ints: []int64{0, 0, 0, 0}},
+					{Name: "strides", Ints: []int64{2, 2}},
+				},
 			},
 			[][]int{{1, 1, 4, 4}, {1, 1, 2, 2}},
 			[][]float32{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, {1, 1, 1, 1}},
@@ -165,13 +190,16 @@ func TestConv11(t *testing.T) {
 		},
 		// Test batch dimension.
 		{
-			&Conv11{
-				autoPad:     "NOTSET",
-				dilations:   []int{},
-				group:       1,
-				kernelShape: []int{2, 2},
-				pads:        []int{0, 0, 0, 0},
-				strides:     []int{1, 1},
+			11,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "auto_pad", S: []byte("NOTSET")},
+					{Name: "dilations", Ints: []int64{}},
+					{Name: "group", I: 1},
+					{Name: "kernel_shape", Ints: []int64{2, 2}},
+					{Name: "pads", Ints: []int64{0, 0, 0, 0}},
+					{Name: "strides", Ints: []int64{1, 1}},
+				},
 			},
 			[][]int{{2, 1, 3, 3}, {1, 1, 2, 2}},
 			[][]float32{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, {1, 1, 1, 1}},
@@ -180,13 +208,16 @@ func TestConv11(t *testing.T) {
 		},
 		// Test 2D convolution with multiple channels.
 		{
-			&Conv11{
-				autoPad:     "NOTSET",
-				dilations:   []int{},
-				group:       1,
-				kernelShape: []int{2, 2},
-				pads:        []int{0, 0, 0, 0},
-				strides:     []int{1, 1},
+			11,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "auto_pad", S: []byte("NOTSET")},
+					{Name: "dilations", Ints: []int64{}},
+					{Name: "group", I: 1},
+					{Name: "kernel_shape", Ints: []int64{2, 2}},
+					{Name: "pads", Ints: []int64{0, 0, 0, 0}},
+					{Name: "strides", Ints: []int64{1, 1}},
+				},
 			},
 			[][]int{{1, 2, 3, 3}, {1, 1, 2, 2}},
 			[][]float32{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, {1, 1, 1, 1}},
@@ -195,13 +226,16 @@ func TestConv11(t *testing.T) {
 		},
 		// Test multiple kernels.
 		{
-			&Conv11{
-				autoPad:     "NOTSET",
-				dilations:   []int{},
-				group:       1,
-				kernelShape: []int{2, 2},
-				pads:        []int{0, 0, 0, 0},
-				strides:     []int{1, 1},
+			11,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "auto_pad", S: []byte("NOTSET")},
+					{Name: "dilations", Ints: []int64{}},
+					{Name: "group", I: 1},
+					{Name: "kernel_shape", Ints: []int64{2, 2}},
+					{Name: "pads", Ints: []int64{0, 0, 0, 0}},
+					{Name: "strides", Ints: []int64{1, 1}},
+				},
 			},
 			[][]int{{1, 1, 3, 3}, {2, 1, 2, 2}},
 			[][]float32{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {1, 1, 1, 1, 2, 2, 2, 2}},
@@ -210,13 +244,16 @@ func TestConv11(t *testing.T) {
 		},
 		// Test bias.
 		{
-			&Conv11{
-				autoPad:     "NOTSET",
-				dilations:   []int{},
-				group:       1,
-				kernelShape: []int{2, 2},
-				pads:        []int{0, 0, 0, 0},
-				strides:     []int{1, 1},
+			11,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "auto_pad", S: []byte("NOTSET")},
+					{Name: "dilations", Ints: []int64{}},
+					{Name: "group", I: 1},
+					{Name: "kernel_shape", Ints: []int64{2, 2}},
+					{Name: "pads", Ints: []int64{0, 0, 0, 0}},
+					{Name: "strides", Ints: []int64{1, 1}},
+				},
 			},
 			[][]int{{1, 1, 3, 3}, {1, 1, 2, 2}, {1}},
 			[][]float32{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {1, 1, 1, 1}, {0.5}},
@@ -236,7 +273,10 @@ func TestConv11(t *testing.T) {
 			inputs[2] = ops.TensorWithBackingFixture(test.backings[2], test.shapes[2]...)
 		}
 
-		res, err := test.conv.Apply(inputs)
+		conv := convVersions[test.version]()
+		conv.Init(test.node)
+
+		res, err := conv.Apply(inputs)
 		assert.Nil(t, err)
 
 		assert.Equal(t, test.expectedShape, res[0].Shape())
@@ -244,12 +284,14 @@ func TestConv11(t *testing.T) {
 	}
 }
 
-func TestInputValidationConv11(t *testing.T) {
+func TestInputValidationConv(t *testing.T) {
 	tests := []struct {
-		inputs []tensor.Tensor
-		err    error
+		version int64
+		inputs  []tensor.Tensor
+		err     error
 	}{
 		{
+			11,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float32{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float32{3, 4}, 2),
@@ -258,6 +300,7 @@ func TestInputValidationConv11(t *testing.T) {
 			nil,
 		},
 		{
+			11,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]float64{1, 2}, 2),
 				ops.TensorWithBackingFixture([]float64{3, 4}, 2),
@@ -266,22 +309,24 @@ func TestInputValidationConv11(t *testing.T) {
 			nil,
 		},
 		{
+			11,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidOptionalInputCount(1, &Conv11{}),
+			ops.ErrInvalidOptionalInputCount(1, conv11BaseOpFixture()),
 		},
 		{
+			11,
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 				ops.TensorWithBackingFixture([]int{3, 4}, 2),
 			},
-			ops.ErrInvalidInputType(0, "int", &Conv11{}),
+			ops.ErrInvalidInputType(0, "int", conv11BaseOpFixture()),
 		},
 	}
 
 	for _, test := range tests {
-		conv := &Conv11{}
+		conv := convVersions[test.version]()
 		validated, err := conv.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -293,7 +338,7 @@ func TestInputValidationConv11(t *testing.T) {
 }
 
 func TestSetDefaultDilations(t *testing.T) {
-	c := &Conv11{}
+	c := &Conv{}
 	x := ops.TensorWithBackingFixture([]float32{0, 1, 2, 3, 4, 5, 6, 7, 8}, 1, 1, 3, 3)
 
 	c.setDefaultDilations(x)
@@ -302,7 +347,7 @@ func TestSetDefaultDilations(t *testing.T) {
 }
 
 func TestSetKernelShape(t *testing.T) {
-	c := &Conv11{}
+	c := &Conv{}
 	kernel := ops.TensorWithBackingFixture([]float32{0, 1, 2, 3}, 1, 1, 2, 2)
 
 	c.setKernelShape(kernel)
@@ -311,7 +356,7 @@ func TestSetKernelShape(t *testing.T) {
 }
 
 func TestSetDefaultPaddings(t *testing.T) {
-	c := &Conv11{}
+	c := &Conv{}
 	x := ops.TensorWithBackingFixture([]float32{0, 1, 2, 3, 4, 5, 6, 7, 8}, 1, 1, 3, 3)
 
 	c.setDefaultPaddings(x)
@@ -320,7 +365,7 @@ func TestSetDefaultPaddings(t *testing.T) {
 }
 
 func TestSetDefaultStrides(t *testing.T) {
-	c := &Conv11{}
+	c := &Conv{}
 	x := ops.TensorWithBackingFixture([]float32{0, 1, 2, 3, 4, 5, 6, 7, 8}, 1, 1, 3, 3)
 
 	c.setDefaultStrides(x)
@@ -342,7 +387,7 @@ func TestSetPaddingWithAutoPad(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		conv := &Conv11{
+		conv := &Conv{
 			autoPad:     test.setting,
 			pads:        []int{0, 0, 0, 0},
 			kernelShape: []int{2, 2},
@@ -407,7 +452,7 @@ func TestGetDilatedKernel(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		conv := &Conv11{
+		conv := &Conv{
 			dilations:   test.dilations,
 			kernelShape: []int{2, 2},
 		}
@@ -423,7 +468,7 @@ func TestGetDilatedKernel(t *testing.T) {
 
 func TestGetOutputShape(t *testing.T) {
 	tests := []struct {
-		conv          *Conv11
+		conv          *Conv
 		xShape        []int
 		xBacking      []float32
 		kernelShape   []int
@@ -431,7 +476,7 @@ func TestGetOutputShape(t *testing.T) {
 		expected      tensor.Shape
 	}{
 		{
-			&Conv11{
+			&Conv{
 				kernelShape: []int{3},
 				pads:        []int{0, 0},
 				strides:     []int{1},
@@ -443,7 +488,7 @@ func TestGetOutputShape(t *testing.T) {
 			[]int{1, 1, 4},
 		},
 		{
-			&Conv11{
+			&Conv{
 				kernelShape: []int{3},
 				pads:        []int{1, 2},
 				strides:     []int{2},
@@ -455,7 +500,7 @@ func TestGetOutputShape(t *testing.T) {
 			[]int{1, 1, 4},
 		},
 		{
-			&Conv11{
+			&Conv{
 				kernelShape: []int{2, 2},
 				pads:        []int{1, 2, 1, 2},
 				strides:     []int{2, 1},
@@ -467,7 +512,7 @@ func TestGetOutputShape(t *testing.T) {
 			[]int{1, 1, 3, 7},
 		},
 		{
-			&Conv11{
+			&Conv{
 				kernelShape: []int{2, 2},
 				pads:        []int{0, 0, 0, 0},
 				strides:     []int{1, 1},
@@ -492,14 +537,14 @@ func TestGetOutputShape(t *testing.T) {
 
 func TestPadInput(t *testing.T) {
 	tests := []struct {
-		conv            *Conv11
+		conv            *Conv
 		xShape          []int
 		xBacking        []float32
 		expectedShape   tensor.Shape
 		expectedBacking []float32
 	}{
 		{
-			&Conv11{
+			&Conv{
 				pads: []int{0, 0},
 			},
 			[]int{1, 1, 6},
@@ -508,7 +553,7 @@ func TestPadInput(t *testing.T) {
 			[]float32{0, 1, 2, 3, 4, 5},
 		},
 		{
-			&Conv11{
+			&Conv{
 				pads: []int{1, 2},
 			},
 			[]int{1, 1, 6},
@@ -517,7 +562,7 @@ func TestPadInput(t *testing.T) {
 			[]float32{0, 0, 1, 2, 3, 4, 5, 0, 0},
 		},
 		{
-			&Conv11{
+			&Conv{
 				pads: []int{1, 1, 1, 1},
 			},
 			[]int{1, 1, 2, 2},
@@ -526,7 +571,7 @@ func TestPadInput(t *testing.T) {
 			[]float32{0, 0, 0, 0, 0, 1, 2, 0, 0, 3, 4, 0, 0, 0, 0, 0},
 		},
 		{
-			&Conv11{
+			&Conv{
 				pads: []int{1, 0, 2, 0},
 			},
 			[]int{1, 1, 2, 2},
@@ -549,7 +594,7 @@ func TestPadInput(t *testing.T) {
 
 func TestGetSubImage(t *testing.T) {
 	tests := []struct {
-		conv               *Conv11
+		conv               *Conv
 		xShape             []int
 		xBacking           []float32
 		batchIdx           int
@@ -558,7 +603,7 @@ func TestGetSubImage(t *testing.T) {
 		expectedBacking    []float32
 	}{
 		{
-			&Conv11{kernelShape: []int{2}},
+			&Conv{kernelShape: []int{2}},
 			[]int{1, 1, 3},
 			[]float32{0, 1, 2},
 			0,
@@ -567,7 +612,7 @@ func TestGetSubImage(t *testing.T) {
 			[]float32{0, 1},
 		},
 		{
-			&Conv11{kernelShape: []int{2}},
+			&Conv{kernelShape: []int{2}},
 			[]int{1, 2, 3},
 			[]float32{0, 1, 2, 3, 4, 5},
 			0,
@@ -576,7 +621,7 @@ func TestGetSubImage(t *testing.T) {
 			[]float32{0, 1, 3, 4},
 		},
 		{
-			&Conv11{kernelShape: []int{2, 2}},
+			&Conv{kernelShape: []int{2, 2}},
 			[]int{1, 1, 3, 3},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8},
 			0,
@@ -585,7 +630,7 @@ func TestGetSubImage(t *testing.T) {
 			[]float32{0, 1, 3, 4},
 		},
 		{
-			&Conv11{kernelShape: []int{2, 2}},
+			&Conv{kernelShape: []int{2, 2}},
 			[]int{1, 1, 3, 3},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8},
 			0,
@@ -594,7 +639,7 @@ func TestGetSubImage(t *testing.T) {
 			[]float32{4, 5, 7, 8},
 		},
 		{
-			&Conv11{kernelShape: []int{2}},
+			&Conv{kernelShape: []int{2}},
 			[]int{2, 1, 3},
 			[]float32{0, 1, 2, 3, 4, 5},
 			1,
@@ -619,7 +664,7 @@ func TestGetSubImage(t *testing.T) {
 
 func TestAddBias(t *testing.T) {
 	tests := []struct {
-		conv        *Conv11
+		conv        *Conv
 		outShape    []int
 		outBacking  []float32
 		biasShape   []int
@@ -627,7 +672,7 @@ func TestAddBias(t *testing.T) {
 		expected    []float32
 	}{
 		{
-			&Conv11{},
+			&Conv{},
 			[]int{1, 1, 3},
 			[]float32{0, 1, 2},
 			[]int{1},
@@ -635,7 +680,7 @@ func TestAddBias(t *testing.T) {
 			[]float32{0.5, 1.5, 2.5},
 		},
 		{
-			&Conv11{},
+			&Conv{},
 			[]int{1, 1, 3, 3},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8},
 			[]int{1},
@@ -643,7 +688,7 @@ func TestAddBias(t *testing.T) {
 			[]float32{0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5},
 		},
 		{
-			&Conv11{},
+			&Conv{},
 			[]int{1, 2, 2, 2},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7},
 			[]int{2},
@@ -651,7 +696,7 @@ func TestAddBias(t *testing.T) {
 			[]float32{-1, 0, 1, 2, 5, 6, 7, 8},
 		},
 		{
-			&Conv11{},
+			&Conv{},
 			[]int{2, 2, 2, 2},
 			[]float32{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 			[]int{2},
@@ -671,7 +716,7 @@ func TestAddBias(t *testing.T) {
 	}
 }
 
-func Conv112DOnnxNodeProtoFixture() *onnx.NodeProto {
+func Conv2DOnnxNodeProtoFixture() *onnx.NodeProto {
 	return &onnx.NodeProto{
 		Attribute: []*onnx.AttributeProto{
 			{Name: "auto_pad", S: []byte("VALID")},
@@ -683,10 +728,14 @@ func Conv112DOnnxNodeProtoFixture() *onnx.NodeProto {
 	}
 }
 
-func Conv11UnsupportedOnnxNodeProtoFixture() *onnx.NodeProto {
+func ConvUnsupportedOnnxNodeProtoFixture() *onnx.NodeProto {
 	return &onnx.NodeProto{
 		Attribute: []*onnx.AttributeProto{
 			{Name: "group", I: 2},
 		},
 	}
+}
+
+func conv11BaseOpFixture() ops.BaseOperator {
+	return ops.NewBaseOperator(11, 2, 3, convTypeConstraints, "conv")
 }

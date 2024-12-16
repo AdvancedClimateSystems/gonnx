@@ -80,7 +80,7 @@ func TestInputValidationXor(t *testing.T) {
 			[]tensor.Tensor{
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
 			},
-			ops.ErrInvalidInputType(1, "int", ops.NewBaseOperator(7, 1, 1, xorTypeConstraint, "xor")),
+			ops.ErrInvalidInputCount(1, ops.NewBaseOperator(7, 2, 2, xorTypeConstraints, "xor")),
 			7,
 		},
 		{
@@ -88,14 +88,14 @@ func TestInputValidationXor(t *testing.T) {
 				ops.TensorWithBackingFixture([]bool{false, false}, 2),
 				ops.TensorWithBackingFixture([]int{1, 2}, 2),
 			},
-			ops.ErrInvalidInputType(1, "int", ops.NewBaseOperator(7, 1, 1, xorTypeConstraint, "xor")),
+			ops.ErrInvalidInputType(1, "int", ops.NewBaseOperator(7, 2, 2, xorTypeConstraints, "xor")),
 			7,
 		},
 	}
 
 	for _, test := range tests {
-		or := &Xor{}
-		validated, err := or.ValidateInputs(test.inputs)
+		xor := xorVersions[test.version]()
+		validated, err := xor.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
 

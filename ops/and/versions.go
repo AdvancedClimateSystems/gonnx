@@ -4,6 +4,10 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops"
 )
 
-var AndVersions = ops.OperatorVersions{
-	7: newAnd7,
+var andVersions = ops.OperatorVersions{
+	7: ops.NewOperatorConstructor(newAnd(7, andTypeConstraints)),
+}
+
+func GetAndVersions() ops.OperatorVersions {
+	return andVersions
 }

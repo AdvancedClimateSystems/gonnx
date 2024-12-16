@@ -4,10 +4,14 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops"
 )
 
-var ConstantVersions = ops.OperatorVersions{
-	1:  newConstant1,
-	9:  newConstant9,
-	11: newConstant11,
-	12: newConstant12, // Same, but bfloat16 type differs
-	13: newConstant13,
+var constantVersions = ops.OperatorVersions{
+	1:  ops.NewOperatorConstructor(newConstantLegacy(1)),
+	9:  ops.NewOperatorConstructor(newConstantLegacy(9)),
+	11: ops.NewOperatorConstructor(newConstant11()),
+	12: ops.NewOperatorConstructor(newConstant(12)),
+	13: ops.NewOperatorConstructor(newConstant(13)),
+}
+
+func GetConstantVersions() ops.OperatorVersions {
+	return constantVersions
 }

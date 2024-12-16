@@ -132,7 +132,7 @@ func TestInputValidationGreaterOrEqual(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		greaterOrEqual := &GreaterOrEqual{}
+		greaterOrEqual := greaterOrEqualVersions[test.version]()
 		validated, err := greaterOrEqual.ValidateInputs(test.inputs)
 
 		assert.Equal(t, test.err, err)
@@ -144,5 +144,5 @@ func TestInputValidationGreaterOrEqual(t *testing.T) {
 }
 
 func greaterOrEqual12BaseOpFixture() ops.BaseOperator {
-	return ops.NewBaseOperator(12, 2, 2, greaterOrEqualTypeConstraints, "greaterOrEqual")
+	return ops.NewBaseOperator(12, 2, 2, greaterOrEqualTypeConstraints, "greaterorequal")
 }
