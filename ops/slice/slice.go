@@ -25,7 +25,7 @@ type Slice struct {
 }
 
 // newSlice creates a new slice operator.
-func newSlice(version int, typeConstraints [][]tensor.Dtype) *Slice {
+func newSlice(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 	return &Slice{
 		BaseOperator: ops.NewBaseOperator(
 			version,

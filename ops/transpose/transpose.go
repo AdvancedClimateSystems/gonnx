@@ -16,7 +16,7 @@ type Transpose struct {
 }
 
 // newTranspose creates a new transpose operator.
-func newTranspose(version int, typeConstraint [][]tensor.Dtype) *Transpose {
+func newTranspose(version int, typeConstraint [][]tensor.Dtype) ops.Operator {
 	return &Transpose{
 		BaseOperator: ops.NewBaseOperator(
 			version,
