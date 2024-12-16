@@ -6,7 +6,7 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// Concrete implementation for shared operator methods
+// Concrete implementation for shared operator methods.
 type BaseOperator struct {
 	name                 string
 	version              int
@@ -30,7 +30,7 @@ func (f BaseOperator) ValidateInputs(inputs []tensor.Tensor) ([]tensor.Tensor, e
 	return ValidateInputs(f, inputs)
 }
 
-// Version returns the
+// Version returns the version of the operator.
 func (f BaseOperator) Version() int {
 	return f.version
 }

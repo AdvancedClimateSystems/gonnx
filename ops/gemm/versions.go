@@ -7,7 +7,7 @@ import (
 
 var gemmVersions = ops.OperatorVersions{
 	7: ops.NewOperatorConstructor(
-		newGemmLegacy,
+		newGemm9,
 		7,
 		[][]tensor.Dtype{
 			{tensor.Float32, tensor.Float64},
@@ -15,7 +15,7 @@ var gemmVersions = ops.OperatorVersions{
 			{tensor.Float32, tensor.Float64},
 		},
 	),
-	9:  ops.NewOperatorConstructor(newGemmLegacy, 9, gemmTypeConstraints),
+	9:  ops.NewOperatorConstructor(newGemm9, 9, gemmTypeConstraints),
 	11: ops.NewOperatorConstructor(newGemm, 11, gemmTypeConstraints),
 	13: ops.NewOperatorConstructor(newGemm, 13, gemmTypeConstraints),
 }

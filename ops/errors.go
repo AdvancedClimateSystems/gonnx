@@ -229,12 +229,12 @@ func ErrUnsupportedOperatorVersionType(opsetID int64, operatorType string) error
 
 var ErrAxisNotInRange = errors.New("axis out of range")
 
-func ErrNotAllAxesInRange(min, max int) error {
-	return fmt.Errorf("%w: all indices entries must be in the range -%d <= x < %d", ErrAxisNotInRange, min, max)
+func ErrNotAllAxesInRange(minVal, maxVal int) error {
+	return fmt.Errorf("%w: all indices entries must be in the range -%d <= x < %d", ErrAxisNotInRange, minVal, maxVal)
 }
 
-func ErrAxisOutOfRange(min, max, actual int) error {
-	return fmt.Errorf("%w: axis argument must be in the range -%d <= x < %d, was %d", ErrAxisNotInRange, min, max, actual)
+func ErrAxisOutOfRange(minVal, maxVal, actual int) error {
+	return fmt.Errorf("%w: axis argument must be in the range -%d <= x < %d, was %d", ErrAxisNotInRange, minVal, maxVal, actual)
 }
 
 var ErrUnsupportedOpsetVersion = errors.New("unsupported opset version")

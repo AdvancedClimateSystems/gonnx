@@ -141,7 +141,8 @@ func TestRNN(t *testing.T) {
 		inputs := test.inputs()
 
 		rnn := rnnVersions[test.version]()
-		rnn.Init(test.attrs)
+		err := rnn.Init(test.attrs)
+		assert.Nil(t, err)
 
 		res, err := rnn.Apply(inputs)
 		assert.Equal(t, test.err, err)

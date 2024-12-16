@@ -89,7 +89,9 @@ func TestConstantOfShape(t *testing.T) {
 			assert.NotNil(t, tp)
 
 			node := &onnx.NodeProto{Attribute: []*onnx.AttributeProto{{Name: "value", T: tp}}}
-			op := constantOfShapeVersions[test.version]().(*ConstantOfShape)
+			op, ok := constantOfShapeVersions[test.version]().(*ConstantOfShape)
+			assert.True(t, ok)
+
 			err := op.Init(node)
 
 			assert.NoError(t, err)

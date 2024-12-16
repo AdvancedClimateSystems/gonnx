@@ -19,9 +19,9 @@ func Int64ToBool(v int64) bool {
 }
 
 // AllInRange checks if all the entries in `arr` are in the inclusive range min <= x <= max.
-func AllInRange(arr []int, min, max int) bool {
+func AllInRange(arr []int, minVal, maxVal int) bool {
 	for _, ax := range arr {
-		if ax < min || ax > max {
+		if ax < minVal || ax > maxVal {
 			return false
 		}
 	}

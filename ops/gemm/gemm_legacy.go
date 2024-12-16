@@ -6,8 +6,8 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// GemmLegacy represents the ONNX gemm operator, for version <= 9.
-type GemmLegacy struct {
+// Gemm9 represents the ONNX gemm operator, for version <= 9.
+type Gemm9 struct {
 	ops.BaseOperator
 
 	alpha  float32
@@ -17,8 +17,8 @@ type GemmLegacy struct {
 }
 
 // newGemm7 creates a new gemm operator and initializes it with the default values.
-func newGemmLegacy(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
-	return &GemmLegacy{
+func newGemm9(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
+	return &Gemm9{
 		BaseOperator: ops.NewBaseOperator(version, 3, 3, typeConstraints, "gemm"),
 		alpha:        1.0,
 		beta:         1.0,
@@ -28,7 +28,7 @@ func newGemmLegacy(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 }
 
 // Init initializes the Gemm7 operator based on the ModelProto attributes.
-func (g *GemmLegacy) Init(n *onnx.NodeProto) error {
+func (g *Gemm9) Init(n *onnx.NodeProto) error {
 	for _, attr := range n.GetAttribute() {
 		switch attr.GetName() {
 		case alpha:
@@ -48,7 +48,7 @@ func (g *GemmLegacy) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the gemm operator on the given graph.
-func (g *GemmLegacy) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
+func (g *Gemm9) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	var err error
 
 	a := inputs[0]

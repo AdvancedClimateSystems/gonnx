@@ -6,16 +6,16 @@ import (
 	"gorgonia.org/tensor"
 )
 
-// ConstantLegacy represents the ONNX constant operator for version 9 and 1.
-type ConstantLegacy struct {
+// Constant9 represents the ONNX constant operator for version 9 and 1.
+type Constant9 struct {
 	ops.BaseOperator
 
 	value tensor.Tensor
 }
 
-// newConstantLegacy creates a new constant operator.
-func newConstantLegacy(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
-	return &ConstantLegacy{
+// newConstant9 creates a new constant operator.
+func newConstant9(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
+	return &Constant9{
 		BaseOperator: ops.NewBaseOperator(
 			version,
 			0,
@@ -27,7 +27,7 @@ func newConstantLegacy(version int, typeConstraints [][]tensor.Dtype) ops.Operat
 }
 
 // Init initializes the constant operator.
-func (c *ConstantLegacy) Init(n *onnx.NodeProto) error {
+func (c *Constant9) Init(n *onnx.NodeProto) error {
 	attributes := n.GetAttribute()
 	if len(attributes) != 1 {
 		return ops.ErrInvalidAttributeCount(1, len(attributes), c)
@@ -51,6 +51,6 @@ func (c *ConstantLegacy) Init(n *onnx.NodeProto) error {
 }
 
 // Apply applies the constant operator.
-func (c *ConstantLegacy) Apply(_ []tensor.Tensor) ([]tensor.Tensor, error) {
+func (c *Constant9) Apply(_ []tensor.Tensor) ([]tensor.Tensor, error) {
 	return []tensor.Tensor{c.value}, nil
 }

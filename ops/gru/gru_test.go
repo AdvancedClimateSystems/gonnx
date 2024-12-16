@@ -122,7 +122,8 @@ func TestGru(t *testing.T) {
 		inputs := test.inputs()
 
 		gru := gruVersions[test.version]()
-		gru.Init(test.node)
+		err := gru.Init(test.node)
+		assert.Nil(t, err)
 
 		res, err := gru.Apply(inputs)
 		assert.Equal(t, test.err, err)

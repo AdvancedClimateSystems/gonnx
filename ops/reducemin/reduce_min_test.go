@@ -21,7 +21,9 @@ func TestReduceMinInit(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		r := reduceMinVersions[test.version]()
+		r, ok := reduceMinVersions[test.version]().(*ReduceMin)
+		assert.True(t, ok)
+
 		err := r.Init(&onnx.NodeProto{
 			Attribute: []*onnx.AttributeProto{
 				{Name: "axes", Ints: []int64{1, 3}},
@@ -30,8 +32,8 @@ func TestReduceMinInit(t *testing.T) {
 		})
 
 		assert.Equal(t, test.err, err)
-		assert.Equal(t, []int{1, 3}, r.(*ReduceMin).axes)
-		assert.Equal(t, false, r.(*ReduceMin).keepDims)
+		assert.Equal(t, []int{1, 3}, r.axes)
+		assert.Equal(t, false, r.keepDims)
 	}
 }
 
@@ -247,7 +249,8 @@ func TestReduceMin(t *testing.T) {
 		}
 
 		reduceMin := reduceMinVersions[test.version]()
-		reduceMin.Init(test.attrs)
+		err := reduceMin.Init(test.attrs)
+		assert.Nil(t, err)
 
 		res, err := reduceMin.Apply(inputs)
 		assert.Nil(t, err)

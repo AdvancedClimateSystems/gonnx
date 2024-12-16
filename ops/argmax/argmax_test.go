@@ -71,7 +71,8 @@ func TestArgMax(t *testing.T) {
 		}
 
 		argmax := argMaxVersions[test.version]()
-		argmax.Init(test.node)
+		err := argmax.Init(test.node)
+		assert.Nil(t, err)
 
 		res, err := argmax.Apply(inputs)
 		assert.Nil(t, err)

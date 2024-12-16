@@ -150,7 +150,8 @@ func TestSlice(t *testing.T) {
 
 	for _, test := range tests {
 		slice := sliceVersions[test.version]()
-		slice.Init(test.attrs)
+		err := slice.Init(test.attrs)
+		assert.Nil(t, err)
 
 		var inputs []tensor.Tensor
 		if test.version >= 10 {

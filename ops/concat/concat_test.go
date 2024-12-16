@@ -59,8 +59,11 @@ func TestConcat(t *testing.T) {
 		}
 
 		concat := concatVersions[test.version]()
-		concat.Init(test.node)
-		concat.ValidateInputs(inputs)
+		err := concat.Init(test.node)
+		assert.Nil(t, err)
+
+		inputs, err = concat.ValidateInputs(inputs)
+		assert.Nil(t, err)
 
 		res, err := concat.Apply(inputs)
 		assert.Nil(t, err)
@@ -93,7 +96,8 @@ func TestInputValidationConcat(t *testing.T) {
 
 	for _, test := range tests {
 		concat := concatVersions[test.version]()
-		concat.Init(test.node)
+		err := concat.Init(test.node)
+		assert.Nil(t, err)
 
 		validated, err := concat.ValidateInputs(test.inputs)
 		assert.Nil(t, err)

@@ -20,7 +20,6 @@ linters:
     - godot
     - godox
     - goerr113
-    - gomnd
     - goprintffuncname
     - govet
     - ineffassign

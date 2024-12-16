@@ -274,7 +274,8 @@ func TestConv(t *testing.T) {
 		}
 
 		conv := convVersions[test.version]()
-		conv.Init(test.node)
+		err := conv.Init(test.node)
+		assert.Nil(t, err)
 
 		res, err := conv.Apply(inputs)
 		assert.Nil(t, err)

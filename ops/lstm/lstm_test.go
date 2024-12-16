@@ -140,7 +140,8 @@ func TestLSTM(t *testing.T) {
 		inputs := test.inputs()
 
 		lstm := lstmVersions[test.version]()
-		lstm.Init(test.attrs)
+		err := lstm.Init(test.attrs)
+		assert.Nil(t, err)
 
 		res, err := lstm.Apply(inputs)
 		assert.Equal(t, test.err, err)

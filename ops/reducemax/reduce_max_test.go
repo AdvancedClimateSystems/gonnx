@@ -21,7 +21,9 @@ func TestReduceMaxInit(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		r := reduceMaxVersions[test.version]()
+		r, ok := reduceMaxVersions[test.version]().(*ReduceMax)
+		assert.True(t, ok)
+
 		err := r.Init(&onnx.NodeProto{
 			Attribute: []*onnx.AttributeProto{
 				{Name: "axes", Ints: []int64{1, 3}},
@@ -30,8 +32,8 @@ func TestReduceMaxInit(t *testing.T) {
 		})
 
 		assert.Equal(t, test.err, err)
-		assert.Equal(t, []int{1, 3}, r.(*ReduceMax).axes)
-		assert.Equal(t, false, r.(*ReduceMax).keepDims)
+		assert.Equal(t, []int{1, 3}, r.axes)
+		assert.Equal(t, false, r.keepDims)
 	}
 }
 
@@ -247,7 +249,8 @@ func TestReduceMax(t *testing.T) {
 		}
 
 		reduceMax := reduceMaxVersions[test.version]()
-		reduceMax.Init(test.attrs)
+		err := reduceMax.Init(test.attrs)
+		assert.Nil(t, err)
 
 		res, err := reduceMax.Apply(inputs)
 		assert.Nil(t, err)

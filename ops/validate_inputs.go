@@ -28,21 +28,21 @@ func checkNInputs(op BaseOperator, inputs []tensor.Tensor) (int, error) {
 	nInputs := len(inputs)
 	padLength := 0
 
-	min := op.GetMinInputs()
-	max := op.GetMaxInputs()
+	minInputs := op.GetMinInputs()
+	maxInputs := op.GetMaxInputs()
 
-	if min == max {
-		if nInputs != min {
+	if minInputs == maxInputs {
+		if nInputs != minInputs {
 			return 0, ErrInvalidInputCount(nInputs, op)
 		}
 
-		padLength = min
+		padLength = minInputs
 	} else {
-		if nInputs < min || nInputs > max {
+		if nInputs < minInputs || nInputs > maxInputs {
 			return 0, ErrInvalidOptionalInputCount(nInputs, op)
 		}
 
-		padLength = max
+		padLength = maxInputs
 	}
 
 	return padLength, nil

@@ -6,8 +6,8 @@ import (
 )
 
 var constantVersions = ops.OperatorVersions{
-	1:  ops.NewOperatorConstructor(newConstantLegacy, 1, [][]tensor.Dtype{}),
-	9:  ops.NewOperatorConstructor(newConstantLegacy, 9, [][]tensor.Dtype{}),
+	1:  ops.NewOperatorConstructor(newConstant9, 1, [][]tensor.Dtype{}),
+	9:  ops.NewOperatorConstructor(newConstant9, 9, [][]tensor.Dtype{}),
 	11: newConstant11,
 	12: ops.NewOperatorConstructor(newConstant, 12, [][]tensor.Dtype{}),
 	13: ops.NewOperatorConstructor(newConstant, 13, [][]tensor.Dtype{}),

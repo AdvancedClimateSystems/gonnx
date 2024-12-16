@@ -89,7 +89,8 @@ func TestLogSoftmax(t *testing.T) {
 		}
 
 		logsoftmax := logSoftmaxVersions[test.version]()
-		logsoftmax.Init(test.attrs)
+		err := logsoftmax.Init(test.attrs)
+		assert.Nil(t, err)
 
 		res, err := logsoftmax.Apply(inputs)
 		assert.Nil(t, err)

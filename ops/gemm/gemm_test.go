@@ -154,7 +154,8 @@ func TestGemm(t *testing.T) {
 		}
 
 		gemm := gemmVersions[test.version]()
-		gemm.Init(test.attrs)
+		err := gemm.Init(test.attrs)
+		assert.Nil(t, err)
 
 		res, err := gemm.Apply(inputs)
 		assert.Nil(t, err)
@@ -271,14 +272,6 @@ func gemm7BaseOpFixture() ops.BaseOperator {
 		},
 		"gemm",
 	)
-}
-
-func gemm9BaseOpFixture() ops.BaseOperator {
-	return ops.NewBaseOperator(9, 3, 3, gemmTypeConstraints, "gemm")
-}
-
-func gemm11BaseOpFixture() ops.BaseOperator {
-	return ops.NewBaseOperator(11, 2, 3, gemmTypeConstraints, "gemm")
 }
 
 func gemm13BaseOpFixture() ops.BaseOperator {

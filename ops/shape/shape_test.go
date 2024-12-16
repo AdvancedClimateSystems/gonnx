@@ -87,10 +87,6 @@ func TestInputValidationShape(t *testing.T) {
 	}
 }
 
-func shape1BaseOpFixture() ops.BaseOperator {
-	return ops.NewBaseOperator(1, 1, 1, shapeTypeConstraints, "shape")
-}
-
 func shape13BaseOpFixture() ops.BaseOperator {
 	return ops.NewBaseOperator(13, 1, 1, shapeTypeConstraints, "shape")
 }

@@ -133,7 +133,9 @@ func TestBroadcastTensors(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		matmul := matMulVersions[13]().(*MatMul)
+		matmul, ok := matMulVersions[13]().(*MatMul)
+		assert.True(t, ok)
+
 		A := ops.Float32TensorFixture(test.shapes[0]...)
 		B := ops.Float32TensorFixture(test.shapes[1]...)
 		newA, newB, err := matmul.broadcastTensors(A, B)

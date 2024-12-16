@@ -202,7 +202,8 @@ func TestGather(t *testing.T) {
 
 	for _, test := range tests {
 		op := gatherVersions[test.version]()
-		op.Init(test.node)
+		err := op.Init(test.node)
+		assert.Nil(t, err)
 
 		indices := test.indices
 		data := test.data

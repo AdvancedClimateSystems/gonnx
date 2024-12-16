@@ -215,14 +215,6 @@ func TestInputValidationSqueeze(t *testing.T) {
 	}
 }
 
-func squeeze1BaseOpFixture() ops.BaseOperator {
-	return ops.NewBaseOperator(1, 1, 1, [][]tensor.Dtype{ops.AllTypes}, "squeeze")
-}
-
-func squeeze11BaseOpFixture() ops.BaseOperator {
-	return ops.NewBaseOperator(11, 1, 1, [][]tensor.Dtype{ops.AllTypes}, "squeeze")
-}
-
 func squeeze13BaseOpFixture() ops.BaseOperator {
 	return ops.NewBaseOperator(13, 1, 2, squeezeTypeConstraints, "squeeze")
 }
