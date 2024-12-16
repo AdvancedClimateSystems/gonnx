@@ -9,9 +9,11 @@ type OperatorVersions map[int64]OperatorFactory
 
 type OperatorFactory func() Operator
 
-func NewOperatorConstructor(op Operator) OperatorFactory {
+type Constructor func(int, [][]tensor.Dtype) Operator 
+
+func NewOperatorConstructor(fn Constructor, version int, typeContstraint [][]tensor.Dtype) OperatorFactory {
 	return func() Operator {
-		return op
+		return fn(version, typeContstraint) 
 	}
 }
 
