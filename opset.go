@@ -64,9 +64,6 @@ const (
 	MaxSupportedOpset = 13
 )
 
-// OpGetter is a function that gets an operator based on a string.
-type OpGetter func(string) (ops.Operator, error)
-
 // Opset is a set of operators matching a certain opset version.
 type Opset map[string]func() ops.Operator
 

@@ -39,10 +39,13 @@ func (t *Transpose) Init(n *onnx.NodeProto) error {
 			return ops.ErrInvalidAttribute(attr.GetName(), t)
 		}
 
+		perm := make([]int, 0)
 		attrPerm := attr.GetInts()
 		for _, val := range attrPerm {
-			t.perm = append(t.perm, int(val))
+			perm = append(perm, int(val))
 		}
+
+		t.perm = perm
 	}
 
 	return nil
