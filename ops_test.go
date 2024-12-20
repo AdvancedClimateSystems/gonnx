@@ -503,6 +503,8 @@ var expectedTests = []string{
 	"test_softmax_example",
 	"test_softmax_large_number",
 	"test_softmax_negative_axis",
+	"test_sqrt",
+	"test_sqrt_example",
 	"test_squeeze",
 	"test_sub",
 	"test_sub_bcast",

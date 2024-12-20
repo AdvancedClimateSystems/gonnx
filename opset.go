@@ -50,6 +50,7 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops/sinh"
 	"github.com/advancedclimatesystems/gonnx/ops/slice"
 	"github.com/advancedclimatesystems/gonnx/ops/softmax"
+	"github.com/advancedclimatesystems/gonnx/ops/sqrt"
 	"github.com/advancedclimatesystems/gonnx/ops/squeeze"
 	"github.com/advancedclimatesystems/gonnx/ops/sub"
 	"github.com/advancedclimatesystems/gonnx/ops/tan"
@@ -116,6 +117,7 @@ var operators = map[string]ops.OperatorVersions{
 	"Sinh":            sinh.GetSinhVersions(),
 	"Slice":           slice.GetSliceVersions(),
 	"Softmax":         softmax.GetSoftmaxVersions(),
+	"Sqrt":            sqrt.GetVersions(),
 	"Squeeze":         squeeze.GetSqueezeVersions(),
 	"Sub":             sub.GetSubVersions(),
 	"Tan":             tan.GetTanVersions(),
