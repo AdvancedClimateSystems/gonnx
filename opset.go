@@ -39,6 +39,7 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops/or"
 	"github.com/advancedclimatesystems/gonnx/ops/prelu"
 	"github.com/advancedclimatesystems/gonnx/ops/reducemax"
+	"github.com/advancedclimatesystems/gonnx/ops/reducemean"
 	"github.com/advancedclimatesystems/gonnx/ops/reducemin"
 	"github.com/advancedclimatesystems/gonnx/ops/relu"
 	"github.com/advancedclimatesystems/gonnx/ops/reshape"
@@ -105,6 +106,7 @@ var operators = map[string]ops.OperatorVersions{
 	"Or":              or.GetOrVersions(),
 	"PRelu":           prelu.GetPReluVersions(),
 	"ReduceMax":       reducemax.GetReduceMaxVersions(),
+	"ReduceMean":      reducemean.GetVersions(),
 	"ReduceMin":       reducemin.GetReduceMinVersions(),
 	"Relu":            relu.GetReluVersions(),
 	"Reshape":         reshape.GetReshapeVersions(),

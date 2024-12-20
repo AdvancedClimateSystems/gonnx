@@ -23,56 +23,64 @@ import (
 // Another reason is that some tests require an opset version higher than we have currently
 // implemented, or lower, which we also haven't implemented yet.
 var ignoredTests = []string{
-	"test_add_uint8",                                 // Opset14
-	"test_div_uint8",                                 // Opset14
-	"test_gru_batchwise",                             // Opset14
-	"test_logsoftmax_axis_1_expanded_ver18",          // Opset18
-	"test_logsoftmax_example_1_expanded_ver18",       // Opset18
-	"test_logsoftmax_negative_axis_expanded_ver18",   // Opset18
-	"test_logsoftmax_large_number_expanded_ver18",    // Opset18
-	"test_logsoftmax_default_axis_expanded_ver18",    // Opset18
-	"test_logsoftmax_axis_0_expanded_ver18",          // Opset18
-	"test_logsoftmax_axis_2_expanded_ver18",          // Opset18
-	"test_lstm_batchwise",                            // Opset14
-	"test_mul_uint8",                                 // Opset14
-	"test_reduce_max_empty_set",                      // Opset20
-	"test_reduce_max_do_not_keepdims_random",         // Opset18
-	"test_reduce_max_keepdims_random",                // Opset18
-	"test_reduce_max_default_axes_keepdims_random",   // Opset18
-	"test_reduce_max_do_not_keepdims_example",        // Opset18
-	"test_reduce_max_default_axes_keepdim_example",   // Opset18
-	"test_reduce_max_negative_axes_keepdims_random",  // Opset18
-	"test_reduce_max_negative_axes_keepdims_example", // Opset18
-	"test_reduce_max_bool_inputs",                    // Opset20
-	"test_reduce_max_keepdims_example",               // Opset18
-	"test_reduce_min_keepdims_random",                // Opset18
-	"test_reduce_min_keepdims_example",               // Opset18
-	"test_reduce_min_do_not_keepdims_example",        // Opset18
-	"test_reduce_min_negative_axes_keepdims_example", // Opset18
-	"test_reduce_min_bool_inputs",                    // Opset18
-	"test_reduce_min_do_not_keepdims_random",         // Opset18
-	"test_reduce_min_default_axes_keepdims_example",  // Opset18
-	"test_reduce_min_empty_set",                      // Opset18
-	"test_reduce_min_default_axes_keepdims_random",   // Opset18
-	"test_reduce_min_negative_axes_keepdims_random",  // Opset18
-	"test_sub_uint8",                                 // Opset14
-	"test_shape_clip_end",                            // Opset15
-	"test_shape_clip_start",                          // Opset15
-	"test_shape_end_1",                               // Opset15
-	"test_shape_end_negative_1",                      // Opset15
-	"test_shape_example",                             // Opset15
-	"test_shape_start_1",                             // Opset15
-	"test_shape_start_1_end_2",                       // Opset15
-	"test_shape_start_1_end_negative_1",              // Opset15
-	"test_shape_start_negative_1",                    // Opset15
-	"test_softmax_default_axis_expanded_ver18",       // Opset18
-	"test_softmax_axis_1_expanded_ver18",             // Opset18
-	"test_softmax_negative_axis_expanded_ver18",      // Opset18
-	"test_softmax_example_expanded_ver18",            // Opset18
-	"test_softmax_axis_0_expanded_ver18",             // Opset18
-	"test_softmax_large_number_expanded_ver18",       // Opset18
-	"test_softmax_axis_2_expanded_ver18",             // Opset18
-	"test_reshape_allowzero_reordered",               // Opset14
+	"test_add_uint8",                                  // Opset14
+	"test_div_uint8",                                  // Opset14
+	"test_gru_batchwise",                              // Opset14
+	"test_logsoftmax_axis_1_expanded_ver18",           // Opset18
+	"test_logsoftmax_example_1_expanded_ver18",        // Opset18
+	"test_logsoftmax_negative_axis_expanded_ver18",    // Opset18
+	"test_logsoftmax_large_number_expanded_ver18",     // Opset18
+	"test_logsoftmax_default_axis_expanded_ver18",     // Opset18
+	"test_logsoftmax_axis_0_expanded_ver18",           // Opset18
+	"test_logsoftmax_axis_2_expanded_ver18",           // Opset18
+	"test_lstm_batchwise",                             // Opset14
+	"test_mul_uint8",                                  // Opset14
+	"test_reduce_max_empty_set",                       // Opset20
+	"test_reduce_max_do_not_keepdims_random",          // Opset18
+	"test_reduce_max_keepdims_random",                 // Opset18
+	"test_reduce_max_default_axes_keepdims_random",    // Opset18
+	"test_reduce_max_do_not_keepdims_example",         // Opset18
+	"test_reduce_max_default_axes_keepdim_example",    // Opset18
+	"test_reduce_max_negative_axes_keepdims_random",   // Opset18
+	"test_reduce_max_negative_axes_keepdims_example",  // Opset18
+	"test_reduce_max_bool_inputs",                     // Opset20
+	"test_reduce_max_keepdims_example",                // Opset18
+	"test_reduce_min_keepdims_random",                 // Opset18
+	"test_reduce_min_keepdims_example",                // Opset18
+	"test_reduce_min_do_not_keepdims_example",         // Opset18
+	"test_reduce_min_negative_axes_keepdims_example",  // Opset18
+	"test_reduce_min_bool_inputs",                     // Opset18
+	"test_reduce_min_do_not_keepdims_random",          // Opset18
+	"test_reduce_min_default_axes_keepdims_example",   // Opset18
+	"test_reduce_min_empty_set",                       // Opset18
+	"test_reduce_min_default_axes_keepdims_random",    // Opset18
+	"test_reduce_min_negative_axes_keepdims_random",   // Opset18
+	"test_reduce_mean_negative_axes_keepdims_random",  // Opset18
+	"test_reduce_mean_do_not_keepdims_random",         // Opset18
+	"test_reduce_mean_negative_axes_keepdims_example", // Opset18
+	"test_reduce_mean_default_axes_keepdims_random",   // Opset18
+	"test_reduce_mean_keepdims_random",                // Opset18
+	"test_reduce_mean_default_axes_keepdims_example",  // Opset18
+	"test_reduce_mean_do_not_keepdims_example",        // Opset18
+	"test_reduce_mean_keepdims_example",               // Opset18
+	"test_sub_uint8",                                  // Opset14
+	"test_shape_clip_end",                             // Opset15
+	"test_shape_clip_start",                           // Opset15
+	"test_shape_end_1",                                // Opset15
+	"test_shape_end_negative_1",                       // Opset15
+	"test_shape_example",                              // Opset15
+	"test_shape_start_1",                              // Opset15
+	"test_shape_start_1_end_2",                        // Opset15
+	"test_shape_start_1_end_negative_1",               // Opset15
+	"test_shape_start_negative_1",                     // Opset15
+	"test_softmax_default_axis_expanded_ver18",        // Opset18
+	"test_softmax_axis_1_expanded_ver18",              // Opset18
+	"test_softmax_negative_axis_expanded_ver18",       // Opset18
+	"test_softmax_example_expanded_ver18",             // Opset18
+	"test_softmax_axis_0_expanded_ver18",              // Opset18
+	"test_softmax_large_number_expanded_ver18",        // Opset18
+	"test_softmax_axis_2_expanded_ver18",              // Opset18
+	"test_reshape_allowzero_reordered",                // Opset14
 
 	"test_constant_pad",                      // Pad is not implemented yet.
 	"test_constant_pad_axes",                 // Pad is not implemented yet.
@@ -533,6 +541,7 @@ var expectedTests = []string{
 }
 
 var opNameMap = map[string]string{
-	"reducemax": "reduce_max",
-	"reducemin": "reduce_min",
+	"reducemax":  "reduce_max",
+	"reducemin":  "reduce_min",
+	"reducemean": "reduce_mean",
 }
