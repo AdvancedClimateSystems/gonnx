@@ -16,3 +16,8 @@ var AllTypes = []tensor.Dtype{
 	tensor.String,
 	tensor.Bool,
 }
+
+var IntTypes = []tensor.Dtype{
+	tensor.Int8, tensor.Int16, tensor.Int32, tensor.Int64,
+	tensor.Uint8, tensor.Uint16, tensor.Uint32, tensor.Uint64,
+}

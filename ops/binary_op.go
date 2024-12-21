@@ -1,6 +1,8 @@
 package ops
 
 import (
+	"slices"
+
 	"gorgonia.org/tensor"
 )
 
@@ -49,8 +51,45 @@ func Mul(A, B tensor.Tensor) (tensor.Tensor, error) {
 }
 
 // Pow raises the first tensor to the power of the second tensor.
+// Because the gorgonia.Tensor 'Pow' operation only supports float32 and float64,
+// we need to convert the tensors to float64 if they are of a different type.
+// After the operation is done, we convert the result back to the original type.
 func Pow(A, B tensor.Tensor) (tensor.Tensor, error) {
-	return tensor.Pow(A, B)
+	needsConversion := false
+	if slices.Contains(IntTypes, A.Dtype()) {
+		needsConversion = true
+	}
+
+	if !needsConversion {
+		return tensor.Pow(A, B)
+	}
+
+	oldType, err := DTypeToONNXType(A.Dtype())
+	if err != nil {
+		return nil, err
+	}
+
+	newType, err := DTypeToONNXType(tensor.Float64)
+	if err != nil {
+		return nil, err
+	}
+
+	A, err = ConvertTensorDtype(A, newType)
+	if err != nil {
+		return nil, err
+	}
+
+	B, err = ConvertTensorDtype(B, newType)
+	if err != nil {
+		return nil, err
+	}
+
+	out, err := tensor.Pow(A, B)
+	if err != nil {
+		return nil, err
+	}
+
+	return ConvertTensorDtype(out, oldType)
 }
 
 // Sub subtracts 1 tensor from the other.

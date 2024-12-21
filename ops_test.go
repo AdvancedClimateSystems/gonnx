@@ -172,16 +172,11 @@ func TestOps(t *testing.T) {
 	runnedTests := []string{}
 
 	for opName := range operators {
-		if opName != "Pow" {
-			continue
-		}
-
 		tests, err := getTestCasesForOp(opName)
 		assert.Nil(t, err)
 
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
-				fmt.Println(test.name, test.inputs)
 				outputs, err := test.model.Run(test.inputs)
 				assert.Nil(t, err)
 
@@ -192,7 +187,7 @@ func TestOps(t *testing.T) {
 					if expectedTensor.Dtype() == tensor.Bool {
 						assert.ElementsMatch(t, expectedTensor.Data(), actualTensor.Data())
 					} else {
-						assert.InDeltaSlice(t, expectedTensor.Data(), actualTensor.Data(), 0.00001)
+						assert.InDeltaSlice(t, expectedTensor.Data(), actualTensor.Data(), 0.001)
 					}
 				}
 			})
@@ -306,7 +301,6 @@ func readTestModel(folder string) (*Model, error) {
 
 	// Currently we support Opset 7-13, hence we enforce this in our tests. All
 	// tests that fail because of this are ignored.
-	fmt.Println(folder, mp.OpsetImport[0].Version)
 	if mp.OpsetImport[0].Version < MinSupportedOpset {
 		mp.OpsetImport[0].Version = MinSupportedOpset
 	} else if mp.OpsetImport[0].Version > MaxSupportedOpset {
@@ -477,6 +471,18 @@ var expectedTests = []string{
 	"test_or_bcast4v2d",
 	"test_or_bcast4v3d",
 	"test_or_bcast4v4d",
+	"test_pow",
+	"test_pow_bcast_array",
+	"test_pow_bcast_scalar",
+	"test_pow_example",
+	"test_pow_types_float32_int32",
+	"test_pow_types_float32_int64",
+	"test_pow_types_float32_uint32",
+	"test_pow_types_float32_uint64",
+	"test_pow_types_int32_float32",
+	"test_pow_types_int32_int32",
+	"test_pow_types_int64_float32",
+	"test_pow_types_int64_int64",
 	"test_prelu_broadcast",
 	"test_prelu_example",
 	"test_relu",

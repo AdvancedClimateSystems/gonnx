@@ -556,7 +556,7 @@ func ReadInt32ArrayFromBytes(data []byte) ([]int32, error) {
 // ReadUint64ArrayFromBytes reads data and parses it to an array of uint64.
 func ReadUint64ArrayFromBytes(data []byte) ([]uint64, error) {
 	buffer := bytes.NewReader(data)
-	element := make([]byte, int32Size)
+	element := make([]byte, int64Size)
 
 	var (
 		err    error

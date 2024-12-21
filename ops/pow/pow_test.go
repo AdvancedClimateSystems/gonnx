@@ -20,7 +20,7 @@ func TestPow(t *testing.T) {
 		backing0 any
 		backing1 any
 		shapes   [][]int
-		expected []float32
+		expected any
 	}{
 		{
 			13,
@@ -48,7 +48,7 @@ func TestPow(t *testing.T) {
 			[]int32{1, 2, 3},
 			[]int32{4, 5, 6},
 			[][]int{{3}, {3}},
-			[]float32{1, 1, 0, 1},
+			[]int32{1, 32, 729},
 		},
 	}
 
