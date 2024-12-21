@@ -21,6 +21,7 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops/cosh"
 	"github.com/advancedclimatesystems/gonnx/ops/div"
 	"github.com/advancedclimatesystems/gonnx/ops/equal"
+	"github.com/advancedclimatesystems/gonnx/ops/erf"
 	"github.com/advancedclimatesystems/gonnx/ops/expand"
 	"github.com/advancedclimatesystems/gonnx/ops/flatten"
 	"github.com/advancedclimatesystems/gonnx/ops/gather"
@@ -87,6 +88,7 @@ var operators = map[string]ops.OperatorVersions{
 	"Cosh":            cosh.GetCoshVersions(),
 	"Div":             div.GetDivVersions(),
 	"Equal":           equal.GetEqualVersions(),
+	"Erf":             erf.GetVersions(),
 	"Expand":          expand.GetExpandVersions(),
 	"Flatten":         flatten.GetFlattenVersions(),
 	"Gather":          gather.GetGatherVersions(),

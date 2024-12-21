@@ -407,6 +407,7 @@ var expectedTests = []string{
 	"test_div_example",
 	"test_equal",
 	"test_equal_bcast",
+	"test_erf",
 	"test_expand_dim_changed",
 	"test_expand_dim_unchanged",
 	"test_flatten_axis0",
