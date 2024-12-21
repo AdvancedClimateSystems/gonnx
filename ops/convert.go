@@ -76,7 +76,6 @@ func DTypeToONNXType(t tensor.Dtype) (int32, error) {
 	default:
 		return 0, ErrUnknownTensorONNXDtype(t)
 	}
-
 }
 
 func convertBacking[B Number](backing []B, dataType int32) (any, error) {
