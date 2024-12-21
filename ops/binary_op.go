@@ -48,6 +48,11 @@ func Mul(A, B tensor.Tensor) (tensor.Tensor, error) {
 	return tensor.Mul(A, B)
 }
 
+// Pow raises the first tensor to the power of the second tensor.
+func Pow(A, B tensor.Tensor) (tensor.Tensor, error) {
+	return tensor.Pow(A, B)
+}
+
 // Sub subtracts 1 tensor from the other.
 func Sub(A, B tensor.Tensor) (tensor.Tensor, error) {
 	return tensor.Sub(A, B)

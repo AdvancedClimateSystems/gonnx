@@ -282,6 +282,10 @@ func ErrConversionNotSupported(dType int32) error {
 	return fmt.Errorf("%w: to %v is not supported yet", ErrConversion, dType)
 }
 
+func ErrUnknownTensorONNXDtype(dType tensor.Dtype) error {
+	return fmt.Errorf("%w: tensor with dtype %v does not have a corresponding onnx type", ErrCast, dType)
+}
+
 var ErrActivationNotImplementedBase = errors.New("the given activation function is not implemented")
 
 func ErrActivationNotImplemented(activation string) error {

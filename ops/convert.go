@@ -51,6 +51,34 @@ func ConvertTensorDtype(t tensor.Tensor, newType int32) (tensor.Tensor, error) {
 	return tensor.New(tensor.WithShape(t.Shape()...), tensor.WithBacking(newBacking)), nil
 }
 
+func DTypeToONNXType(t tensor.Dtype) (int32, error) {
+	switch t {
+	case tensor.Float32:
+		return int32(onnx.TensorProto_FLOAT), nil
+	case tensor.Float64:
+		return int32(onnx.TensorProto_DOUBLE), nil
+	case tensor.Int8:
+		return int32(onnx.TensorProto_INT8), nil
+	case tensor.Int16:
+		return int32(onnx.TensorProto_INT16), nil
+	case tensor.Int32:
+		return int32(onnx.TensorProto_INT32), nil
+	case tensor.Int64:
+		return int32(onnx.TensorProto_INT64), nil
+	case tensor.Uint8:
+		return int32(onnx.TensorProto_UINT8), nil
+	case tensor.Uint16:
+		return int32(onnx.TensorProto_UINT16), nil
+	case tensor.Uint32:
+		return int32(onnx.TensorProto_UINT32), nil
+	case tensor.Uint64:
+		return int32(onnx.TensorProto_UINT64), nil
+	default:
+		return 0, ErrUnknownTensorONNXDtype(t)
+	}
+
+}
+
 func convertBacking[B Number](backing []B, dataType int32) (any, error) {
 	switch onnx.TensorProto_DataType(dataType) {
 	case onnx.TensorProto_FLOAT:
