@@ -4,7 +4,7 @@ VERSION=$(shell git describe --always --tags --dirty)
 LDFLAGS=-ldflags "-s -w -X main.Version=${VERSION}"
 TEST=$(shell go list ./... | grep -v /onnx/)
 
-BUILD_PARAMS=CGO_ENABLED=0 ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.21
+BUILD_PARAMS=CGO_ENABLED=0 
 
 
 define echotask
@@ -33,7 +33,7 @@ lint: ## Run various linters.
 
 test: ## Run tests using gotestsum.
 	@ ${BUILD_PARAMS} gotestsum \
-	    --format=dots -- \
+	    --format=dots-v2 -- \
 	    -timeout=30000ms \
 	    -covermode=set \
 	    -coverprofile=.coverage.out ${TEST}

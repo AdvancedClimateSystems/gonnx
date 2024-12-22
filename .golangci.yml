@@ -10,7 +10,6 @@ linters:
     - errchkjson
     - errname
     - errorlint
-    - execinquery
     - exhaustive
     - exportloopref
     - forcetypeassert
@@ -19,7 +18,7 @@ linters:
     - gocritic
     - godot
     - godox
-    - goerr113
+    - err113
     - goprintffuncname
     - govet
     - ineffassign
