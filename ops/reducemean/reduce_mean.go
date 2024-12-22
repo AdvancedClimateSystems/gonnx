@@ -123,7 +123,6 @@ func (r *ReduceMean) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	}
 
 	out, err := sum.DivScalar(countCast, true)
-
 	if err != nil {
 		return nil, err
 	}
