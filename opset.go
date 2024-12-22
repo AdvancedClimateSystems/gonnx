@@ -60,6 +60,7 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops/tanh"
 	"github.com/advancedclimatesystems/gonnx/ops/transpose"
 	"github.com/advancedclimatesystems/gonnx/ops/unsqueeze"
+	"github.com/advancedclimatesystems/gonnx/ops/where"
 	"github.com/advancedclimatesystems/gonnx/ops/xor"
 )
 
@@ -130,6 +131,7 @@ var operators = map[string]ops.OperatorVersions{
 	"Tanh":            tanh.GetTanhVersions(),
 	"Transpose":       transpose.GetTransposeVersions(),
 	"Unsqueeze":       unsqueeze.GetUnsqueezeVersions(),
+	"Where":           where.GetVersions(),
 	"Xor":             xor.GetXorVersions(),
 }
 

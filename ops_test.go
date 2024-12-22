@@ -548,6 +548,8 @@ var expectedTests = []string{
 	"test_unsqueeze_three_axes",
 	"test_unsqueeze_two_axes",
 	"test_unsqueeze_unsorted_axes",
+	"test_where_example",
+	"test_where_long_example",
 	"test_xor_bcast3v1d",
 	"test_xor_bcast3v2d",
 	"test_xor_bcast4v2d",
