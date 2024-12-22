@@ -78,6 +78,22 @@ func OffsetTensorIfNegative(t tensor.Tensor, offset int) error {
 	return nil
 }
 
+// AnyToInt casts the given data to an int, but only if the data is of some sort of int type.
+func AnyToInt(value interface{}) (int, error) {
+	switch data := value.(type) {
+	case int8:
+		return int(data), nil
+	case int16:
+		return int(data), nil
+	case int32:
+		return int(data), nil
+	case int64:
+		return int(data), nil
+	default:
+		return 0, ErrCast
+	}
+}
+
 // AnyToIntSlice casts the data of a node to an int list. This will only
 // be done if the data is of some sort of int type.
 func AnyToIntSlice(value interface{}) ([]int, error) {

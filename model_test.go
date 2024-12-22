@@ -1,7 +1,6 @@
 package gonnx
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -97,7 +96,6 @@ func TestModel(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		fmt.Println(test.path)
 		model, err := NewModelFromFile(test.path)
 		assert.Nil(t, err)
 
