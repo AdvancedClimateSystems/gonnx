@@ -278,7 +278,7 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 func (l *LSTM) gateCalculation(
 	Xt, W, Wb, H, R, Rb, P, C tensor.Tensor, activation ops.Activation,
 ) (tensor.Tensor, error) {
-	gemm := gemm.GetGemmVersions()[13]()
+	gemm := gemm.GetVersions()[13]()
 
 	err := gemm.Init(
 		&onnx.NodeProto{

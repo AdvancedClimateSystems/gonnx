@@ -9,6 +9,6 @@ var addVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newAdd, 13, addTypeConstraints),
 }
 
-func GetAddVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return addVersions
 }

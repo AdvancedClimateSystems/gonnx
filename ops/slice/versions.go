@@ -9,6 +9,6 @@ var sliceVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newSlice, 13, sliceTypeConstraints),
 }
 
-func GetSliceVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return sliceVersions
 }

@@ -7,6 +7,6 @@ var reshapeVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newReshape, 13, reshapeTypeConstraints),
 }
 
-func GetReshapeVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return reshapeVersions
 }

@@ -10,6 +10,6 @@ var concatVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newConcat, 13, concatTypeConstraints),
 }
 
-func GetConcatVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return concatVersions
 }

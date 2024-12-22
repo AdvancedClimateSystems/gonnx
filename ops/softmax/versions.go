@@ -8,6 +8,6 @@ var softmaxVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newSoftmax, 13, softmaxTypeConstraints),
 }
 
-func GetSoftmaxVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return softmaxVersions
 }

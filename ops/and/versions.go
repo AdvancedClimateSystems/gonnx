@@ -8,6 +8,6 @@ var andVersions = ops.OperatorVersions{
 	7: ops.NewOperatorConstructor(newAnd, 7, andTypeConstraints),
 }
 
-func GetAndVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return andVersions
 }

@@ -8,6 +8,6 @@ var expandVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newExpand, 13, expandTypeConstraints),
 }
 
-func GetExpandVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return expandVersions
 }

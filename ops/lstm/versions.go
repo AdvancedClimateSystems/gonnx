@@ -6,6 +6,6 @@ var lstmVersions = ops.OperatorVersions{
 	7: ops.NewOperatorConstructor(newLSTM, 7, lstmTypeConstraints),
 }
 
-func GetLSTMVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return lstmVersions
 }

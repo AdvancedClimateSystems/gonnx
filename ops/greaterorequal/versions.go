@@ -6,6 +6,6 @@ var greaterOrEqualVersions = ops.OperatorVersions{
 	12: ops.NewOperatorConstructor(newGreaterOrEqual, 12, greaterOrEqualTypeConstraints),
 }
 
-func GetGreaterOrEqualVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return greaterOrEqualVersions
 }

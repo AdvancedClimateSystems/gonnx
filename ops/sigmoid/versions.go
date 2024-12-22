@@ -7,6 +7,6 @@ var sigmoidVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newSigmoid, 13, sigmoidTypeConstraints),
 }
 
-func GetSigmoidVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return sigmoidVersions
 }

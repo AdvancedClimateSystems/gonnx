@@ -8,6 +8,6 @@ var lessVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newLess, 13, lessTypeConstraints),
 }
 
-func GetLessVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return lessVersions
 }

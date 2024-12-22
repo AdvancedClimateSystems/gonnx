@@ -6,6 +6,6 @@ var notVersions = ops.OperatorVersions{
 	1: ops.NewOperatorConstructor(newNot, 1, notTypeConstraints),
 }
 
-func GetNotVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return notVersions
 }

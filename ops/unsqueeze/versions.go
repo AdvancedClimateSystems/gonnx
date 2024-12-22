@@ -8,6 +8,6 @@ var unsqueezeVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newUnsqueeze, 13, unsqueezeTypeConstraints),
 }
 
-func GetUnsqueezeVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return unsqueezeVersions
 }

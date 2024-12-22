@@ -8,6 +8,6 @@ var matMulVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newMatMul, 13, matmulTypeConstraints),
 }
 
-func GetMatMulVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return matMulVersions
 }

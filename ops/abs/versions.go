@@ -9,6 +9,6 @@ var absVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newAbs, 13, absTypeConstraint),
 }
 
-func GetAbsVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return absVersions
 }

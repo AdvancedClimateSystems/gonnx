@@ -8,6 +8,6 @@ var atanVersions = ops.OperatorVersions{
 	7: ops.NewOperatorConstructor(newAtan, 7, atanTypeConstraints),
 }
 
-func GetAtanVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return atanVersions
 }

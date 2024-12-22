@@ -9,6 +9,6 @@ var convVersions = ops.OperatorVersions{
 	11: ops.NewOperatorConstructor(newConv, 11, convTypeConstraints),
 }
 
-func GetConvVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return convVersions
 }

@@ -13,6 +13,6 @@ var constantVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newConstant, 13, [][]tensor.Dtype{}),
 }
 
-func GetConstantVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return constantVersions
 }

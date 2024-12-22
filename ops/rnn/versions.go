@@ -6,6 +6,6 @@ var rnnVersions = ops.OperatorVersions{
 	7: ops.NewOperatorConstructor(newRNN, 7, rnnTypeConstraints),
 }
 
-func GetRNNVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return rnnVersions
 }

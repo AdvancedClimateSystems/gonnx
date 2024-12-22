@@ -8,6 +8,6 @@ var acoshVersions = ops.OperatorVersions{
 	9: newAcosh,
 }
 
-func GetAcoshVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return acoshVersions
 }

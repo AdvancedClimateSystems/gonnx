@@ -9,6 +9,6 @@ var divVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newDiv, 13, divTypeConstraints),
 }
 
-func GetDivVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return divVersions
 }

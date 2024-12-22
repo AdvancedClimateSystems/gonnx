@@ -6,6 +6,6 @@ var linearRegressorVersions = ops.OperatorVersions{
 	1: ops.NewOperatorConstructor(newLinearRegressor, 1, linearRegressorTypeConstraints),
 }
 
-func GetLinearRegressorVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return linearRegressorVersions
 }

@@ -8,6 +8,6 @@ var logSoftmaxVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newLogSoftmax, 13, logSoftmaxTypeConstraints),
 }
 
-func GetLogSoftmaxVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return logSoftmaxVersions
 }

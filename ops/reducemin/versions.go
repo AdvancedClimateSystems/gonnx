@@ -9,6 +9,6 @@ var reduceMinVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newReduceMin, 13, reduceMinTypeConstraints),
 }
 
-func GetReduceMinVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return reduceMinVersions
 }

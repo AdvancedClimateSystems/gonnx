@@ -7,6 +7,6 @@ var reluVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newRelu, 13, reluTypeConstraints),
 }
 
-func GetReluVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return reluVersions
 }

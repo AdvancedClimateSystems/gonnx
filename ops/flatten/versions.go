@@ -12,6 +12,6 @@ var flattenVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newFlatten, 13, [][]tensor.Dtype{ops.AllTypes}),
 }
 
-func GetFlattenVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return flattenVersions
 }

@@ -8,6 +8,6 @@ var acosVersions = ops.OperatorVersions{
 	7: newAcos,
 }
 
-func GetAcosVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return acosVersions
 }

@@ -183,7 +183,7 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 func (r *RNN) layerCalculation(
 	Xt, H, Wi, Ri, Wbi, Rbi tensor.Tensor, activation ops.Activation,
 ) (tensor.Tensor, error) {
-	gemm := gemm.GetGemmVersions()[13]()
+	gemm := gemm.GetVersions()[13]()
 
 	err := gemm.Init(
 		&onnx.NodeProto{

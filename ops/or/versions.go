@@ -6,6 +6,6 @@ var orVersions = ops.OperatorVersions{
 	7: ops.NewOperatorConstructor(newOr, 7, orTypeConstraints),
 }
 
-func GetOrVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return orVersions
 }

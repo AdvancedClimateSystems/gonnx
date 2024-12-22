@@ -20,6 +20,6 @@ var gemmVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newGemm, 13, gemmTypeConstraints),
 }
 
-func GetGemmVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return gemmVersions
 }

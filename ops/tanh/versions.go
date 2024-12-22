@@ -7,6 +7,6 @@ var tanhVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newTanh, 13, tanhTypeConstraint),
 }
 
-func GetTanhVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return tanhVersions
 }

@@ -6,6 +6,6 @@ var scalerVersions = ops.OperatorVersions{
 	1: ops.NewOperatorConstructor(newScaler, 1, scalerTypeConstraints),
 }
 
-func GetScalerVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return scalerVersions
 }

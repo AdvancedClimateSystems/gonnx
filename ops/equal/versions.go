@@ -10,6 +10,6 @@ var equalVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newEqual, 13, equalTypeConstraints),
 }
 
-func GetEqualVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return equalVersions
 }

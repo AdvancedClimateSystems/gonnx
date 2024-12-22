@@ -6,6 +6,6 @@ var xorVersions = ops.OperatorVersions{
 	7: ops.NewOperatorConstructor(newXor, 7, xorTypeConstraints),
 }
 
-func GetXorVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return xorVersions
 }

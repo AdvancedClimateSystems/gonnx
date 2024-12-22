@@ -8,6 +8,6 @@ var constantOfShapeVersions = ops.OperatorVersions{
 	9: ops.NewOperatorConstructor(newConstantOfShape, 9, constantOfShapeTypeConstraints),
 }
 
-func GetConstantOfShapeVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return constantOfShapeVersions
 }

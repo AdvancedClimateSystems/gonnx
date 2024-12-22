@@ -6,6 +6,6 @@ var gruVersions = ops.OperatorVersions{
 	7: ops.NewOperatorConstructor(newGRU, 7, gruTypeConstraints),
 }
 
-func GetGRUVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return gruVersions
 }

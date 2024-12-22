@@ -8,6 +8,6 @@ var coshVersions = ops.OperatorVersions{
 	9: ops.NewOperatorConstructor(newCosh, 9, coshTypeConstraints),
 }
 
-func GetCoshVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return coshVersions
 }

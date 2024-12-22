@@ -212,7 +212,7 @@ func (g *GRU) extractXt(X tensor.Tensor, t int) (tensor.Tensor, error) {
 func (g *GRU) gateCalculation(
 	Xt, H, W, R, Wb, Rb tensor.Tensor, activation ops.Activation,
 ) (tensor.Tensor, error) {
-	gemm := gemm.GetGemmVersions()[13]()
+	gemm := gemm.GetVersions()[13]()
 
 	err := gemm.Init(
 		&onnx.NodeProto{
@@ -258,7 +258,7 @@ func (g *GRU) htCalculation(
 		return g.gateCalculation(Xt, temp1, W, R, Wb, Rb, activation)
 	}
 
-	gemm := gemm.GetGemmVersions()[13]()
+	gemm := gemm.GetVersions()[13]()
 
 	err := gemm.Init(
 		&onnx.NodeProto{

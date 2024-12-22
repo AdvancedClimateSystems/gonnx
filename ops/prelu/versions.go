@@ -10,6 +10,6 @@ var preluVersions = ops.OperatorVersions{
 	9: ops.NewOperatorConstructor(newPRelu, 9, preluTypeConstraints),
 }
 
-func GetPReluVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return preluVersions
 }

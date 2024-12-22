@@ -10,6 +10,6 @@ var argMaxVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newArgMax, 13, argMaxTypeConstraints),
 }
 
-func GetArgMaxVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return argMaxVersions
 }

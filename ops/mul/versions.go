@@ -7,6 +7,6 @@ var mulVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newMul, 13, mulTypeConstraints),
 }
 
-func GetMulVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return mulVersions
 }

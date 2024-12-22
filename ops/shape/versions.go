@@ -7,6 +7,6 @@ var shapeVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newShape, 13, shapeTypeConstraints),
 }
 
-func GetShapeVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return shapeVersions
 }

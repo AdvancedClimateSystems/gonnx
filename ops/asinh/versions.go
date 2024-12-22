@@ -8,6 +8,6 @@ var asinhVersions = ops.OperatorVersions{
 	9: ops.NewOperatorConstructor(newAsinh, 9, asinhTypeConstraints),
 }
 
-func GetAsinhVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return asinhVersions
 }

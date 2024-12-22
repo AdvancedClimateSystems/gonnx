@@ -7,6 +7,6 @@ var transposeVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newTranspose, 13, transposeTypeConstraint),
 }
 
-func GetTransposeVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return transposeVersions
 }

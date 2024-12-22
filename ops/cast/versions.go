@@ -10,6 +10,6 @@ var castVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newCast, 13, castTypeConstraints),
 }
 
-func GetCastVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return castVersions
 }

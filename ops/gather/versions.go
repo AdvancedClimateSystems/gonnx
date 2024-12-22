@@ -8,6 +8,6 @@ var gatherVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newGather, 13, gatherTypeConstraints),
 }
 
-func GetGatherVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return gatherVersions
 }

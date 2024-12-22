@@ -7,6 +7,6 @@ var subVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newSub, 13, subTypeConstraints),
 }
 
-func GetSubVersions() ops.OperatorVersions {
+func GetVersions() ops.OperatorVersions {
 	return subVersions
 }
