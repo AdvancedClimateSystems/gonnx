@@ -65,9 +65,10 @@ func (c *CumSum) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	return []tensor.Tensor{out}, nil
 }
 
-// Performs cumulative sum of the input elements along the given axis. By default, it will do the sum inclusively meaning the first element is copied as is. Through an exclusive attribute, this behavior can change to exclude the first element. It can also perform summation in the opposite direction of the axis. For that, set reverse attribute to 1.
+// Performs cumulative sum of the input elements along the given axis.
+// Exclusive means the the cumsum for position j will not include the j-th element.
+// Reverse means the cumsum will be performed in reverse order.
 func cumsum(x tensor.Tensor, axis int, exclusive, reverse bool) (tensor.Tensor, error) {
-	// First we copy the input tensor to the output tensor.
 	out, ok := x.Clone().(tensor.Tensor)
 	if !ok {
 		return nil, ops.ErrCast
