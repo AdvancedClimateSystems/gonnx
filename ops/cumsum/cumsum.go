@@ -110,10 +110,11 @@ func cumsum(x tensor.Tensor, axis int, exclusive, reverse bool) (tensor.Tensor, 
 
 		currentValues := currentView.Materialize()
 
+		switch {
 		// If exclusive is true, the first result in the cumsum opertaion is zero.
 		// We can achieve this by subtracting the current values from the current values.
 		// This way we don't have to infer the underlying type of the tensor.
-		if i == startValue && exclusive {
+		case i == startValue && exclusive:
 			zeroValues, err := ops.Sub(currentValues, currentValues)
 			if err != nil {
 				return nil, err
@@ -123,9 +124,8 @@ func cumsum(x tensor.Tensor, axis int, exclusive, reverse bool) (tensor.Tensor, 
 			if err != nil {
 				return nil, err
 			}
-		}
 
-		if (i != startValue) && exclusive {
+		case i != startValue && exclusive:
 			err = tensor.Copy(currentView, prevValues)
 			if err != nil {
 				return nil, err
@@ -137,7 +137,7 @@ func cumsum(x tensor.Tensor, axis int, exclusive, reverse bool) (tensor.Tensor, 
 			}
 
 			prevValues = newValues
-		} else if i != startValue {
+		case i != startValue:
 			newValues, err := ops.Add(currentValues, prevValues)
 			if err != nil {
 				return nil, err
