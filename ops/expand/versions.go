@@ -5,6 +5,7 @@ import (
 )
 
 var expandVersions = ops.OperatorVersions{
+	8:  ops.NewOperatorConstructor(newExpand, 8, expandTypeConstraints),
 	13: ops.NewOperatorConstructor(newExpand, 13, expandTypeConstraints),
 }
 
