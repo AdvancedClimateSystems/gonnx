@@ -7,7 +7,7 @@ import (
 )
 
 var castTypeConstraints = [][]tensor.Dtype{
-	{tensor.Int16, tensor.Uint16, tensor.Int32, tensor.Uint32, tensor.Int64, tensor.Uint64, tensor.Float32, tensor.Float64},
+	{tensor.Bool, tensor.Int16, tensor.Uint16, tensor.Int32, tensor.Uint32, tensor.Int64, tensor.Uint64, tensor.Float32, tensor.Float64},
 }
 
 // Cast represents the ONNX cast operator.

@@ -87,10 +87,10 @@ func TestConvertTensorDtype(t *testing.T) {
 			nil,
 		},
 		{
-			tensor.New(tensor.WithShape(2), tensor.WithBacking([]bool{true, false})),
+			tensor.New(tensor.WithShape(2), tensor.WithBacking([]string{"joe", "joe"})),
 			tensor.New(tensor.WithShape(2), tensor.WithBacking([]float32{1.0, 2.0})),
 			1,
-			ErrConversionInvalidType(tensor.Bool, 1),
+			ErrConversionInvalidType(tensor.String, 1),
 		},
 		{
 			tensor.New(tensor.WithShape(2), tensor.WithBacking([]float32{1.0, 2.1})),

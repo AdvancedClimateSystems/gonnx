@@ -60,6 +60,20 @@ func TestCast(t *testing.T) {
 			3,
 			[]int8{1, 1},
 		},
+		{
+			13,
+			[]float64{1.0, 0.0},
+			[]int{2},
+			9,
+			[]bool{true, false},
+		},
+		{
+			13,
+			[]bool{false, true},
+			[]int{2},
+			1,
+			[]float32{0.0, 1.0},
+		},
 	}
 
 	for _, test := range tests {
@@ -102,9 +116,9 @@ func TestInputValidationCast(t *testing.T) {
 		{
 			13,
 			[]tensor.Tensor{
-				ops.TensorWithBackingFixture([]bool{true, false}, 2),
+				ops.TensorWithBackingFixture([]int{1, 0}, 2),
 			},
-			ops.ErrInvalidInputType(0, "bool", cast13BaseOpFixture()),
+			ops.ErrInvalidInputType(0, "int", cast13BaseOpFixture()),
 		},
 	}
 
