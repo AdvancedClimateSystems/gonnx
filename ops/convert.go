@@ -159,6 +159,7 @@ func createNewBooleanBacking[B NumericType](backing []B) []bool {
 
 func createNewBackingFromBoolean[T NumericType](backing []bool) []T {
 	newBacking := make([]T, len(backing))
+
 	for i := range backing {
 		if backing[i] {
 			newBacking[i] = 1
