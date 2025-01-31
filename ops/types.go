@@ -7,8 +7,12 @@ type FloatType interface {
 	float32 | float64
 }
 
+type IntType interface {
+	uint8 | uint16 | uint32 | uint64 | int8 | int16 | int32 | int64
+}
+
 type NumericType interface {
-	uint8 | uint16 | uint32 | uint64 | int8 | int16 | int32 | int64 | FloatType
+	IntType | FloatType
 }
 
 // AllTypes is a type constraint which allows all types.
