@@ -82,7 +82,7 @@ var ignoredTests = []string{
 	"test_softmax_axis_2_expanded_ver18",              // Opset18
 	"test_reshape_allowzero_reordered",                // Opset14
 
-	"test_identity_opt", // Bug in test? Can't read in input tensor.
+	"test_identity_opt", // Error in test? Can not read in input tensor. https://github.com/onnx/onnx/issues/6842
 
 	"test_constant_pad",                      // Pad is not implemented yet.
 	"test_constant_pad_axes",                 // Pad is not implemented yet.
