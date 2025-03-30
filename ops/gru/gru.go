@@ -102,27 +102,9 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, ops.ErrUnsupportedInput("sequence lens", g.BaseOperator)
 	}
 
-	X := inputs[0]
-
-	var seqLength int
-
-	var batchSize int
-
-	// The 'layout' parameter handles whether or not the batch dimension comes
-	// first in the tensor. If this is the case, we reshape it here in
-	// in the beginning of the operation, and reverse it at the end of the operation.
-	if g.layout == 1 {
-		seqLength = X.Shape()[1]
-		batchSize = X.Shape()[0]
-		inputSize := X.Shape()[2]
-
-		err := X.Reshape(seqLength, batchSize, inputSize)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		seqLength = X.Shape()[0]
-		batchSize = X.Shape()[1]
+	X, seqLength, batchSize, err := ops.ReshapeInputTensorBasedOnLayout(inputs[0], g.layout)
+	if err != nil {
+		return nil, err
 	}
 
 	Wz, Wr, Wh, err := g.getWeights(inputs[1])
@@ -147,12 +129,20 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	prevH := inputs[5]
-	if prevH == nil {
+	var prevH tensor.Tensor
+
+	if inputs[5] == nil {
 		if g.layout == 1 {
 			prevH = ops.ZeroTensor(batchSize, 1, g.hiddenSize)
 		} else {
 			prevH = ops.ZeroTensor(1, batchSize, g.hiddenSize)
+		}
+	} else {
+		var ok bool
+
+		prevH, ok = inputs[5].Clone().(tensor.Tensor)
+		if !ok {
+			return nil, ops.ErrTypeAssert("tensor.Tensor", inputs[5].Clone())
 		}
 	}
 

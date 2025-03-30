@@ -105,27 +105,9 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, ops.ErrUnsupportedInput("sequence_lens", l.BaseOperator)
 	}
 
-	X := inputs[0]
-
-	var seqLength int
-
-	var batchSize int
-
-	// The 'layout' parameter handles whether or not the batch dimension comes
-	// first in the tensor. If this is the case, we reshape it here in
-	// in the beginning of the operation, and reverse it at the end of the operation.
-	if l.layout == 1 {
-		seqLength = X.Shape()[1]
-		batchSize = X.Shape()[0]
-		inputSize := X.Shape()[2]
-
-		err := X.Reshape(seqLength, batchSize, inputSize)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		seqLength = X.Shape()[0]
-		batchSize = X.Shape()[1]
+	X, seqLength, batchSize, err := ops.ReshapeInputTensorBasedOnLayout(inputs[0], l.layout)
+	if err != nil {
+		return nil, err
 	}
 
 	Wi, Wo, Wf, Wc, err := l.getWeights(inputs[1])
@@ -150,21 +132,37 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	Ht := inputs[5]
-	if Ht == nil {
+	var Ht tensor.Tensor
+
+	if inputs[5] == nil {
 		if l.layout == 1 {
 			Ht = ops.ZeroTensor(batchSize, 1, l.hiddenSize)
 		} else {
 			Ht = ops.ZeroTensor(1, batchSize, l.hiddenSize)
 		}
+	} else {
+		var ok bool
+
+		Ht, ok = inputs[5].Clone().(tensor.Tensor)
+		if !ok {
+			return nil, ops.ErrTypeAssert("tensor.Tensor", inputs[5].Clone())
+		}
 	}
 
-	Ct := inputs[6]
-	if Ct == nil {
+	var Ct tensor.Tensor
+
+	if inputs[6] == nil {
 		if l.layout == 1 {
 			Ct = ops.ZeroTensor(batchSize, 1, l.hiddenSize)
 		} else {
 			Ct = ops.ZeroTensor(1, batchSize, l.hiddenSize)
+		}
+	} else {
+		var ok bool
+
+		Ct, ok = inputs[6].Clone().(tensor.Tensor)
+		if !ok {
+			return nil, ops.ErrTypeAssert("tensor.Tensor", inputs[6].Clone())
 		}
 	}
 

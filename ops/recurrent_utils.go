@@ -72,3 +72,25 @@ func OnesTensor(t tensor.Tensor) tensor.Tensor {
 		tensor.WithBacking(Ones(NElements(t.Shape()...))),
 	)
 }
+
+func ReshapeInputTensorBasedOnLayout(X tensor.Tensor, layout int) (tensor.Tensor, int, int, error) {
+	if layout == 1 {
+		newX, ok := X.Clone().(tensor.Tensor)
+		if !ok {
+			return nil, 0, 0, ErrTypeAssert("tensor.Tensor", X.Clone())
+		}
+
+		seqLength := X.Shape()[1]
+		batchSize := X.Shape()[0]
+		inputSize := X.Shape()[2]
+
+		err := newX.Reshape(seqLength, batchSize, inputSize)
+		if err != nil {
+			return nil, 0, 0, err
+		}
+
+		return newX, seqLength, batchSize, nil
+	}
+
+	return X, X.Shape()[0], X.Shape()[1], nil
+}
