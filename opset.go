@@ -30,6 +30,7 @@ import (
 	"github.com/advancedclimatesystems/gonnx/ops/greater"
 	"github.com/advancedclimatesystems/gonnx/ops/greaterorequal"
 	"github.com/advancedclimatesystems/gonnx/ops/gru"
+	"github.com/advancedclimatesystems/gonnx/ops/identity"
 	"github.com/advancedclimatesystems/gonnx/ops/less"
 	"github.com/advancedclimatesystems/gonnx/ops/lessorequal"
 	"github.com/advancedclimatesystems/gonnx/ops/linearregressor"
@@ -103,6 +104,7 @@ var operators = map[string]ops.OperatorVersions{
 	"Greater":         greater.GetVersions(),
 	"GreaterOrEqual":  greaterorequal.GetVersions(),
 	"GRU":             gru.GetVersions(),
+	"Identity":        identity.GetVersions(),
 	"Less":            less.GetVersions(),
 	"LessOrEqual":     lessorequal.GetVersions(),
 	"LinearRegressor": linearregressor.GetVersions(),
