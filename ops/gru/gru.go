@@ -31,6 +31,7 @@ type GRU struct {
 	activations       []string
 	direction         ops.SequenceProcessDirection
 	hiddenSize        int
+	layout            int
 	linearBeforeReset bool
 }
 
@@ -46,6 +47,7 @@ func newGRU(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 		),
 		activations:       []string{"sigmoid", "tanh"},
 		direction:         ops.Forward,
+		layout:            0,
 		linearBeforeReset: false,
 	}
 }
@@ -77,6 +79,13 @@ func (g *GRU) Init(n *onnx.NodeProto) error {
 			}
 		case ops.HiddenSizeAttr:
 			g.hiddenSize = int(attr.GetI())
+		case ops.LayoutAttr:
+			// 'layout' is supported since version 14
+			if g.Version() < 14 {
+				return ops.ErrInvalidAttribute(attr.GetName(), g)
+			}
+
+			g.layout = int(attr.GetI())
 		case "linear_before_reset":
 			g.linearBeforeReset = ops.Int64ToBool(attr.GetI())
 		default:
@@ -93,9 +102,10 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, ops.ErrUnsupportedInput("sequence lens", g.BaseOperator)
 	}
 
-	X := inputs[0]
-	seqLength := X.Shape()[0]
-	batchSize := X.Shape()[1]
+	X, seqLength, batchSize, err := ops.ReshapeInputTensorBasedOnLayout(inputs[0], g.layout)
+	if err != nil {
+		return nil, err
+	}
 
 	Wz, Wr, Wh, err := g.getWeights(inputs[1])
 	if err != nil {
@@ -119,17 +129,36 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	prevH := inputs[5]
-	if prevH == nil {
-		prevH = ops.ZeroTensor(1, batchSize, g.hiddenSize)
+	var prevH tensor.Tensor
+
+	if inputs[5] == nil {
+		if g.layout == 1 {
+			prevH = ops.ZeroTensor(batchSize, 1, g.hiddenSize)
+		} else {
+			prevH = ops.ZeroTensor(1, batchSize, g.hiddenSize)
+		}
+	} else {
+		var ok bool
+
+		prevH, ok = inputs[5].Clone().(tensor.Tensor)
+		if !ok {
+			return nil, ops.ErrTypeAssert("tensor.Tensor", inputs[5].Clone())
+		}
 	}
 
-	// Extract the shape of the hidden dimensions without the bidirectional dimension, as
-	// we do not support bidirectional GRU yet.
-	shapeWithoutBidir := prevH.Shape().Clone()[1:]
+	// If layout is 1, this means batch size comes as first dimension, and
+	// we reshape it here to the default layout.
+	if g.layout == 1 {
+		numDirections := prevH.Shape()[1]
+		if err = prevH.Reshape(numDirections, batchSize, g.hiddenSize); err != nil {
+			return nil, err
+		}
+	}
 
-	err = prevH.Reshape(shapeWithoutBidir...)
-	if err != nil {
+	// Reshape the hidden tensor without the bidirectional dimension, as
+	// we do not support bidirectional RNN yet. This is the dimension at
+	// index 0.
+	if err = prevH.Reshape(prevH.Shape().Clone()[1:]...); err != nil {
 		return nil, err
 	}
 
@@ -184,21 +213,29 @@ func (g *GRU) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		Y = outputs[0]
 	}
 
-	// Reshape the output so it adds the num_directions as specified by onnx.
-	err = Y.Reshape([]int{seqLength, 1, batchSize, g.hiddenSize}...)
-	if err != nil {
-		return nil, err
-	}
-
 	Yh, ok := prevH.Clone().(tensor.Tensor)
 	if !ok {
 		return nil, ops.ErrTypeAssert("tensor.Tensor", prevH.Clone())
 	}
 
-	// Reshape the output so it adds the num_directions as specified by onnx.
-	err = Yh.Reshape([]int{1, batchSize, g.hiddenSize}...)
-	if err != nil {
-		return nil, err
+	// Reshape the output according to the specified layout and re-add the
+	// num_directions dimension.
+	if g.layout == 1 {
+		if err = Y.Reshape(batchSize, seqLength, 1, g.hiddenSize); err != nil {
+			return nil, err
+		}
+
+		if err = Yh.Reshape(batchSize, 1, g.hiddenSize); err != nil {
+			return nil, err
+		}
+	} else {
+		if err = Y.Reshape(seqLength, 1, batchSize, g.hiddenSize); err != nil {
+			return nil, err
+		}
+
+		if err = Yh.Reshape(1, batchSize, g.hiddenSize); err != nil {
+			return nil, err
+		}
 	}
 
 	return []tensor.Tensor{Y, Yh}, nil

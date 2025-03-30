@@ -32,6 +32,7 @@ type LSTM struct {
 	activations     []string
 	direction       ops.SequenceProcessDirection
 	hiddenSize      int
+	layout          int
 	inputForget     bool
 
 	outputs []string
@@ -49,6 +50,7 @@ func newLSTM(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 		),
 		activations: []string{"sigmoid", "tanh", "tanh"},
 		direction:   ops.Forward,
+		layout:      0,
 		inputForget: false,
 		outputs:     []string{"Y", "Y_h", "Y_c"},
 	}
@@ -76,6 +78,13 @@ func (l *LSTM) Init(n *onnx.NodeProto) error {
 			if l.direction != ops.Forward {
 				return ops.ErrUnsupportedAttribute(attr.GetName(), l)
 			}
+		case ops.LayoutAttr:
+			// 'layout' is supported since version 14
+			if l.Version() < 14 {
+				return ops.ErrInvalidAttribute(attr.GetName(), l)
+			}
+
+			l.layout = int(attr.GetI())
 		case ops.HiddenSizeAttr:
 			l.hiddenSize = int(attr.GetI())
 		case "input_forget":
@@ -96,9 +105,10 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, ops.ErrUnsupportedInput("sequence_lens", l.BaseOperator)
 	}
 
-	X := inputs[0]
-	seqLength := X.Shape()[0]
-	batchSize := X.Shape()[1]
+	X, seqLength, batchSize, err := ops.ReshapeInputTensorBasedOnLayout(inputs[0], l.layout)
+	if err != nil {
+		return nil, err
+	}
 
 	Wi, Wo, Wf, Wc, err := l.getWeights(inputs[1])
 	if err != nil {
@@ -122,14 +132,38 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, err
 	}
 
-	Ht := inputs[5]
-	if Ht == nil {
-		Ht = ops.ZeroTensor(1, batchSize, l.hiddenSize)
+	var Ht tensor.Tensor
+
+	if inputs[5] == nil {
+		if l.layout == 1 {
+			Ht = ops.ZeroTensor(batchSize, 1, l.hiddenSize)
+		} else {
+			Ht = ops.ZeroTensor(1, batchSize, l.hiddenSize)
+		}
+	} else {
+		var ok bool
+
+		Ht, ok = inputs[5].Clone().(tensor.Tensor)
+		if !ok {
+			return nil, ops.ErrTypeAssert("tensor.Tensor", inputs[5].Clone())
+		}
 	}
 
-	Ct := inputs[6]
-	if Ct == nil {
-		Ct = ops.ZeroTensor(1, batchSize, l.hiddenSize)
+	var Ct tensor.Tensor
+
+	if inputs[6] == nil {
+		if l.layout == 1 {
+			Ct = ops.ZeroTensor(batchSize, 1, l.hiddenSize)
+		} else {
+			Ct = ops.ZeroTensor(1, batchSize, l.hiddenSize)
+		}
+	} else {
+		var ok bool
+
+		Ct, ok = inputs[6].Clone().(tensor.Tensor)
+		if !ok {
+			return nil, ops.ErrTypeAssert("tensor.Tensor", inputs[6].Clone())
+		}
 	}
 
 	var Pi, Po, Pf tensor.Tensor
@@ -138,6 +172,19 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	if P != nil {
 		Pi, Po, Pf, err = l.getPeepholes(P)
 		if err != nil {
+			return nil, err
+		}
+	}
+
+	// If layout is 1, this means batch size comes as first dimension, and
+	// we reshape the hidden states here to the default layout.
+	if l.layout == 1 {
+		numDirections := Ht.Shape()[1]
+		if err = Ht.Reshape(numDirections, batchSize, l.hiddenSize); err != nil {
+			return nil, err
+		}
+
+		if err = Ct.Reshape(numDirections, batchSize, l.hiddenSize); err != nil {
 			return nil, err
 		}
 	}
@@ -232,16 +279,30 @@ func (l *LSTM) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	// Reshape the hidden tensor without the bidirectional dimension, as
 	// we do not support bidirectional RNN yet. This is the dimension at
 	// index 0.
-	if err = Y.Reshape(seqLength, 1, batchSize, l.hiddenSize); err != nil {
-		return nil, err
-	}
+	if l.layout == 1 {
+		if err = Y.Reshape(batchSize, seqLength, 1, l.hiddenSize); err != nil {
+			return nil, err
+		}
 
-	if err = Yh.Reshape(1, batchSize, l.hiddenSize); err != nil {
-		return nil, err
-	}
+		if err = Yh.Reshape(batchSize, 1, l.hiddenSize); err != nil {
+			return nil, err
+		}
 
-	if err = Yc.Reshape(1, batchSize, l.hiddenSize); err != nil {
-		return nil, err
+		if err = Yc.Reshape(batchSize, 1, l.hiddenSize); err != nil {
+			return nil, err
+		}
+	} else {
+		if err = Y.Reshape(seqLength, 1, batchSize, l.hiddenSize); err != nil {
+			return nil, err
+		}
+
+		if err = Yh.Reshape(1, batchSize, l.hiddenSize); err != nil {
+			return nil, err
+		}
+
+		if err = Yc.Reshape(1, batchSize, l.hiddenSize); err != nil {
+			return nil, err
+		}
 	}
 
 	outputMap := map[string]tensor.Tensor{

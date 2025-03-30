@@ -48,11 +48,12 @@ func TestLSTMInitUnkownAttr(t *testing.T) {
 
 func TestLSTM(t *testing.T) {
 	tests := []struct {
-		version  int64
-		attrs    *onnx.NodeProto
-		inputs   ops.InputFixture
-		expected []float32
-		err      error
+		version       int64
+		attrs         *onnx.NodeProto
+		inputs        ops.InputFixture
+		expected      []float32
+		expectedShape tensor.Shape
+		err           error
 	}{
 		{
 			7,
@@ -68,6 +69,7 @@ func TestLSTM(t *testing.T) {
 			},
 			lstmInput0,
 			[]float32{0.9159305, 0.9356764, 0.87070554, 0.84180677},
+			nil,
 			nil,
 		},
 		{
@@ -85,6 +87,7 @@ func TestLSTM(t *testing.T) {
 			lstmInput0,
 			[]float32{1.7530097, 1.7829735, 1.6231446, 1.5197954},
 			nil,
+			nil,
 		},
 		{
 			7,
@@ -100,6 +103,7 @@ func TestLSTM(t *testing.T) {
 			},
 			lstmInput1,
 			[]float32{10.598255, 10.547241, 10.214846, 10.267471},
+			nil,
 			nil,
 		},
 		{
@@ -117,6 +121,7 @@ func TestLSTM(t *testing.T) {
 			lstmInputNoBNoH,
 			[]float32{8.276371, 8.291079, 8.161418, 7.7900877},
 			nil,
+			nil,
 		},
 		{
 			7,
@@ -133,6 +138,45 @@ func TestLSTM(t *testing.T) {
 			lstmInputPeepholes,
 			[]float32{0.99891853, 0.99994266, 0.9995524, 0.99171203},
 			nil,
+			nil,
+		},
+		{
+			14,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "activation_alpha", Floats: []float32{}},
+					{Name: "activation_beta", Floats: []float32{}},
+					{Name: "activations", Strings: [][]byte{[]byte("sigmoid"), []byte("tanh"), []byte("tanh")}},
+					{Name: "direction", S: []byte("forward")},
+					{Name: "hidden_size", I: 4},
+					{Name: "layout", I: 1},
+				},
+				Output: []string{"Y", "Y_h", "Y_c"},
+			},
+			lstmInputBatchFirst,
+			[]float32{0.94253653, 0.98116714, 0.9265363, 0.9144332, 0.93192303, 0.97583324, 0.91199535, 0.8959566},
+			// shape [batch_size, sequence_length, num_directions, hidden_size]
+			[]int{2, 10, 1, 4},
+			nil,
+		},
+		{
+			14,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "activation_alpha", Floats: []float32{}},
+					{Name: "activation_beta", Floats: []float32{}},
+					{Name: "activations", Strings: [][]byte{[]byte("sigmoid"), []byte("tanh"), []byte("tanh")}},
+					{Name: "direction", S: []byte("forward")},
+					{Name: "hidden_size", I: 4},
+					{Name: "layout", I: 1},
+				},
+				Output: []string{"Y", "Y_h", "Y_c"},
+			},
+			lstmInputBatchFirstNoHNoC,
+			[]float32{0.99986863, 0.9999849, 0.98989785, 0.99847853, 0.9999217, 0.9999911, 0.9903357, 0.998897},
+			// shape [batch_size, sequence_length, num_directions, hidden_size]
+			[]int{2, 10, 1, 4},
+			nil,
 		},
 	}
 
@@ -148,6 +192,10 @@ func TestLSTM(t *testing.T) {
 
 		if err == nil {
 			assert.Equal(t, test.expected, res[1].Data())
+
+			if test.expectedShape != nil {
+				assert.Equal(t, test.expectedShape, res[0].Shape())
+			}
 		}
 	}
 }
@@ -387,6 +435,52 @@ func lstmInputPeepholes() []tensor.Tensor {
 	return []tensor.Tensor{
 		// Input X: (sequence_length, batch_size, input_size).
 		ops.RandomFloat32TensorFixture(r, 10, 1, 3),
+		// Input W: (num_directions, 4 * hidden_size, input_size).
+		ops.RandomFloat32TensorFixture(r, 1, 16, 3),
+		// Input R: (num_directions, 4 * hidden_size, hidden_size).
+		ops.RandomFloat32TensorFixture(r, 1, 16, 4),
+		// Input B.
+		nil,
+		// Input sequence_lens: not supported.
+		nil,
+		// Input initial_h.
+		nil,
+		// Input initial_c.
+		nil,
+		// Input P: (num_directions, 3 * hidden_size).
+		ops.RandomFloat32TensorFixture(r, 1, 12),
+	}
+}
+
+func lstmInputBatchFirst() []tensor.Tensor {
+	r := rand.New(rand.NewSource(13))
+
+	return []tensor.Tensor{
+		// Input X: (batch_size, sequence_length, input_size).
+		ops.RandomFloat32TensorFixture(r, 2, 10, 3),
+		// Input W: (num_directions, 4 * hidden_size, input_size).
+		ops.RandomFloat32TensorFixture(r, 1, 16, 3),
+		// Input R: (num_directions, 4 * hidden_size, hidden_size).
+		ops.RandomFloat32TensorFixture(r, 1, 16, 4),
+		// Input B.
+		nil,
+		// Input sequence_lens: not supported.
+		nil,
+		// Input initial_h: (batch_size, num_directions, hidden_size).
+		ops.RandomFloat32TensorFixture(r, 2, 1, 4),
+		// Input initial_c: (batch_size, num_directions, hidden_size).
+		ops.RandomFloat32TensorFixture(r, 2, 1, 4),
+		// Input P: peephole weights.
+		nil,
+	}
+}
+
+func lstmInputBatchFirstNoHNoC() []tensor.Tensor {
+	r := rand.New(rand.NewSource(13))
+
+	return []tensor.Tensor{
+		// Input X: (sequence_length, batch_size, input_size).
+		ops.RandomFloat32TensorFixture(r, 2, 10, 3),
 		// Input W: (num_directions, 4 * hidden_size, input_size).
 		ops.RandomFloat32TensorFixture(r, 1, 16, 3),
 		// Input R: (num_directions, 4 * hidden_size, hidden_size).

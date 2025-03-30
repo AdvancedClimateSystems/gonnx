@@ -23,9 +23,6 @@ import (
 // Another reason is that some tests require an opset version higher than we have currently
 // implemented, or lower, which we also haven't implemented yet.
 var ignoredTests = []string{
-	"test_add_uint8",                                  // Opset14
-	"test_div_uint8",                                  // Opset14
-	"test_gru_batchwise",                              // Opset14
 	"test_logsoftmax_axis_1_expanded_ver18",           // Opset18
 	"test_logsoftmax_example_1_expanded_ver18",        // Opset18
 	"test_logsoftmax_negative_axis_expanded_ver18",    // Opset18
@@ -33,8 +30,6 @@ var ignoredTests = []string{
 	"test_logsoftmax_default_axis_expanded_ver18",     // Opset18
 	"test_logsoftmax_axis_0_expanded_ver18",           // Opset18
 	"test_logsoftmax_axis_2_expanded_ver18",           // Opset18
-	"test_lstm_batchwise",                             // Opset14
-	"test_mul_uint8",                                  // Opset14
 	"test_reduce_max_empty_set",                       // Opset20
 	"test_reduce_max_do_not_keepdims_random",          // Opset18
 	"test_reduce_max_keepdims_random",                 // Opset18
@@ -63,7 +58,6 @@ var ignoredTests = []string{
 	"test_reduce_mean_default_axes_keepdims_example",  // Opset18
 	"test_reduce_mean_do_not_keepdims_example",        // Opset18
 	"test_reduce_mean_keepdims_example",               // Opset18
-	"test_sub_uint8",                                  // Opset14
 	"test_shape_clip_end",                             // Opset15
 	"test_shape_clip_start",                           // Opset15
 	"test_shape_end_1",                                // Opset15
@@ -106,6 +100,9 @@ var ignoredTests = []string{
 	"test_slice_end_out_of_bounds",           // ONNX expects nil output, but we throw an error.
 	"test_slice_neg_steps",                   // ONNX expects nil output, but we throw an error.
 	"test_slice_neg",                         // ONNX expects nil output, but we throw an error.
+
+	"test_tril_zero", // Has a zero dimension in the middle (3, 0, 5) which is not supported in tensor.Tensor.
+	"test_triu_zero", // Has a zero dimension in the middle (3, 0, 5) which is not supported in tensor.Tensor.
 
 	"test_equal_string",                               // Unsupported datatype String.
 	"test_equal_string_broadcast",                     // Unsupported datatype String.
@@ -214,13 +211,19 @@ func TestOps(t *testing.T) {
 
 func getTestCasesForOp(opName string) ([]*ONNXTestCase, error) {
 	testOpName := strings.ToLower(opName)
+
+	filterNames := []string{testOpName}
+
 	// Because the naming of the ONNX test cases are not fully consistent, we need
 	// to map some operator names to insert some '_' in the filter.
 	if mappedFilter, ok := opNameMap[testOpName]; ok {
-		testOpName = mappedFilter
+		filterNames = append(filterNames, mappedFilter...)
 	}
 
-	opFilter := fmt.Sprintf("test_%v", testOpName)
+	opFilters := make([]string, len(filterNames))
+	for i, filterName := range filterNames {
+		opFilters[i] = fmt.Sprintf("test_%v", filterName)
+	}
 
 	testDir, err := os.Open("./test_data")
 	if err != nil {
@@ -235,7 +238,7 @@ func getTestCasesForOp(opName string) ([]*ONNXTestCase, error) {
 	var tests []*ONNXTestCase
 
 	for _, testFolder := range testFolders {
-		if shouldRunTest(testFolder, opFilter) {
+		if shouldRunTest(testFolder, opFilters) {
 			testcase, err := getTestCase(fmt.Sprintf("./test_data/%v", testFolder))
 			if err != nil {
 				return nil, err
@@ -249,17 +252,19 @@ func getTestCasesForOp(opName string) ([]*ONNXTestCase, error) {
 	return tests, nil
 }
 
-func shouldRunTest(folder, opFilter string) bool {
+func shouldRunTest(folder string, opFilters []string) bool {
 	for _, ignoredTest := range ignoredTests {
 		if folder == ignoredTest {
 			return false
 		}
 	}
 
-	if strings.Contains(folder, opFilter) {
-		remaining := strings.ReplaceAll(folder, opFilter, "")
-		if len(remaining) == 0 || remaining[:1] == "_" {
-			return true
+	for _, opFilter := range opFilters {
+		if strings.Contains(folder, opFilter) {
+			remaining := strings.ReplaceAll(folder, opFilter, "")
+			if len(remaining) == 0 || remaining[:1] == "_" {
+				return true
+			}
 		}
 	}
 
@@ -366,6 +371,7 @@ var expectedTests = []string{
 	"test_acosh_example",
 	"test_add",
 	"test_add_bcast",
+	"test_add_uint8",
 	"test_and_bcast3v1d",
 	"test_and_bcast3v2d",
 	"test_and_bcast4v2d",
@@ -422,6 +428,7 @@ var expectedTests = []string{
 	"test_div",
 	"test_div_bcast",
 	"test_div_example",
+	"test_div_uint8",
 	"test_equal",
 	"test_equal_bcast",
 	"test_erf",
@@ -457,6 +464,7 @@ var expectedTests = []string{
 	"test_greater_equal_bcast",
 	"test_greater_equal_bcast_expanded",
 	"test_greater_equal_expanded",
+	"test_gru_batchwise",
 	"test_gru_defaults",
 	"test_gru_seq_length",
 	"test_gru_with_initial_bias",
@@ -475,6 +483,7 @@ var expectedTests = []string{
 	"test_logsoftmax_example_1",
 	"test_logsoftmax_large_number",
 	"test_logsoftmax_negative_axis",
+	"test_lstm_batchwise",
 	"test_lstm_defaults",
 	"test_lstm_with_initial_bias",
 	"test_matmul_4d",
@@ -483,6 +492,7 @@ var expectedTests = []string{
 	"test_mul",
 	"test_mul_bcast",
 	"test_mul_example",
+	"test_mul_uint8",
 	"test_not_2d",
 	"test_not_3d",
 	"test_not_4d",
@@ -541,6 +551,7 @@ var expectedTests = []string{
 	"test_sub",
 	"test_sub_bcast",
 	"test_sub_example",
+	"test_sub_uint8",
 	"test_tan",
 	"test_tan_example",
 	"test_tanh",
@@ -552,6 +563,22 @@ var expectedTests = []string{
 	"test_transpose_all_permutations_4",
 	"test_transpose_all_permutations_5",
 	"test_transpose_default",
+	"test_tril",
+	"test_tril_neg",
+	"test_tril_one_row_neg",
+	"test_tril_out_neg",
+	"test_tril_out_pos",
+	"test_tril_pos",
+	"test_tril_square",
+	"test_tril_square_neg",
+	"test_triu",
+	"test_triu_neg",
+	"test_triu_one_row",
+	"test_triu_out_neg_out",
+	"test_triu_out_pos",
+	"test_triu_pos",
+	"test_triu_square",
+	"test_triu_square_neg",
 	"test_unsqueeze_axis_0",
 	"test_unsqueeze_axis_1",
 	"test_unsqueeze_axis_2",
@@ -568,8 +595,9 @@ var expectedTests = []string{
 	"test_xor_bcast4v4d",
 }
 
-var opNameMap = map[string]string{
-	"reducemax":  "reduce_max",
-	"reducemin":  "reduce_min",
-	"reducemean": "reduce_mean",
+var opNameMap = map[string][]string{
+	"reducemax":  []string{"reduce_max"},
+	"reducemin":  []string{"reduce_min"},
+	"reducemean": []string{"reduce_mean"},
+	"trilu":      []string{"tril", "triu"},
 }

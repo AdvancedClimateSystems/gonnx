@@ -6,6 +6,7 @@ import (
 
 var identityVersions = ops.OperatorVersions{
 	13: ops.NewOperatorConstructor(newIdentity, 13, identityTypeConstraints),
+	14: ops.NewOperatorConstructor(newIdentity, 14, identityTypeConstraints),
 }
 
 func GetVersions() ops.OperatorVersions {

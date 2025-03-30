@@ -46,11 +46,12 @@ func TestGruInitUnkownAttr(t *testing.T) {
 
 func TestGru(t *testing.T) {
 	tests := []struct {
-		version  int64
-		node     *onnx.NodeProto
-		inputs   ops.InputFixture
-		expected []float32
-		err      error
+		version       int64
+		node          *onnx.NodeProto
+		inputs        ops.InputFixture
+		expected      []float32
+		expectedShape tensor.Shape
+		err           error
 	}{
 		{
 			7,
@@ -67,6 +68,7 @@ func TestGru(t *testing.T) {
 			gruInput0,
 			[]float32{6.6936556e-03, 8.3446503e-07, 0.0000000e+00, 0.0000000e+00},
 			nil,
+			nil,
 		},
 		{
 			7,
@@ -82,6 +84,7 @@ func TestGru(t *testing.T) {
 			},
 			gruInput0,
 			[]float32{6.6936556e-03, 8.3446503e-07, 0.0000000e+00, 0.0000000e+00},
+			nil,
 			nil,
 		},
 		{
@@ -99,6 +102,7 @@ func TestGru(t *testing.T) {
 			gruInput1,
 			[]float32{0.44905475, 0.4406946, 0.43368173, 0.42782417},
 			nil,
+			nil,
 		},
 		{
 			7,
@@ -115,6 +119,45 @@ func TestGru(t *testing.T) {
 			gruInputNoBNoH,
 			[]float32{0.24553154, 0.24553154, 0.24553154, 0.24553154},
 			nil,
+			nil,
+		},
+		{
+			14,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "activation_alpha", Floats: []float32{}},
+					{Name: "activation_beta", Floats: []float32{}},
+					{Name: "activations", Strings: [][]byte{[]byte("sigmoid"), []byte("tanh")}},
+					{Name: "direction", S: []byte("forward")},
+					{Name: "hidden_size", I: 4},
+					{Name: "layout", I: 1},
+					{Name: "linear_before_reset", I: 0},
+				},
+			},
+			gruInputBatchFirst,
+			[]float32{0.0066928267, 8.34465e-07, 0, 0, 8.34465e-07, 0, 0, 0},
+			// shape [batch_size, sequence_length, num_directions, hidden_size]
+			[]int{2, 5, 1, 4},
+			nil,
+		},
+		{
+			14,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "activation_alpha", Floats: []float32{}},
+					{Name: "activation_beta", Floats: []float32{}},
+					{Name: "activations", Strings: [][]byte{[]byte("sigmoid"), []byte("tanh")}},
+					{Name: "direction", S: []byte("forward")},
+					{Name: "hidden_size", I: 4},
+					{Name: "layout", I: 1},
+					{Name: "linear_before_reset", I: 0},
+				},
+			},
+			gruInputBatchFirstNoH,
+			[]float32{0.0066928267, 8.34465e-07, 0, 0, 8.34465e-07, 0, 0, 0},
+			// shape [batch_size, sequence_length, num_directions, hidden_size]
+			[]int{2, 5, 1, 4},
+			nil,
 		},
 	}
 
@@ -130,6 +173,10 @@ func TestGru(t *testing.T) {
 
 		if err == nil {
 			assert.Equal(t, test.expected, res[1].Data())
+
+			if test.expectedShape != nil {
+				assert.Equal(t, test.expectedShape, res[0].Shape())
+			}
 		}
 	}
 }
@@ -311,6 +358,40 @@ func gruInputNoBNoH() []tensor.Tensor {
 	}
 
 	return inputs
+}
+
+func gruInputBatchFirst() []tensor.Tensor {
+	return []tensor.Tensor{
+		// Input X: (batch_size, sequence_length, input_size).
+		ops.Float32TensorFixture(2, 5, 3),
+		// Input W: (num_directions, 3 * hidden_size, input_size).
+		ops.Float32TensorFixture(1, 12, 3),
+		// Input R: (num_directions, 3 * hidden_size, hidden_size).
+		ops.Float32TensorFixture(1, 12, 4),
+		// Input B: not provided.
+		nil,
+		// Input sequence_lens: not supported
+		nil,
+		// Input initial_h: (batch_size, num_directions, hidden_size)
+		ops.TensorWithBackingFixture(ops.Zeros(ops.NElements(2, 1, 4)), 2, 1, 4),
+	}
+}
+
+func gruInputBatchFirstNoH() []tensor.Tensor {
+	return []tensor.Tensor{
+		// Input X: (batch_size, sequence_length, input_size).
+		ops.Float32TensorFixture(2, 5, 3),
+		// Input W: (num_directions, 3 * hidden_size, input_size).
+		ops.Float32TensorFixture(1, 12, 3),
+		// Input R: (num_directions, 3 * hidden_size, hidden_size).
+		ops.Float32TensorFixture(1, 12, 4),
+		// Input B: not provided.
+		nil,
+		// Input sequence_lens: not supported
+		nil,
+		// Input initial_h: not provided
+		nil,
+	}
 }
 
 func GRUOnnxNodeProtoFixture() *onnx.NodeProto {
