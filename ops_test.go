@@ -99,6 +99,9 @@ var ignoredTests = []string{
 	"test_slice_neg_steps",                   // ONNX expects nil output, but we throw an error.
 	"test_slice_neg",                         // ONNX expects nil output, but we throw an error.
 
+	"test_tril_zero", // Has a zero dimension in the middle (3, 0, 5) which is not supported in tensor.Tensor.
+	"test_triu_zero", // Has a zero dimension in the middle (3, 0, 5) which is not supported in tensor.Tensor.
+
 	"test_equal_string",                               // Unsupported datatype String.
 	"test_equal_string_broadcast",                     // Unsupported datatype String.
 	"test_cast_INT4_to_INT8",                          // Unsupported datatype INT4.
@@ -206,13 +209,19 @@ func TestOps(t *testing.T) {
 
 func getTestCasesForOp(opName string) ([]*ONNXTestCase, error) {
 	testOpName := strings.ToLower(opName)
+
+	filterNames := []string{testOpName}
+
 	// Because the naming of the ONNX test cases are not fully consistent, we need
 	// to map some operator names to insert some '_' in the filter.
 	if mappedFilter, ok := opNameMap[testOpName]; ok {
-		testOpName = mappedFilter
+		filterNames = append(filterNames, mappedFilter...)
 	}
 
-	opFilter := fmt.Sprintf("test_%v", testOpName)
+	opFilters := make([]string, len(filterNames))
+	for i, filterName := range filterNames {
+		opFilters[i] = fmt.Sprintf("test_%v", filterName)
+	}
 
 	testDir, err := os.Open("./test_data")
 	if err != nil {
@@ -227,7 +236,7 @@ func getTestCasesForOp(opName string) ([]*ONNXTestCase, error) {
 	var tests []*ONNXTestCase
 
 	for _, testFolder := range testFolders {
-		if shouldRunTest(testFolder, opFilter) {
+		if shouldRunTest(testFolder, opFilters) {
 			testcase, err := getTestCase(fmt.Sprintf("./test_data/%v", testFolder))
 			if err != nil {
 				return nil, err
@@ -241,17 +250,19 @@ func getTestCasesForOp(opName string) ([]*ONNXTestCase, error) {
 	return tests, nil
 }
 
-func shouldRunTest(folder, opFilter string) bool {
+func shouldRunTest(folder string, opFilters []string) bool {
 	for _, ignoredTest := range ignoredTests {
 		if folder == ignoredTest {
 			return false
 		}
 	}
 
-	if strings.Contains(folder, opFilter) {
-		remaining := strings.ReplaceAll(folder, opFilter, "")
-		if len(remaining) == 0 || remaining[:1] == "_" {
-			return true
+	for _, opFilter := range opFilters {
+		if strings.Contains(folder, opFilter) {
+			remaining := strings.ReplaceAll(folder, opFilter, "")
+			if len(remaining) == 0 || remaining[:1] == "_" {
+				return true
+			}
 		}
 	}
 
@@ -548,6 +559,22 @@ var expectedTests = []string{
 	"test_transpose_all_permutations_4",
 	"test_transpose_all_permutations_5",
 	"test_transpose_default",
+	"test_tril",
+	"test_tril_neg",
+	"test_tril_one_row_neg",
+	"test_tril_out_neg",
+	"test_tril_out_pos",
+	"test_tril_pos",
+	"test_tril_square",
+	"test_tril_square_neg",
+	"test_triu",
+	"test_triu_neg",
+	"test_triu_one_row",
+	"test_triu_out_neg_out",
+	"test_triu_out_pos",
+	"test_triu_pos",
+	"test_triu_square",
+	"test_triu_square_neg",
 	"test_unsqueeze_axis_0",
 	"test_unsqueeze_axis_1",
 	"test_unsqueeze_axis_2",
@@ -564,8 +591,9 @@ var expectedTests = []string{
 	"test_xor_bcast4v4d",
 }
 
-var opNameMap = map[string]string{
-	"reducemax":  "reduce_max",
-	"reducemin":  "reduce_min",
-	"reducemean": "reduce_mean",
+var opNameMap = map[string][]string{
+	"reducemax":  []string{"reduce_max"},
+	"reducemin":  []string{"reduce_min"},
+	"reducemean": []string{"reduce_mean"},
+	"trilu":      []string{"tril", "triu"},
 }

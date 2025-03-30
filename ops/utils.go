@@ -228,7 +228,7 @@ func NElements(shp ...int) int {
 	return nElem
 }
 
-// PairwiseAssign essentially does pairwise t1 = t2 in place!.
+// PairwiseAssign essentially does pairwise t1 = t2 in place.
 func PairwiseAssign(t1, t2 tensor.Tensor) (err error) {
 	if !t1.Shape().Eq(t2.Shape()) {
 		return ErrInvalidShape
