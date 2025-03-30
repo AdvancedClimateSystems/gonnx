@@ -9,7 +9,7 @@ The goal of this package is to provide an easy way of running ONNX models in Go.
 is intended for inference usage of ONNX models. The package can be used to load an `.onnx` file
 and perform inference using the model described by this file.  
 
-Currently, we are implementing ONNX operation set 13, and we plan to add all opsets following this
+Currently, ONNX opset versions 7 up until 14 are supported, and we plan to add all opsets following this
 one as well. Feel free to contribute by implementing operators!
 
 ## Getting started
