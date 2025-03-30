@@ -23,6 +23,7 @@ const (
 	ClipAttr            = "clip"
 	DirectionAttr       = "direction"
 	HiddenSizeAttr      = "hidden_size"
+	LayoutAttr          = "layout"
 )
 
 // ExtractMatrices extracts a given number of matrices from tensor M.

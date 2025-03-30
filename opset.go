@@ -67,7 +67,7 @@ import (
 
 const (
 	MinSupportedOpset = 7
-	MaxSupportedOpset = 13
+	MaxSupportedOpset = 14
 )
 
 // Opset is a set of operators matching a certain opset version.
@@ -134,7 +134,7 @@ var operators = map[string]ops.OperatorVersions{
 	"Transpose":       transpose.GetVersions(),
 	"Unsqueeze":       unsqueeze.GetVersions(),
 	"Xor":             xor.GetVersions(),
-        "Where": where.GetVersions(),
+	"Where":           where.GetVersions(),
 }
 
 // GetClosestOperatorVersion resolves, given a certain opset version, the operator version that is closest

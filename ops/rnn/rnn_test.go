@@ -36,11 +36,12 @@ func TestRNNInitUnknownAttr(t *testing.T) {
 
 func TestRNN(t *testing.T) {
 	tests := []struct {
-		version  int64
-		attrs    *onnx.NodeProto
-		inputs   ops.InputFixture
-		expected []float32
-		err      error
+		version       int64
+		attrs         *onnx.NodeProto
+		inputs        ops.InputFixture
+		expected      []float32
+		expectedShape tensor.Shape
+		err           error
 	}{
 		{
 			7,
@@ -56,6 +57,7 @@ func TestRNN(t *testing.T) {
 			rnnInput0,
 			[]float32{0.78036773, 0.97858655, 0.94110376, 0.90722954},
 			nil,
+			nil,
 		},
 		{
 			7,
@@ -70,6 +72,7 @@ func TestRNN(t *testing.T) {
 			},
 			rnnInput0,
 			[]float32{0.82048327, 0.922734, 0.89050114, 0.8620579},
+			nil,
 			nil,
 		},
 		{
@@ -87,6 +90,7 @@ func TestRNN(t *testing.T) {
 			rnnInput0,
 			[]float32{1.0667435, 2.328037, 1.7986122, 1.545068},
 			nil,
+			nil,
 		},
 		{
 			7,
@@ -101,6 +105,7 @@ func TestRNN(t *testing.T) {
 			},
 			rnnInput1,
 			[]float32{0.99996024, 0.9999855, 0.99998087, 0.9999288, 0.9997511, 0.99918234, 0.99999964, 0.9999981, 0.9997658, 0.9999618, 0.9998762, 0.9999353, 0.9999194, 0.9999428, 0.9997284, 0.9982606, 0.999999, 0.9999897, 0.99964744, 0.9998234, 0.99997497, 0.9999893, 0.9999906, 0.9999812, 0.99983937, 0.99967873, 0.9999998, 0.9999965, 0.9999516, 0.9999541},
+			nil,
 			nil,
 		},
 		{
@@ -118,6 +123,7 @@ func TestRNN(t *testing.T) {
 			// Same values as first test, but B is initialized automatically.
 			[]float32{0.78036773, 0.97858655, 0.94110376, 0.90722954},
 			nil,
+			nil,
 		},
 		{
 			7,
@@ -134,6 +140,43 @@ func TestRNN(t *testing.T) {
 			// Same values as first test, but B and H are initialized automatically.
 			[]float32{0.78036773, 0.97858655, 0.94110376, 0.90722954},
 			nil,
+			nil,
+		},
+		{
+			14,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "activation_alpha", Floats: []float32{}},
+					{Name: "activation_beta", Floats: []float32{}},
+					{Name: "activations", Strings: [][]byte{[]byte("tanh")}},
+					{Name: "direction", S: []byte("forward")},
+					{Name: "hidden_size", I: 5},
+					{Name: "layout", I: 1},
+				},
+			},
+			rnnInputBatchFirst,
+			[]float32{0.98516846, 0.9842066, 0.99648196, 0.999319, 0.95900106, 0.96534646, 0.9786028, 0.99493814, 0.9979183, 0.9448906},
+			// shape [batch_size, sequence_length, num_directions, hidden_size]
+			[]int{2, 4, 1, 5},
+			nil,
+		},
+		{
+			14,
+			&onnx.NodeProto{
+				Attribute: []*onnx.AttributeProto{
+					{Name: "activation_alpha", Floats: []float32{}},
+					{Name: "activation_beta", Floats: []float32{}},
+					{Name: "activations", Strings: [][]byte{[]byte("tanh")}},
+					{Name: "direction", S: []byte("forward")},
+					{Name: "hidden_size", I: 5},
+					{Name: "layout", I: 1},
+				},
+			},
+			rnnInputBatchFirstNoH,
+			[]float32{0.98516846, 0.9842066, 0.99648196, 0.999319, 0.95900106, 0.96534646, 0.9786028, 0.99493814, 0.9979183, 0.9448906},
+			// shape [batch_size, sequence_length, num_directions, hidden_size]
+			[]int{2, 4, 1, 5},
+			nil,
 		},
 	}
 
@@ -149,6 +192,10 @@ func TestRNN(t *testing.T) {
 
 		if err == nil {
 			assert.Equal(t, test.expected, res[1].Data())
+
+			if test.expectedShape != nil {
+				assert.Equal(t, test.expectedShape, res[0].Shape())
+			}
 		}
 	}
 }
@@ -352,6 +399,44 @@ func rnnInputNoBNoH() []tensor.Tensor {
 		// Input sequence_lens: not supported
 		nil,
 		// Input initial_h: (num_directions, batch_size, hidden_size)
+		nil,
+	}
+}
+
+func rnnInputBatchFirst() []tensor.Tensor {
+	r := rand.New(rand.NewSource(13))
+
+	return []tensor.Tensor{
+		// Input X: (batch_size, sequence_length, input_size).
+		ops.RandomFloat32TensorFixture(r, 2, 4, 3),
+		// Input W: (num_directions, hidden_size, input_size).
+		ops.RandomFloat32TensorFixture(r, 1, 5, 3),
+		// Input R: (num_directions, hidden_size, hidden_size).
+		ops.RandomFloat32TensorFixture(r, 1, 5, 5),
+		// Input B: not provided.
+		nil,
+		// Input sequence_lens: not supported
+		nil,
+		// Input initial_h: (batch_size, num_directions, hidden_size)
+		ops.TensorWithBackingFixture(ops.Zeros(ops.NElements(2, 1, 5)), 2, 1, 5),
+	}
+}
+
+func rnnInputBatchFirstNoH() []tensor.Tensor {
+	r := rand.New(rand.NewSource(13))
+
+	return []tensor.Tensor{
+		// Input X: (batch_size, sequence_length, input_size).
+		ops.RandomFloat32TensorFixture(r, 2, 4, 3),
+		// Input W: (num_directions, hidden_size, input_size).
+		ops.RandomFloat32TensorFixture(r, 1, 5, 3),
+		// Input R: (num_directions, hidden_size, hidden_size).
+		ops.RandomFloat32TensorFixture(r, 1, 5, 5),
+		// Input B: not provided.
+		nil,
+		// Input sequence_lens: not supported
+		nil,
+		// Input initial_h: (batch_size, num_directions, hidden_size)
 		nil,
 	}
 }

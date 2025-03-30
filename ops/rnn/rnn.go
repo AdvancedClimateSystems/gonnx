@@ -30,6 +30,7 @@ type RNN struct {
 	activations     []string
 	direction       ops.SequenceProcessDirection
 	hiddenSize      int
+	layout          int
 }
 
 // newRNN creates a new rnn operator.
@@ -44,6 +45,7 @@ func newRNN(version int, typeConstraints [][]tensor.Dtype) ops.Operator {
 		),
 		activations: []string{"tanh"},
 		direction:   ops.Forward,
+		layout:      0,
 	}
 }
 
@@ -71,6 +73,13 @@ func (r *RNN) Init(n *onnx.NodeProto) error {
 			}
 		case ops.HiddenSizeAttr:
 			r.hiddenSize = int(attr.GetI())
+		case ops.LayoutAttr:
+			// 'layout' is supported since version 14
+			if r.Version() < 14 {
+				return ops.ErrInvalidAttribute(attr.GetName(), r)
+			}
+
+			r.layout = int(attr.GetI())
 		default:
 			return ops.ErrInvalidAttribute(attr.GetName(), r)
 		}
@@ -86,8 +95,27 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 	}
 
 	X := inputs[0]
-	seqLength := X.Shape()[0]
-	batchSize := X.Shape()[1]
+
+	var seqLength int
+
+	var batchSize int
+
+	// The 'layout' parameter handles whether or not the batch dimension comes
+	// first in the tensor. If this is the case, we reshape it here in
+	// in the beginning of the operation, and reverse it at the end of the operation.
+	if r.layout == 1 {
+		seqLength = X.Shape()[1]
+		batchSize = X.Shape()[0]
+		inputSize := X.Shape()[2]
+
+		err := X.Reshape(seqLength, batchSize, inputSize)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		seqLength = X.Shape()[0]
+		batchSize = X.Shape()[1]
+	}
 
 	Wi, err := r.getWeights(inputs[1])
 	if err != nil {
@@ -113,7 +141,20 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 
 	Ht := inputs[5]
 	if Ht == nil {
-		Ht = ops.ZeroTensor(1, batchSize, r.hiddenSize)
+		if r.layout == 1 {
+			Ht = ops.ZeroTensor(batchSize, 1, r.hiddenSize)
+		} else {
+			Ht = ops.ZeroTensor(1, batchSize, r.hiddenSize)
+		}
+	}
+
+	// If layout is 1, this means batch size comes as first dimension, and
+	// we reshape it here to the default layout.
+	if r.layout == 1 {
+		numDirections := Ht.Shape()[1]
+		if err = Ht.Reshape(numDirections, batchSize, r.hiddenSize); err != nil {
+			return nil, err
+		}
 	}
 
 	// Reshape the hidden tensor without the bidirectional dimension, as
@@ -159,15 +200,24 @@ func (r *RNN) Apply(inputs []tensor.Tensor) ([]tensor.Tensor, error) {
 		return nil, ops.ErrTypeAssert("tensor.Tensor", Ht.Clone())
 	}
 
-	// Reshape the hidden tensor without the bidirectional dimension, as
-	// we do not support bidirectional RNN yet. This is the dimension at
-	// index 0.
-	if err = Y.Reshape(seqLength, 1, batchSize, r.hiddenSize); err != nil {
-		return nil, err
-	}
+	// Reshape the output according to the specified layout and re-add the
+	// num_directions dimension.
+	if r.layout == 1 {
+		if err = Y.Reshape(batchSize, seqLength, 1, r.hiddenSize); err != nil {
+			return nil, err
+		}
 
-	if err = Yh.Reshape(1, batchSize, r.hiddenSize); err != nil {
-		return nil, err
+		if err = Yh.Reshape(batchSize, 1, r.hiddenSize); err != nil {
+			return nil, err
+		}
+	} else {
+		if err = Y.Reshape(seqLength, 1, batchSize, r.hiddenSize); err != nil {
+			return nil, err
+		}
+
+		if err = Yh.Reshape(1, batchSize, r.hiddenSize); err != nil {
+			return nil, err
+		}
 	}
 
 	return []tensor.Tensor{Y, Yh}, nil

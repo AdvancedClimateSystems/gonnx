@@ -23,9 +23,6 @@ import (
 // Another reason is that some tests require an opset version higher than we have currently
 // implemented, or lower, which we also haven't implemented yet.
 var ignoredTests = []string{
-	"test_add_uint8",                                  // Opset14
-	"test_div_uint8",                                  // Opset14
-	"test_gru_batchwise",                              // Opset14
 	"test_logsoftmax_axis_1_expanded_ver18",           // Opset18
 	"test_logsoftmax_example_1_expanded_ver18",        // Opset18
 	"test_logsoftmax_negative_axis_expanded_ver18",    // Opset18
@@ -33,8 +30,6 @@ var ignoredTests = []string{
 	"test_logsoftmax_default_axis_expanded_ver18",     // Opset18
 	"test_logsoftmax_axis_0_expanded_ver18",           // Opset18
 	"test_logsoftmax_axis_2_expanded_ver18",           // Opset18
-	"test_lstm_batchwise",                             // Opset14
-	"test_mul_uint8",                                  // Opset14
 	"test_reduce_max_empty_set",                       // Opset20
 	"test_reduce_max_do_not_keepdims_random",          // Opset18
 	"test_reduce_max_keepdims_random",                 // Opset18
@@ -63,7 +58,6 @@ var ignoredTests = []string{
 	"test_reduce_mean_default_axes_keepdims_example",  // Opset18
 	"test_reduce_mean_do_not_keepdims_example",        // Opset18
 	"test_reduce_mean_keepdims_example",               // Opset18
-	"test_sub_uint8",                                  // Opset14
 	"test_shape_clip_end",                             // Opset15
 	"test_shape_clip_start",                           // Opset15
 	"test_shape_end_1",                                // Opset15
@@ -364,6 +358,7 @@ var expectedTests = []string{
 	"test_acosh_example",
 	"test_add",
 	"test_add_bcast",
+	"test_add_uint8",
 	"test_and_bcast3v1d",
 	"test_and_bcast3v2d",
 	"test_and_bcast4v2d",
@@ -420,6 +415,7 @@ var expectedTests = []string{
 	"test_div",
 	"test_div_bcast",
 	"test_div_example",
+	"test_div_uint8",
 	"test_equal",
 	"test_equal_bcast",
 	"test_erf",
@@ -455,6 +451,7 @@ var expectedTests = []string{
 	"test_greater_equal_bcast",
 	"test_greater_equal_bcast_expanded",
 	"test_greater_equal_expanded",
+	"test_gru_batchwise",
 	"test_gru_defaults",
 	"test_gru_seq_length",
 	"test_gru_with_initial_bias",
@@ -471,6 +468,7 @@ var expectedTests = []string{
 	"test_logsoftmax_example_1",
 	"test_logsoftmax_large_number",
 	"test_logsoftmax_negative_axis",
+	"test_lstm_batchwise",
 	"test_lstm_defaults",
 	"test_lstm_with_initial_bias",
 	"test_matmul_4d",
@@ -479,6 +477,7 @@ var expectedTests = []string{
 	"test_mul",
 	"test_mul_bcast",
 	"test_mul_example",
+	"test_mul_uint8",
 	"test_not_2d",
 	"test_not_3d",
 	"test_not_4d",
@@ -537,6 +536,7 @@ var expectedTests = []string{
 	"test_sub",
 	"test_sub_bcast",
 	"test_sub_example",
+	"test_sub_uint8",
 	"test_tan",
 	"test_tan_example",
 	"test_tanh",
