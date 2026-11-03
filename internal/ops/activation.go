@@ -2,6 +2,7 @@ package ops
 
 import (
 	"math"
+	"unsafe"
 
 	"github.com/advancedclimatesystems/gonnx/tensor"
 )
@@ -75,12 +76,30 @@ func mapFloat(X *tensor.Tensor, f32 func(float32) float32, f64 func(float64) flo
 	}
 }
 
+// tanh and sigmoid compute in float32 for float32 values: the result is at most 2 ulp
+// from the correctly rounded value, at a fraction of the cost of float64 math.
 func tanh[T FloatType](x T) T {
+	if isFloat32[T]() {
+		return T(tanh32(float32(x)))
+	}
+
 	return T(math.Tanh(float64(x)))
 }
 
 func sigmoid[T FloatType](x T) T {
+	if isFloat32[T]() {
+		return T(sigmoid32(float32(x)))
+	}
+
 	return T(1 / (1 + math.Exp(-float64(x))))
+}
+
+// isFloat32 reports whether T is float32 rather than float64. Generic code is compiled
+// separately for both, so the check is resolved at compile time.
+func isFloat32[T FloatType]() bool {
+	var zero T
+
+	return unsafe.Sizeof(zero) == 4
 }
 
 func relu[T FloatType](x T) T {
