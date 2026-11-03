@@ -1,6 +1,8 @@
 package ops
 
 import (
+	"slices"
+
 	"github.com/advancedclimatesystems/gonnx/tensor"
 )
 
@@ -66,23 +68,10 @@ func checkInputTypes(op BaseOperator, inputs []*tensor.Tensor) error {
 			continue
 		}
 
-		typeConstraint := newTypeConstraint(typeConstraints[i])
-
-		if _, ok := typeConstraint[input.DataType()]; !ok {
+		if !slices.Contains(typeConstraints[i], input.DataType()) {
 			return ErrInvalidInputType(i, input.DataType().String(), op)
 		}
 	}
 
 	return nil
-}
-
-// newTypeConstraint creates a map with for every type whether or not they are allowed.
-func newTypeConstraint(allowedTypes []tensor.DataType) map[tensor.DataType]bool {
-	typeConstraint := make(map[tensor.DataType]bool)
-
-	for _, allowedType := range allowedTypes {
-		typeConstraint[allowedType] = true
-	}
-
-	return typeConstraint
 }

@@ -6,18 +6,46 @@ import (
 	"github.com/advancedclimatesystems/gonnx/tensor"
 )
 
-// ActivationFunc returns the element-wise activation function with the given name, as
-// used by the recurrent operators LSTM, GRU and RNN.
-func ActivationFunc[T FloatType](activation string) (func(T) T, error) {
-	switch activation {
+// Activation is an element-wise activation function of the recurrent operators LSTM, GRU
+// and RNN.
+type Activation int
+
+// The supported activation functions.
+const (
+	ActivationTanh Activation = iota
+	ActivationSigmoid
+	ActivationReLU
+)
+
+// ParseActivation returns the activation function with the given ONNX name.
+func ParseActivation(name string) (Activation, error) {
+	switch name {
 	case "tanh":
-		return tanh[T], nil
+		return ActivationTanh, nil
 	case "sigmoid":
-		return sigmoid[T], nil
+		return ActivationSigmoid, nil
 	case "relu":
-		return relu[T], nil
+		return ActivationReLU, nil
 	default:
-		return nil, ErrActivationNotImplemented(activation)
+		return 0, ErrActivationNotImplemented(name)
+	}
+}
+
+// Activate applies an activation function to every value in place.
+func Activate[T FloatType](values []T, activation Activation) {
+	switch activation {
+	case ActivationTanh:
+		for i, value := range values {
+			values[i] = tanh(value)
+		}
+	case ActivationSigmoid:
+		for i, value := range values {
+			values[i] = sigmoid(value)
+		}
+	case ActivationReLU:
+		for i, value := range values {
+			values[i] = relu(value)
+		}
 	}
 }
 

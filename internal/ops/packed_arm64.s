@@ -1,0 +1,155 @@
+//go:build arm64 && !purego
+
+#include "textflag.h"
+
+// func sgemvPanels(out, packed, a *float32, k, panels, prefetch int)
+//
+// Panels are processed in pairs so eight accumulators (V16-V19 and V24-V27) are in
+// flight, which hides the latency of the multiply-adds. Per column l, the value a[l] is
+// broadcast and multiplied with the weights of that column by fused multiply-adds,
+// which round like the fused multiply-adds Go emits for the scalar code on arm64.
+TEXT ·sgemvPanels(SB), NOSPLIT, $0-48
+	MOVD out+0(FP), R0
+	MOVD packed+8(FP), R1
+	MOVD a+16(FP), R2
+	MOVD k+24(FP), R3
+	MOVD panels+32(FP), R4
+	MOVD prefetch+40(FP), R7
+	LSL  $6, R3, R10 // bytes per panel: k columns of 16 float32 weights
+
+pair:
+	CMP  $2, R4
+	BLT  single
+	ADD  R10, R1, R9 // second panel of the pair
+	VEOR V16.B16, V16.B16, V16.B16
+	VEOR V17.B16, V17.B16, V17.B16
+	VEOR V18.B16, V18.B16, V18.B16
+	VEOR V19.B16, V19.B16, V19.B16
+	VEOR V24.B16, V24.B16, V24.B16
+	VEOR V25.B16, V25.B16, V25.B16
+	VEOR V26.B16, V26.B16, V26.B16
+	VEOR V27.B16, V27.B16, V27.B16
+	MOVD R2, R5
+	MOVD R3, R6
+
+pairInner:
+	VLD1.P 16(R5), [V0.S4]
+	ADD    R7, R1, R8
+	PRFM   (R8), PLDL1KEEP
+	ADD    R7, R9, R8
+	PRFM   (R8), PLDL1KEEP
+	VLD1.P 64(R1), [V4.S4, V5.S4, V6.S4, V7.S4]
+	VLD1.P 64(R9), [V20.S4, V21.S4, V22.S4, V23.S4]
+	VDUP   V0.S[0], V1.S4
+	VFMLA  V1.S4, V4.S4, V16.S4
+	VFMLA  V1.S4, V20.S4, V24.S4
+	VFMLA  V1.S4, V5.S4, V17.S4
+	VFMLA  V1.S4, V21.S4, V25.S4
+	VFMLA  V1.S4, V6.S4, V18.S4
+	VFMLA  V1.S4, V22.S4, V26.S4
+	VFMLA  V1.S4, V7.S4, V19.S4
+	VFMLA  V1.S4, V23.S4, V27.S4
+	ADD    R7, R1, R8
+	PRFM   (R8), PLDL1KEEP
+	ADD    R7, R9, R8
+	PRFM   (R8), PLDL1KEEP
+	VLD1.P 64(R1), [V4.S4, V5.S4, V6.S4, V7.S4]
+	VLD1.P 64(R9), [V20.S4, V21.S4, V22.S4, V23.S4]
+	VDUP   V0.S[1], V1.S4
+	VFMLA  V1.S4, V4.S4, V16.S4
+	VFMLA  V1.S4, V20.S4, V24.S4
+	VFMLA  V1.S4, V5.S4, V17.S4
+	VFMLA  V1.S4, V21.S4, V25.S4
+	VFMLA  V1.S4, V6.S4, V18.S4
+	VFMLA  V1.S4, V22.S4, V26.S4
+	VFMLA  V1.S4, V7.S4, V19.S4
+	VFMLA  V1.S4, V23.S4, V27.S4
+	ADD    R7, R1, R8
+	PRFM   (R8), PLDL1KEEP
+	ADD    R7, R9, R8
+	PRFM   (R8), PLDL1KEEP
+	VLD1.P 64(R1), [V4.S4, V5.S4, V6.S4, V7.S4]
+	VLD1.P 64(R9), [V20.S4, V21.S4, V22.S4, V23.S4]
+	VDUP   V0.S[2], V1.S4
+	VFMLA  V1.S4, V4.S4, V16.S4
+	VFMLA  V1.S4, V20.S4, V24.S4
+	VFMLA  V1.S4, V5.S4, V17.S4
+	VFMLA  V1.S4, V21.S4, V25.S4
+	VFMLA  V1.S4, V6.S4, V18.S4
+	VFMLA  V1.S4, V22.S4, V26.S4
+	VFMLA  V1.S4, V7.S4, V19.S4
+	VFMLA  V1.S4, V23.S4, V27.S4
+	ADD    R7, R1, R8
+	PRFM   (R8), PLDL1KEEP
+	ADD    R7, R9, R8
+	PRFM   (R8), PLDL1KEEP
+	VLD1.P 64(R1), [V4.S4, V5.S4, V6.S4, V7.S4]
+	VLD1.P 64(R9), [V20.S4, V21.S4, V22.S4, V23.S4]
+	VDUP   V0.S[3], V1.S4
+	VFMLA  V1.S4, V4.S4, V16.S4
+	VFMLA  V1.S4, V20.S4, V24.S4
+	VFMLA  V1.S4, V5.S4, V17.S4
+	VFMLA  V1.S4, V21.S4, V25.S4
+	VFMLA  V1.S4, V6.S4, V18.S4
+	VFMLA  V1.S4, V22.S4, V26.S4
+	VFMLA  V1.S4, V7.S4, V19.S4
+	VFMLA  V1.S4, V23.S4, V27.S4
+	SUBS   $4, R6, R6
+	BNE    pairInner
+
+	VST1.P [V16.S4, V17.S4, V18.S4, V19.S4], 64(R0)
+	VST1.P [V24.S4, V25.S4, V26.S4, V27.S4], 64(R0)
+	MOVD   R9, R1
+	SUB    $2, R4, R4
+	B      pair
+
+single:
+	CBZ  R4, done
+	VEOR V16.B16, V16.B16, V16.B16
+	VEOR V17.B16, V17.B16, V17.B16
+	VEOR V18.B16, V18.B16, V18.B16
+	VEOR V19.B16, V19.B16, V19.B16
+	MOVD R2, R5
+	MOVD R3, R6
+
+singleInner:
+	VLD1.P 16(R5), [V0.S4]
+	ADD    R7, R1, R8
+	PRFM   (R8), PLDL1KEEP
+	VLD1.P 64(R1), [V4.S4, V5.S4, V6.S4, V7.S4]
+	VDUP   V0.S[0], V1.S4
+	VFMLA  V1.S4, V4.S4, V16.S4
+	VFMLA  V1.S4, V5.S4, V17.S4
+	VFMLA  V1.S4, V6.S4, V18.S4
+	VFMLA  V1.S4, V7.S4, V19.S4
+	ADD    R7, R1, R8
+	PRFM   (R8), PLDL1KEEP
+	VLD1.P 64(R1), [V4.S4, V5.S4, V6.S4, V7.S4]
+	VDUP   V0.S[1], V1.S4
+	VFMLA  V1.S4, V4.S4, V16.S4
+	VFMLA  V1.S4, V5.S4, V17.S4
+	VFMLA  V1.S4, V6.S4, V18.S4
+	VFMLA  V1.S4, V7.S4, V19.S4
+	ADD    R7, R1, R8
+	PRFM   (R8), PLDL1KEEP
+	VLD1.P 64(R1), [V4.S4, V5.S4, V6.S4, V7.S4]
+	VDUP   V0.S[2], V1.S4
+	VFMLA  V1.S4, V4.S4, V16.S4
+	VFMLA  V1.S4, V5.S4, V17.S4
+	VFMLA  V1.S4, V6.S4, V18.S4
+	VFMLA  V1.S4, V7.S4, V19.S4
+	ADD    R7, R1, R8
+	PRFM   (R8), PLDL1KEEP
+	VLD1.P 64(R1), [V4.S4, V5.S4, V6.S4, V7.S4]
+	VDUP   V0.S[3], V1.S4
+	VFMLA  V1.S4, V4.S4, V16.S4
+	VFMLA  V1.S4, V5.S4, V17.S4
+	VFMLA  V1.S4, V6.S4, V18.S4
+	VFMLA  V1.S4, V7.S4, V19.S4
+	SUBS   $4, R6, R6
+	BNE    singleInner
+
+	VST1.P [V16.S4, V17.S4, V18.S4, V19.S4], 64(R0)
+
+done:
+	RET

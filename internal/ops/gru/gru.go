@@ -31,6 +31,13 @@ type GRU struct {
 	direction         ops.SequenceProcessDirection
 	hiddenSize        int
 	linearBeforeReset bool
+
+	inputWeights     *ops.PreparedWeights
+	recurrentWeights *ops.PreparedWeights
+
+	// candidateWeights packs the part of the recurrent weights that is applied to the
+	// reset hidden state, used when the reset gate is applied before the multiplication.
+	candidateWeights *ops.PackedMatrix
 }
 
 // newGRU creates a new gru operator.
@@ -117,12 +124,12 @@ const nGates = 3
 // are computed with a single matrix multiplication up front, so only the multiplications
 // with the recurrent weights remain per timestep.
 func gru[T ops.FloatType](g *GRU, dims ops.RecurrentDims, X, W, R, B, initialH *tensor.Tensor) ([]*tensor.Tensor, error) {
-	f, err := ops.ActivationFunc[T](g.activations[0])
+	f, err := ops.ParseActivation(g.activations[0])
 	if err != nil {
 		return nil, err
 	}
 
-	gActivation, err := ops.ActivationFunc[T](g.activations[1])
+	gActivation, err := ops.ParseActivation(g.activations[1])
 	if err != nil {
 		return nil, err
 	}
@@ -133,17 +140,29 @@ func gru[T ops.FloatType](g *GRU, dims ops.RecurrentDims, X, W, R, B, initialH *
 	batch := dims.BatchSize
 
 	xw := make([]T, steps*batch*gates)
-	ops.MatMulInto(xw, tensor.Data[T](X), tensor.Data[T](W), steps*batch, gates, dims.InputSize, false, true)
+	projectInput := ops.TransposedProduct(tensor.Data[T](W), gates, dims.InputSize, g.inputWeights.For(W))
+	projectInput(xw, tensor.Data[T](X), steps*batch)
 
 	wb, rb := ops.RecurrentBiases[T](B, nGates, hidden)
 	r := tensor.Data[T](R)
-	recurrentH := r[2*hidden*hidden:]
+	packedR := g.recurrentWeights.For(R)
+	projectHidden := ops.TransposedProduct(r, gates, hidden, packedR)
+
+	var packedCandidate *ops.PackedMatrix
+	if packedR != nil {
+		packedCandidate = g.candidateWeights
+	}
+
+	projectResetHidden := ops.TransposedProduct(r[2*hidden*hidden:], hidden, hidden, packedCandidate)
 
 	y := make([]T, steps*batch*hidden)
 	h := ops.InitialState[T](initialH, batch*hidden)
 	hr := make([]T, batch*gates)
-	z := make([]T, batch*hidden)
-	reset := make([]T, batch*hidden)
+
+	// The update and reset gates share a buffer, so one call activates both.
+	updateAndReset := make([]T, 2*batch*hidden)
+	z, reset := updateAndReset[:batch*hidden], updateAndReset[batch*hidden:]
+	candidate := make([]T, batch*hidden)
 
 	var resetHidden, resetHR []T
 	if !g.linearBeforeReset {
@@ -152,27 +171,27 @@ func gru[T ops.FloatType](g *GRU, dims ops.RecurrentDims, X, W, R, B, initialH *
 	}
 
 	for t := 0; t < steps; t++ {
-		ops.MatMulInto(hr, h, r, batch, gates, hidden, false, true)
+		projectHidden(hr, h, batch)
 
 		for b := 0; b < batch; b++ {
 			xwRow := xw[(t*batch+b)*gates:][:gates]
 			hrRow := hr[b*gates:][:gates]
 
 			for j := 0; j < hidden; j++ {
-				z[b*hidden+j] = f((xwRow[j] + wb[j]) + (hrRow[j] + rb[j]))
-				reset[b*hidden+j] = f((xwRow[hidden+j] + wb[hidden+j]) + (hrRow[hidden+j] + rb[hidden+j]))
+				z[b*hidden+j] = (xwRow[j] + wb[j]) + (hrRow[j] + rb[j])
+				reset[b*hidden+j] = (xwRow[hidden+j] + wb[hidden+j]) + (hrRow[hidden+j] + rb[hidden+j])
 			}
 		}
+
+		ops.Activate(updateAndReset, f)
 
 		if !g.linearBeforeReset {
 			for i, value := range reset {
 				resetHidden[i] = value * h[i]
 			}
 
-			ops.MatMulInto(resetHR, resetHidden, recurrentH, batch, hidden, hidden, false, true)
+			projectResetHidden(resetHR, resetHidden, batch)
 		}
-
-		out := y[t*batch*hidden:][:batch*hidden]
 
 		for b := 0; b < batch; b++ {
 			xwRow := xw[(t*batch+b)*gates+2*hidden:][:hidden]
@@ -181,15 +200,19 @@ func gru[T ops.FloatType](g *GRU, dims ops.RecurrentDims, X, W, R, B, initialH *
 			for j := 0; j < hidden; j++ {
 				i := b*hidden + j
 
-				var candidate T
 				if g.linearBeforeReset {
-					candidate = gActivation((hr[b*gates+2*hidden+j]+rbH[j])*reset[i] + (xwRow[j] + wbH[j]))
+					candidate[i] = (hr[b*gates+2*hidden+j]+rbH[j])*reset[i] + (xwRow[j] + wbH[j])
 				} else {
-					candidate = gActivation((xwRow[j] + wbH[j]) + (resetHR[i] + rbH[j]))
+					candidate[i] = (xwRow[j] + wbH[j]) + (resetHR[i] + rbH[j])
 				}
-
-				out[i] = (1-z[i])*candidate + z[i]*h[i]
 			}
+		}
+
+		ops.Activate(candidate, gActivation)
+
+		out := y[t*batch*hidden:][:batch*hidden]
+		for i := range out {
+			out[i] = (1-z[i])*candidate[i] + z[i]*h[i]
 		}
 
 		h = out
@@ -199,4 +222,19 @@ func gru[T ops.FloatType](g *GRU, dims ops.RecurrentDims, X, W, R, B, initialH *
 	Yh := tensor.New(h, 1, batch, hidden)
 
 	return []*tensor.Tensor{Y, Yh}, nil
+}
+
+// Prepare packs the weights W and R when they are parameters of the model.
+func (g *GRU) Prepare(constants []*tensor.Tensor) {
+	g.inputWeights = ops.PrepareWeights(constants[1], true)
+	g.recurrentWeights = ops.PrepareWeights(constants[2], true)
+
+	if g.recurrentWeights != nil && !g.linearBeforeReset {
+		hidden := g.hiddenSize
+		r := tensor.Data[float32](constants[2])
+
+		if len(r) == nGates*hidden*hidden {
+			g.candidateWeights = ops.PackTransposed(r[2*hidden*hidden:], hidden, hidden)
+		}
+	}
 }

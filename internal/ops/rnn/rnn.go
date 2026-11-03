@@ -29,6 +29,9 @@ type RNN struct {
 	activations     []string
 	direction       ops.SequenceProcessDirection
 	hiddenSize      int
+
+	inputWeights     *ops.PreparedWeights
+	recurrentWeights *ops.PreparedWeights
 }
 
 // newRNN creates a new rnn operator.
@@ -105,7 +108,7 @@ func (r *RNN) Apply(inputs []*tensor.Tensor) ([]*tensor.Tensor, error) {
 // are computed with a single matrix multiplication up front; each timestep then needs one
 // multiplication with the recurrent weights.
 func rnn[T ops.FloatType](r *RNN, dims ops.RecurrentDims, X, W, R, B, initialH *tensor.Tensor) ([]*tensor.Tensor, error) {
-	f, err := ops.ActivationFunc[T](r.activations[0])
+	f, err := ops.ParseActivation(r.activations[0])
 	if err != nil {
 		return nil, err
 	}
@@ -115,25 +118,28 @@ func rnn[T ops.FloatType](r *RNN, dims ops.RecurrentDims, X, W, R, B, initialH *
 	batch := dims.BatchSize
 
 	xw := make([]T, steps*batch*hidden)
-	ops.MatMulInto(xw, tensor.Data[T](X), tensor.Data[T](W), steps*batch, hidden, dims.InputSize, false, true)
+	projectInput := ops.TransposedProduct(tensor.Data[T](W), hidden, dims.InputSize, r.inputWeights.For(W))
+	projectInput(xw, tensor.Data[T](X), steps*batch)
 
 	wb, rb := ops.RecurrentBiases[T](B, 1, hidden)
-	recurrent := tensor.Data[T](R)
+	projectHidden := ops.TransposedProduct(tensor.Data[T](R), hidden, hidden, r.recurrentWeights.For(R))
 
 	y := make([]T, steps*batch*hidden)
 	h := ops.InitialState[T](initialH, batch*hidden)
 	hr := make([]T, batch*hidden)
 
 	for t := 0; t < steps; t++ {
-		ops.MatMulInto(hr, h, recurrent, batch, hidden, hidden, false, true)
+		projectHidden(hr, h, batch)
 
 		out := y[t*batch*hidden:][:batch*hidden]
 		xwStep := xw[t*batch*hidden:][:batch*hidden]
 
 		for i := range out {
 			j := i % hidden
-			out[i] = f((xwStep[i] + wb[j]) + (hr[i] + rb[j]))
+			out[i] = (xwStep[i] + wb[j]) + (hr[i] + rb[j])
 		}
+
+		ops.Activate(out, f)
 
 		h = out
 	}
@@ -142,4 +148,10 @@ func rnn[T ops.FloatType](r *RNN, dims ops.RecurrentDims, X, W, R, B, initialH *
 	Yh := tensor.New(h, 1, batch, hidden)
 
 	return []*tensor.Tensor{Y, Yh}, nil
+}
+
+// Prepare packs the weights W and R when they are parameters of the model.
+func (r *RNN) Prepare(constants []*tensor.Tensor) {
+	r.inputWeights = ops.PrepareWeights(constants[1], true)
+	r.recurrentWeights = ops.PrepareWeights(constants[2], true)
 }

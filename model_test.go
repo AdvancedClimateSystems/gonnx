@@ -269,3 +269,19 @@ func TestNewModelUnknownOperator(t *testing.T) {
 	_, err = NewModel(model.mp)
 	assert.ErrorIs(t, err, ErrUnsupportedOperator)
 }
+
+func TestModelOutputIsInput(t *testing.T) {
+	model, err := NewModelFromFile("./sample_models/onnx_models/mlp.onnx")
+	assert.Nil(t, err)
+
+	model.mp.Graph.Output = append(model.mp.Graph.Output, model.mp.Graph.Input[0])
+
+	model, err = NewModel(model.mp)
+	assert.Nil(t, err)
+
+	inputs := tensorsFixture([]string{"data_input"}, [][]int{{2, 3}}, [][]float32{rangeFloat(6)})
+
+	outputs, err := model.Run(inputs)
+	assert.Nil(t, err)
+	assert.Equal(t, inputs["data_input"], outputs["data_input"])
+}

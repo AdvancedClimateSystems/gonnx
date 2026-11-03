@@ -19,6 +19,8 @@ var matmulTypeConstraints = [][]tensor.DataType{
 // MatMul represents the ONNX matmul operator.
 type MatMul struct {
 	ops.BaseOperator
+
+	weights *ops.PreparedWeights
 }
 
 // newMatMul returns a new MatMul operator.
@@ -41,10 +43,24 @@ func (m *MatMul) Init(*onnx.NodeProto) error {
 
 // Apply applies the matmul operator.
 func (m *MatMul) Apply(inputs []*tensor.Tensor) ([]*tensor.Tensor, error) {
+	if packed := m.weights.For(inputs[1]); packed != nil && inputs[0].DataType() == tensor.Float32 {
+		out, err := ops.MatMulPacked(inputs[0], packed)
+		if err != nil {
+			return nil, err
+		}
+
+		return []*tensor.Tensor{out}, nil
+	}
+
 	out, err := ops.MatMul(inputs[0], inputs[1])
 	if err != nil {
 		return nil, err
 	}
 
 	return []*tensor.Tensor{out}, nil
+}
+
+// Prepare packs the second input when it is a 2D parameter of the model.
+func (m *MatMul) Prepare(constants []*tensor.Tensor) {
+	m.weights = ops.PrepareWeights(constants[1], false)
 }

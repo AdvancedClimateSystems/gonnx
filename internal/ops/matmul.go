@@ -44,7 +44,27 @@ func matMulRows[T tensor.Numeric](out, a, b []T, m, n, k int, transA bool) {
 			b2 := b[(l+2)*n:][:len(row)]
 			b3 := b[(l+3)*n:][:len(row)]
 
-			for j := range row {
+			// Two output elements per iteration, with loads and products issued before the
+			// additions, for the same reason as in matMulTransposedB.
+			j := 0
+			for ; j+2 <= len(row); j += 2 {
+				sum0, sum1 := row[j], row[j+1]
+				x00, x10, x20, x30 := b0[j], b1[j], b2[j], b3[j]
+				x01, x11, x21, x31 := b0[j+1], b1[j+1], b2[j+1], b3[j+1]
+				p00, p10, p20, p30 := a0*x00, a1*x10, a2*x20, a3*x30
+				p01, p11, p21, p31 := a0*x01, a1*x11, a2*x21, a3*x31
+				sum0 += p00
+				sum1 += p01
+				sum0 += p10
+				sum1 += p11
+				sum0 += p20
+				sum1 += p21
+				sum0 += p30
+				sum1 += p31
+				row[j], row[j+1] = sum0, sum1
+			}
+
+			for ; j < len(row); j++ {
 				sum := row[j]
 				sum += a0 * b0[j]
 				sum += a1 * b1[j]
@@ -99,7 +119,28 @@ func matMulTransposedB[T tensor.Numeric](out, a, b []T, m, n, k int, transA bool
 
 			var sum0, sum1, sum2, sum3 T
 
-			for l, value := range rowA {
+			// Two values of l per iteration, with all loads and products issued before
+			// the additions: in-order cores stall when a result is used right after the
+			// instruction that produces it.
+			l := 0
+			for ; l+2 <= len(rowA); l += 2 {
+				v0, v1 := rowA[l], rowA[l+1]
+				x00, x10, x20, x30 := b0[l], b1[l], b2[l], b3[l]
+				x01, x11, x21, x31 := b0[l+1], b1[l+1], b2[l+1], b3[l+1]
+				p00, p10, p20, p30 := v0*x00, v0*x10, v0*x20, v0*x30
+				p01, p11, p21, p31 := v1*x01, v1*x11, v1*x21, v1*x31
+				sum0 += p00
+				sum1 += p10
+				sum2 += p20
+				sum3 += p30
+				sum0 += p01
+				sum1 += p11
+				sum2 += p21
+				sum3 += p31
+			}
+
+			for ; l < len(rowA); l++ {
+				value := rowA[l]
 				sum0 += value * b0[l]
 				sum1 += value * b1[l]
 				sum2 += value * b2[l]
@@ -272,9 +313,38 @@ func gemm[T tensor.Numeric](A, B, C *tensor.Tensor, alpha, beta float32, transA,
 	out := make([]T, m*n)
 	MatMulInto(out, tensor.Data[T](A), tensor.Data[T](B), m, n, k, transA, transB)
 
-	if typedAlpha := T(alpha); typedAlpha != 1 {
+	return finishGemm(out, m, n, C, T(alpha), T(beta))
+}
+
+// GemmPacked computes alpha·A·Bᵀ + beta·C like Gemm, for a float32 matrix A and packed
+// weights B.
+func GemmPacked(A *tensor.Tensor, B *PackedMatrix, C *tensor.Tensor, alpha, beta float32) (*tensor.Tensor, error) {
+	if A.DataType() != tensor.Float32 {
+		return nil, ErrDataTypeMismatch(A.DataType(), tensor.Float32)
+	}
+
+	if C != nil && C.DataType() != tensor.Float32 {
+		return nil, ErrDataTypeMismatch(tensor.Float32, C.DataType())
+	}
+
+	n, k := B.Dims()
+	if A.Rank() != 2 || A.Shape()[1] != k {
+		return nil, ErrIncompatibleDimensions()
+	}
+
+	m := A.Shape()[0]
+	out := make([]float32, m*n)
+	B.MatMul(out, tensor.Data[float32](A), m)
+
+	return finishGemm(out, m, n, C, alpha, beta)
+}
+
+// finishGemm scales the m×n product out by alpha and adds beta·C, with C broadcast to
+// the shape of the product.
+func finishGemm[T tensor.Numeric](out []T, m, n int, C *tensor.Tensor, alpha, beta T) (*tensor.Tensor, error) {
+	if alpha != 1 {
 		for i := range out {
-			out[i] *= typedAlpha
+			out[i] *= alpha
 		}
 	}
 
@@ -285,10 +355,45 @@ func gemm[T tensor.Numeric](A, B, C *tensor.Tensor, alpha, beta float32, transA,
 			return nil, err
 		}
 
-		addScaled(out, shape, tensor.Data[T](C), C.Shape(), T(beta))
+		addScaled(out, shape, tensor.Data[T](C), C.Shape(), beta)
 	}
 
 	return tensor.New(out, shape...), nil
+}
+
+// MatMulPacked multiplies A with packed weights B following numpy's matmul semantics, for
+// a float32 tensor A and a 2D matrix B: the last dimension of A is multiplied with B.
+func MatMulPacked(A *tensor.Tensor, B *PackedMatrix) (*tensor.Tensor, error) {
+	if A.DataType() != tensor.Float32 {
+		return nil, ErrDataTypeMismatch(A.DataType(), tensor.Float32)
+	}
+
+	n, k := B.Dims()
+	if A.Rank() == 0 || A.Shape()[A.Rank()-1] != k {
+		return nil, ErrIncompatibleDimensions()
+	}
+
+	rows := A.Size() / k
+	out := make([]float32, rows*n)
+	B.MatMul(out, tensor.Data[float32](A), rows)
+
+	shape := append(A.Shape()[:A.Rank()-1].Clone(), n)
+
+	return tensor.New(out, shape...), nil
+}
+
+// TransposedProduct returns a function computing out = a·Bᵀ for an m×k matrix a, with
+// B the n×k matrix weights. It uses packed, the packed form of weights, when it is not
+// nil and T is float32.
+func TransposedProduct[T FloatType](weights []T, n, k int, packed *PackedMatrix) func(out, a []T, m int) {
+	if packed != nil {
+		var float32Product any = func(out, a []float32, m int) { packed.MatMul(out, a, m) }
+		if product, ok := float32Product.(func(out, a []T, m int)); ok {
+			return product
+		}
+	}
+
+	return func(out, a []T, m int) { MatMulInto(out, a, weights, m, n, k, false, true) }
 }
 
 // addScaled adds scale·c to the m×n matrix out, where c is broadcast to the shape of out.

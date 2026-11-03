@@ -1,9 +1,10 @@
 module github.com/advancedclimatesystems/gonnx
 
-go 1.23
+go 1.23.0
 
 require (
 	github.com/stretchr/testify v1.8.1
+	golang.org/x/sys v0.35.0
 	google.golang.org/protobuf v1.31.0
 )
 

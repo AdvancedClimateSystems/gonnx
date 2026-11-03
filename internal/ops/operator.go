@@ -49,3 +49,11 @@ type Operator interface {
 	// Version returns the version of this operator.
 	Version() int
 }
+
+// Preparer is implemented by operators that prepare inputs that are constant, such as
+// weights, once when a model is loaded.
+type Preparer interface {
+	// Prepare receives, at the position of every input, the input tensor when it is a
+	// parameter of the model and nil otherwise.
+	Prepare(constants []*tensor.Tensor)
+}

@@ -19,18 +19,33 @@ type Tensor struct {
 	shape    Shape
 	dataType DataType
 	data     any
+
+	// dims holds the shape of tensors with few dimensions, saving an allocation.
+	dims [4]int
+}
+
+func newTensor(dataType DataType, data any, shape []int) *Tensor {
+	t := &Tensor{dataType: dataType, data: data}
+
+	if len(shape) <= len(t.dims) {
+		t.shape = t.dims[:len(shape):len(shape)]
+		copy(t.shape, shape)
+	} else {
+		t.shape = Shape(shape).Clone()
+	}
+
+	return t
 }
 
 // New creates a tensor that takes ownership of data, interpreted in row-major order with
 // the given shape. Omitting the shape creates a scalar. New panics when the number of
 // elements in data does not match the shape.
 func New[T Element](data []T, shape ...int) *Tensor {
-	s := Shape(shape).Clone()
-	if len(data) != s.Size() {
-		panic(fmt.Errorf("%w: %d elements, shape %v", ErrShapeMismatch, len(data), s))
+	if len(data) != Shape(shape).Size() {
+		panic(fmt.Errorf("%w: %d elements, shape %v", ErrShapeMismatch, len(data), shape))
 	}
 
-	return &Tensor{shape: s, dataType: dataTypeOf[T](), data: data}
+	return newTensor(dataTypeOf[T](), data, shape)
 }
 
 // Scalar creates a tensor with an empty shape holding a single value.
@@ -109,12 +124,11 @@ func (t *Tensor) DataType() DataType {
 
 // Reshape returns a tensor with the given shape that shares its elements with t.
 func (t *Tensor) Reshape(shape ...int) (*Tensor, error) {
-	s := Shape(shape).Clone()
-	if s.Size() != t.Size() {
-		return nil, fmt.Errorf("%w: cannot reshape %v into %v", ErrShapeMismatch, t.shape, s)
+	if Shape(shape).Size() != t.Size() {
+		return nil, fmt.Errorf("%w: cannot reshape %v into %v", ErrShapeMismatch, t.shape, shape)
 	}
 
-	return &Tensor{shape: s, dataType: t.dataType, data: t.data}, nil
+	return newTensor(t.dataType, t.data, shape), nil
 }
 
 // Clone returns a deep copy of the tensor.
@@ -146,7 +160,7 @@ func (t *Tensor) Clone() *Tensor {
 		data = append([]bool(nil), d...)
 	}
 
-	return &Tensor{shape: t.shape.Clone(), dataType: t.dataType, data: data}
+	return newTensor(t.dataType, data, t.shape)
 }
 
 // String returns a short description of the tensor: its data type, shape and elements.

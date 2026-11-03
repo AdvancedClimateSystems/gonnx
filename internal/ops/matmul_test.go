@@ -132,3 +132,32 @@ func TestGemm(t *testing.T) {
 		assert.Equal(t, test.expected, out.Data())
 	}
 }
+
+func BenchmarkMatMulInto(b *testing.B) {
+	benchmarks := []struct {
+		name    string
+		m, n, k int
+		transB  bool
+	}{
+		{"recurrent_1x256x768_transB", 1, 768, 256, true},
+		{"projection_18x5x768_transB", 18, 768, 5, true},
+		{"rows_1x100x300", 1, 300, 100, false},
+	}
+
+	r := rand.New(rand.NewSource(1))
+
+	for _, bm := range benchmarks {
+		b.Run(bm.name, func(b *testing.B) {
+			a := randomFloat32s(r, bm.m*bm.k)
+			weights := randomFloat32s(r, bm.k*bm.n)
+			out := make([]float32, bm.m*bm.n)
+
+			b.SetBytes(int64(4 * len(weights)))
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				MatMulInto(out, a, weights, bm.m, bm.n, bm.k, false, bm.transB)
+			}
+		})
+	}
+}

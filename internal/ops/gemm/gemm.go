@@ -25,6 +25,8 @@ type Gemm struct {
 	beta   float32
 	transA bool
 	transB bool
+
+	weights *ops.PreparedWeights
 }
 
 // newGemm creates a new gemm operator and initializes it with the default values.
@@ -66,10 +68,24 @@ func (g *Gemm) Init(n *onnx.NodeProto) error {
 
 // Apply applies the gemm operator on the given graph.
 func (g *Gemm) Apply(inputs []*tensor.Tensor) ([]*tensor.Tensor, error) {
+	if packed := g.weights.For(inputs[1]); packed != nil && !g.transA && inputs[0].DataType() == tensor.Float32 {
+		out, err := ops.GemmPacked(inputs[0], packed, inputs[2], g.alpha, g.beta)
+		if err != nil {
+			return nil, err
+		}
+
+		return []*tensor.Tensor{out}, nil
+	}
+
 	out, err := ops.Gemm(inputs[0], inputs[1], inputs[2], g.alpha, g.beta, g.transA, g.transB)
 	if err != nil {
 		return nil, err
 	}
 
 	return []*tensor.Tensor{out}, nil
+}
+
+// Prepare packs the weights B when they are a parameter of the model.
+func (g *Gemm) Prepare(constants []*tensor.Tensor) {
+	g.weights = ops.PrepareWeights(constants[1], g.transB)
 }

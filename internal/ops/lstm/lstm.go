@@ -34,6 +34,9 @@ type LSTM struct {
 	inputForget     bool
 
 	outputs []string
+
+	inputWeights     *ops.PreparedWeights
+	recurrentWeights *ops.PreparedWeights
 }
 
 // newLSTM creates a new lstm operator.
@@ -142,17 +145,17 @@ const nPeepholes = 3
 func lstm[T ops.FloatType](
 	l *LSTM, dims ops.RecurrentDims, X, W, R, B, initialH, initialC, P *tensor.Tensor,
 ) ([]*tensor.Tensor, error) {
-	f, err := ops.ActivationFunc[T](l.activations[0])
+	f, err := ops.ParseActivation(l.activations[0])
 	if err != nil {
 		return nil, err
 	}
 
-	g, err := ops.ActivationFunc[T](l.activations[1])
+	g, err := ops.ParseActivation(l.activations[1])
 	if err != nil {
 		return nil, err
 	}
 
-	h, err := ops.ActivationFunc[T](l.activations[2])
+	h, err := ops.ParseActivation(l.activations[2])
 	if err != nil {
 		return nil, err
 	}
@@ -163,10 +166,11 @@ func lstm[T ops.FloatType](
 	batch := dims.BatchSize
 
 	xw := make([]T, steps*batch*gates)
-	ops.MatMulInto(xw, tensor.Data[T](X), tensor.Data[T](W), steps*batch, gates, dims.InputSize, false, true)
+	projectInput := ops.TransposedProduct(tensor.Data[T](W), gates, dims.InputSize, l.inputWeights.For(W))
+	projectInput(xw, tensor.Data[T](X), steps*batch)
 
 	wb, rb := ops.RecurrentBiases[T](B, nGates, hidden)
-	r := tensor.Data[T](R)
+	projectHidden := ops.TransposedProduct(tensor.Data[T](R), gates, hidden, l.recurrentWeights.For(R))
 
 	var peepholes []T
 	if P != nil {
@@ -179,6 +183,13 @@ func lstm[T ops.FloatType](
 	newCellState := make([]T, batch*hidden)
 	hr := make([]T, batch*gates)
 
+	// The input and forget gates share a buffer, so one call activates both.
+	inputAndForget := make([]T, 2*batch*hidden)
+	inputGates, forgetGates := inputAndForget[:batch*hidden], inputAndForget[batch*hidden:]
+	cellGates := make([]T, batch*hidden)
+	outputGates := make([]T, batch*hidden)
+	activatedCells := make([]T, batch*hidden)
+
 	// gate returns the pre-activation value of a gate: the input and recurrent projections
 	// with their biases.
 	gate := func(xwRow, hrRow []T, offset, j int) T {
@@ -186,9 +197,7 @@ func lstm[T ops.FloatType](
 	}
 
 	for t := 0; t < steps; t++ {
-		ops.MatMulInto(hr, hiddenState, r, batch, gates, hidden, false, true)
-
-		out := y[t*batch*hidden:][:batch*hidden]
+		projectHidden(hr, hiddenState, batch)
 
 		for b := 0; b < batch; b++ {
 			xwRow := xw[(t*batch+b)*gates:][:gates]
@@ -196,26 +205,38 @@ func lstm[T ops.FloatType](
 
 			for j := 0; j < hidden; j++ {
 				i := b*hidden + j
-				previousCell := cellState[i]
 
-				inputGate := gate(xwRow, hrRow, 0, j)
-				forgetGate := gate(xwRow, hrRow, 2*hidden, j)
-				outputGate := gate(xwRow, hrRow, hidden, j)
-
-				if peepholes != nil {
-					inputGate += peepholes[j] * previousCell
-					forgetGate += peepholes[2*hidden+j] * previousCell
-				}
-
-				cell := f(forgetGate)*previousCell + f(inputGate)*g(gate(xwRow, hrRow, 3*hidden, j))
+				inputGates[i] = gate(xwRow, hrRow, 0, j)
+				forgetGates[i] = gate(xwRow, hrRow, 2*hidden, j)
+				outputGates[i] = gate(xwRow, hrRow, hidden, j)
+				cellGates[i] = gate(xwRow, hrRow, 3*hidden, j)
 
 				if peepholes != nil {
-					outputGate += peepholes[hidden+j] * cell
+					inputGates[i] += peepholes[j] * cellState[i]
+					forgetGates[i] += peepholes[2*hidden+j] * cellState[i]
 				}
-
-				newCellState[i] = cell
-				out[i] = f(outputGate) * h(cell)
 			}
+		}
+
+		ops.Activate(inputAndForget, f)
+		ops.Activate(cellGates, g)
+
+		for i := range newCellState {
+			cell := forgetGates[i]*cellState[i] + inputGates[i]*cellGates[i]
+			newCellState[i] = cell
+
+			if peepholes != nil {
+				outputGates[i] += peepholes[hidden+i%hidden] * cell
+			}
+		}
+
+		ops.Activate(outputGates, f)
+		copy(activatedCells, newCellState)
+		ops.Activate(activatedCells, h)
+
+		out := y[t*batch*hidden:][:batch*hidden]
+		for i := range out {
+			out[i] = outputGates[i] * activatedCells[i]
 		}
 
 		hiddenState = out
@@ -227,4 +248,10 @@ func lstm[T ops.FloatType](
 	Yc := tensor.New(cellState, 1, batch, hidden)
 
 	return []*tensor.Tensor{Y, Yh, Yc}, nil
+}
+
+// Prepare packs the weights W and R when they are parameters of the model.
+func (l *LSTM) Prepare(constants []*tensor.Tensor) {
+	l.inputWeights = ops.PrepareWeights(constants[1], true)
+	l.recurrentWeights = ops.PrepareWeights(constants[2], true)
 }
