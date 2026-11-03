@@ -11,7 +11,7 @@ func Abs(x int) int {
 
 // Int64ToBool converts a int64 to a boolean.
 func Int64ToBool(v int64) bool {
-	return !(v == 0)
+	return v != 0
 }
 
 // AllInRange checks if all the entries in `arr` are in the inclusive range min <= x <= max.

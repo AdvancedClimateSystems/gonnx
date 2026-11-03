@@ -1,24 +1,24 @@
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
     - asasalint
     - asciicheck
     - bidichk
     - decorder
     - durationcheck
+    - err113
     - errcheck
     - errchkjson
     - errname
     - errorlint
     - exhaustive
-    - exportloopref
     - forcetypeassert
     - gochecknoinits
     - goconst
     - gocritic
     - godot
     - godox
-    - err113
     - goprintffuncname
     - govet
     - ineffassign
@@ -31,31 +31,53 @@ linters:
     - reassign
     - revive
     - staticcheck
-    - typecheck
     - unconvert
     - unparam
     - unused
     - usestdlibvars
     - whitespace
     - wsl
-linters-settings:
-  exhaustive:
-    # Switches over tensor data types list the types an operation supports and reject
-    # the others in a default branch.
-    default-signifies-exhaustive: true
-  gomnd:
-    ignored-functions:
-      - "strconv.ParseInt"
-      - "strconv.ParseFloat"
-      - "strconv.FormatInt"
-      - "strconv.FormatFloat"
-  gocritic:
-    disabled-checks:
-      # In the world of AI tensor's are often denoted with a capital letter.
-      # We want to adopt the go style guide as much as possible but we also want
-      # to be able to easily show when a variable is a Tensor. So we chose to
-      # disable captLocal. Note that any other parameter should use a lower case letters.
-      - "captLocal"
+  settings:
+    exhaustive:
+      # Switches over tensor data types list the types an operation supports and reject
+      # the others in a default branch.
+      default-signifies-exhaustive: true
+    gocritic:
+      disabled-checks:
+        # In the world of AI tensor's are often denoted with a capital letter.
+        # We want to adopt the go style guide as much as possible but we also want
+        # to be able to easily show when a variable is a Tensor. So we chose to
+        # disable captLocal. Note that any other parameter should use a lower case letters.
+        - captLocal
+    mnd:
+      ignored-functions:
+        - strconv.ParseInt
+        - strconv.ParseFloat
+        - strconv.FormatInt
+        - strconv.FormatFloat
+  exclusions:
+    generated: lax
+    rules:
+      # Table-driven tests repeat literal values on purpose.
+      - path: _test\.go
+        linters:
+          - goconst
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

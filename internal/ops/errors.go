@@ -253,7 +253,7 @@ type DimensionError struct {
 func (d *DimensionError) Error() string {
 	switch d.kind {
 	case DimensionErrorIncompatible:
-		return fmt.Sprintf("dimensions error: incompatible dimensions")
+		return "dimensions error: incompatible dimensions"
 	default:
 		return fmt.Sprintf("dimension error: %s", d.reason)
 	}

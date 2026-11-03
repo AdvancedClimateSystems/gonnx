@@ -186,10 +186,9 @@ func (c *Conv) convParams(xShape, kernelShape tensor.Shape) (convParams, error) 
 		params.kernel[offset+i] = kernel[i]
 		params.strides[offset+i] = strides[i]
 		params.dilations[offset+i] = dilations[i]
-		params.padsBegin[offset+i] = pads[i]
-		params.padsEnd[offset+i] = pads[i+nSpatialDims]
 
-		if c.autoPad == SameUpper || c.autoPad == SameLower {
+		switch c.autoPad {
+		case SameUpper, SameLower:
 			inputSize := xShape[nNonSpatialDims+i]
 			dilatedKernel := (kernel[i]-1)*dilations[i] + 1
 			outputSize := (inputSize + strides[i] - 1) / strides[i]
@@ -202,9 +201,12 @@ func (c *Conv) convParams(xShape, kernelShape tensor.Shape) (convParams, error) 
 
 			params.padsBegin[offset+i] = padHead
 			params.padsEnd[offset+i] = padNeeded - padHead
-		} else if c.autoPad == Valid {
+		case Valid:
 			params.padsBegin[offset+i] = 0
 			params.padsEnd[offset+i] = 0
+		default:
+			params.padsBegin[offset+i] = pads[i]
+			params.padsEnd[offset+i] = pads[i+nSpatialDims]
 		}
 	}
 
