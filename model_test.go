@@ -1,11 +1,12 @@
 package gonnx
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/tensor"
 	"github.com/stretchr/testify/assert"
-	"gorgonia.org/tensor"
 )
 
 func TestModel(t *testing.T) {
@@ -173,10 +174,7 @@ func TestInputDimSizeInvalidInput(t *testing.T) {
 func tensorsFixture(names []string, shapes [][]int, backing [][]float32) Tensors {
 	res := make(Tensors, len(names))
 	for i, name := range names {
-		res[name] = tensor.New(
-			tensor.WithShape(shapes[i]...),
-			tensor.WithBacking(backing[i]),
-		)
+		res[name] = tensor.New(backing[i], shapes[i]...)
 	}
 
 	return res
@@ -237,4 +235,84 @@ func expectedGruPredsOut() []float32 {
 		0.45711097, 1, 0.92572147, -1, 1,
 		0.45711097, 1, 0.9258882, -1, 1,
 	}
+}
+
+func TestModelRunTwiceWithSameInputs(t *testing.T) {
+	model, err := NewModelFromFile("./sample_models/onnx_models/gru.onnx")
+	assert.Nil(t, err)
+
+	inputs := tensorsFixture(
+		[]string{"data_input", "init_hidden"},
+		[][]int{{1, 30, 3}, {1, 1, 5}},
+		[][]float32{rangeFloat(90), make([]float32, 5)},
+	)
+
+	first, err := model.Run(inputs)
+	assert.Nil(t, err)
+
+	second, err := model.Run(inputs)
+	assert.Nil(t, err)
+
+	assert.Equal(t, tensor.Shape{1, 1, 5}, inputs["init_hidden"].Shape())
+	assert.Equal(t, make([]float32, 5), inputs["init_hidden"].Data())
+
+	for name := range first {
+		assert.Equal(t, first[name].Data(), second[name].Data())
+	}
+}
+
+func TestNewModelUnknownOperator(t *testing.T) {
+	model, err := NewModelFromFile("./sample_models/onnx_models/mlp.onnx")
+	assert.Nil(t, err)
+
+	model.mp.Graph.Node[0].OpType = "UnknownOperator"
+
+	_, err = NewModel(model.mp)
+	assert.ErrorIs(t, err, ErrUnsupportedOperator)
+}
+
+func TestModelOutputIsInput(t *testing.T) {
+	model, err := NewModelFromFile("./sample_models/onnx_models/mlp.onnx")
+	assert.Nil(t, err)
+
+	model.mp.Graph.Output = append(model.mp.Graph.Output, model.mp.Graph.Input[0])
+
+	model, err = NewModel(model.mp)
+	assert.Nil(t, err)
+
+	inputs := tensorsFixture([]string{"data_input"}, [][]int{{2, 3}}, [][]float32{rangeFloat(6)})
+
+	outputs, err := model.Run(inputs)
+	assert.Nil(t, err)
+	assert.Equal(t, inputs["data_input"], outputs["data_input"])
+}
+
+func TestModelConcurrentRuns(t *testing.T) {
+	model, err := NewModelFromFile("./sample_models/onnx_models/ndm.onnx")
+	assert.Nil(t, err)
+
+	inputs := tensorsFixture(
+		[]string{"sensor_input", "setpoint_input"},
+		[][]int{{1, 18, 4}, {1, 1}},
+		[][]float32{rangeFloat(72), rangeFloat(1)},
+	)
+
+	expected, err := model.Run(inputs)
+	assert.Nil(t, err)
+
+	var wg sync.WaitGroup
+
+	for range 8 {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			outputs, err := model.Run(inputs)
+			assert.Nil(t, err)
+			assert.Equal(t, expected["optimal_supply_temp"].Data(), outputs["optimal_supply_temp"].Data())
+		}()
+	}
+
+	wg.Wait()
 }

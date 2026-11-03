@@ -4,10 +4,19 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/advancedclimatesystems/gonnx/internal/ops"
 	"github.com/advancedclimatesystems/gonnx/onnx"
 )
 
 var errModel = errors.New("gonnx model error")
+
+// ErrUnsupportedOperator is returned for a model that uses an operator gonnx does not
+// implement.
+var ErrUnsupportedOperator = ops.ErrUnsupportedOperator
+
+// ErrUnsupportedOpsetVersion is returned for a model with an opset version gonnx does not
+// support.
+var ErrUnsupportedOpsetVersion = ops.ErrUnsupportedOpsetVersion
 
 type InvalidShapeError struct {
 	expected onnx.Shape

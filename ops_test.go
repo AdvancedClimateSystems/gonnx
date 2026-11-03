@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
+	"github.com/advancedclimatesystems/gonnx/tensor"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
-	"gorgonia.org/tensor"
 )
 
 // Currently we ignore some of tests provided by ONNX. This has to do with the
@@ -82,7 +82,8 @@ var ignoredTests = []string{
 	"test_softmax_axis_2_expanded_ver18",              // Opset18
 	"test_reshape_allowzero_reordered",                // Opset14
 
-	"test_identity_opt", // Error in test? Can not read in input tensor. https://github.com/onnx/onnx/issues/6842
+	"test_identity_opt",      // Error in test? Can not read in input tensor. https://github.com/onnx/onnx/issues/6842
+	"test_identity_sequence", // Sequence types are not supported; its input is a SequenceProto, not a TensorProto.
 
 	"test_constant_pad",                      // Pad is not implemented yet.
 	"test_constant_pad_axes",                 // Pad is not implemented yet.
@@ -152,7 +153,7 @@ var ignoredTests = []string{
 	"test_cast_no_saturate_FLOAT16_to_FLOAT8E4M3FN",   // Unsupported datatype.
 	"test_cast_no_saturate_FLOAT16_to_FLOAT8E5M2",     // Unsupported datatype.
 
-	"test_constantofshape_int_shape_zero",   // Empty tensors are not supported in gorgonia
+	"test_constantofshape_int_shape_zero",   // Empty tensors are not supported by ConstantOfShape
 	"test_gather_elements_0",                // Operator GatherElements is not implemented
 	"test_gather_elements_1",                // Operator GatherElements is not implemented
 	"test_gather_elements_negative_indices", // Operator GatherElements is not implemented
@@ -194,7 +195,9 @@ func TestOps(t *testing.T) {
 					expectedTensor := test.outputs[outputName]
 					actualTensor := outputs[outputName]
 
-					if expectedTensor.Dtype() == tensor.Bool {
+					assert.Equal(t, expectedTensor.Shape(), actualTensor.Shape())
+
+					if expectedTensor.DataType() == tensor.Bool {
 						assert.ElementsMatch(t, expectedTensor.Data(), actualTensor.Data())
 					} else {
 						assert.InDeltaSlice(t, expectedTensor.Data(), actualTensor.Data(), 0.001)
@@ -461,7 +464,6 @@ var expectedTests = []string{
 	"test_gru_seq_length",
 	"test_gru_with_initial_bias",
 	"test_identity",
-	"test_identity_sequence",
 	"test_less",
 	"test_less_bcast",
 	"test_less_equal",

@@ -56,9 +56,8 @@ install: ## Install project with its depedencies.
 	go get ./...
 	@go mod download
 
-install_lint: ## Install the linter.
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-		| sh -s -- -b $(shell go env GOPATH)/bin v1.61.0
+install_lint: ## Install the linter, built with the installed Go so it supports its version.
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
 
 install_gotestsum: ## Install a tool for prettier test output.
 	curl -sfL https://github.com/gotestyourself/gotestsum/releases/download/v1.9.0/gotestsum_1.9.0_linux_amd64.tar.gz \

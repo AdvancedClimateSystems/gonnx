@@ -5,20 +5,55 @@ import (
 	"io"
 	"os"
 
+	"github.com/advancedclimatesystems/gonnx/internal/ops"
 	"github.com/advancedclimatesystems/gonnx/onnx"
-	"github.com/advancedclimatesystems/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/tensor"
 	"google.golang.org/protobuf/proto"
-	"gorgonia.org/tensor"
 )
 
 // Tensors is a map with tensors.
-type Tensors map[string]tensor.Tensor
+type Tensors map[string]*tensor.Tensor
 
 // Model defines a model that can be used for inference.
 type Model struct {
-	mp         *onnx.ModelProto
-	parameters Tensors
-	Opset      Opset
+	mp *onnx.ModelProto
+
+	// Every tensor name used in the graph is given a slot, so Run can keep the tensors in
+	// a slice instead of a map.
+	nSlots         int
+	nodes          []node
+	parameters     []slotTensor
+	externalInputs []namedSlot
+	outputs        []namedSlot
+	inputShapes    []namedShape
+	maxNodeInputs  int
+}
+
+// node is a node of the graph together with its operator, initialized with the
+// attributes of the node.
+type node struct {
+	operator   ops.Operator
+	inputs     []int
+	inputNames []string
+	outputs    []int
+}
+
+// noSlot marks an omitted optional input or output of a node.
+const noSlot = -1
+
+type slotTensor struct {
+	slot   int
+	tensor *tensor.Tensor
+}
+
+type namedSlot struct {
+	name string
+	slot int
+}
+
+type namedShape struct {
+	name  string
+	shape onnx.Shape
 }
 
 // NewModelFromFile creates a new model from a path to a file.
@@ -74,16 +109,98 @@ func NewModel(mp *onnx.ModelProto) (*Model, error) {
 		}
 	}
 
-	opset, err := ResolveOpset(opsetID)
+	resolved, err := resolveOpset(opsetID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Model{
-		mp:         mp,
-		parameters: params,
-		Opset:      opset,
-	}, nil
+	m := &Model{mp: mp}
+	slots := map[string]int{}
+
+	slotOf := func(name string) int {
+		if name == "" {
+			return noSlot
+		}
+
+		slot, ok := slots[name]
+		if !ok {
+			slot = len(slots)
+			slots[name] = slot
+		}
+
+		return slot
+	}
+
+	// Parameters are assigned after the inputs passed to Run, so a parameter wins when
+	// both have the same name.
+	for name, t := range params {
+		m.parameters = append(m.parameters, slotTensor{slot: slotOf(name), tensor: t})
+	}
+
+	produced := map[string]bool{}
+
+	for _, n := range mp.Graph.GetNode() {
+		newOperator, ok := resolved[n.GetOpType()]
+		if !ok {
+			return nil, ops.ErrUnknownOperatorType(n.GetOpType())
+		}
+
+		operator := newOperator()
+		if err := operator.Init(n); err != nil {
+			return nil, err
+		}
+
+		if preparer, ok := operator.(ops.Preparer); ok {
+			constants := make([]*tensor.Tensor, len(n.GetInput()))
+			for i, name := range n.GetInput() {
+				constants[i] = params[name]
+			}
+
+			preparer.Prepare(constants)
+		}
+
+		graphNode := node{operator: operator, inputNames: n.GetInput()}
+
+		for _, name := range n.GetInput() {
+			_, isParameter := params[name]
+			if name != "" && !isParameter && !produced[name] {
+				if _, seen := slots[name]; !seen {
+					m.externalInputs = append(m.externalInputs, namedSlot{name: name, slot: slotOf(name)})
+				}
+			}
+
+			graphNode.inputs = append(graphNode.inputs, slotOf(name))
+		}
+
+		for _, name := range n.GetOutput() {
+			graphNode.outputs = append(graphNode.outputs, slotOf(name))
+			produced[name] = true
+		}
+
+		m.maxNodeInputs = max(m.maxNodeInputs, len(n.GetInput()), operator.GetMaxInputs())
+		m.nodes = append(m.nodes, graphNode)
+	}
+
+	for _, name := range mp.Graph.OutputNames() {
+		_, isParameter := params[name]
+		if _, seen := slots[name]; !seen && !isParameter {
+			m.externalInputs = append(m.externalInputs, namedSlot{name: name, slot: slotOf(name)})
+		}
+
+		m.outputs = append(m.outputs, namedSlot{name: name, slot: slotOf(name)})
+	}
+
+	inputShapes := mp.Graph.InputShapes()
+
+	for _, name := range mp.Graph.InputNames() {
+		if _, isParameter := params[name]; !isParameter {
+			m.inputShapes = append(m.inputShapes, namedShape{name: name, shape: inputShapes[name]})
+		}
+	}
+
+	m.nSlots = len(slots)
+
+	return m, nil
 }
 
 // ModelProtoFromBytes creates an onnx.ModelProto based on a list of bytes.
@@ -157,72 +274,82 @@ func (m *Model) Run(inputs Tensors) (Tensors, error) {
 		return nil, err
 	}
 
-	tensors := make(Tensors)
-	for inputName, inputTensor := range inputs {
-		tensors[inputName] = inputTensor
+	values := make([]*tensor.Tensor, m.nSlots)
+
+	for _, input := range m.externalInputs {
+		values[input.slot] = inputs[input.name]
 	}
 
-	for parameterName, parameterTensor := range m.parameters {
-		tensors[parameterName] = parameterTensor
+	for _, parameter := range m.parameters {
+		values[parameter.slot] = parameter.tensor
 	}
 
-	for _, n := range m.mp.Graph.GetNode() {
-		op, ok := m.Opset[n.GetOpType()]
-		if !ok {
-			return nil, ops.ErrUnknownOperatorType(n.GetOpType())
-		}
+	nodeInputs := make([]*tensor.Tensor, 0, m.maxNodeInputs)
 
-		if err := m.applyOp(op(), n, tensors); err != nil {
+	for _, n := range m.nodes {
+		if err := applyOp(n, values, nodeInputs[:0]); err != nil {
 			return nil, err
 		}
 	}
 
-	outputTensors := make(Tensors)
-	for _, outputName := range m.OutputNames() {
-		outputTensors[outputName] = tensors[outputName]
+	outputTensors := make(Tensors, len(m.outputs))
+	for _, output := range m.outputs {
+		outputTensors[output.name] = values[output.slot]
 	}
 
 	return outputTensors, nil
 }
 
-// applyOp applies the operation to the graph.
-func (m *Model) applyOp(op ops.Operator, n *onnx.NodeProto, tensors Tensors) error {
-	if err := op.Init(n); err != nil {
-		return err
-	}
+// applyOp applies the operator of a node to its input tensors, and stores the results in
+// the slots of its outputs. The input tensors are collected in nodeInputs.
+func applyOp(n node, values, nodeInputs []*tensor.Tensor) error {
+	for i, slot := range n.inputs {
+		if slot == noSlot {
+			nodeInputs = append(nodeInputs, nil)
 
-	inputTensors, err := getInputTensorsForNode(n.GetInput(), tensors)
-	if err != nil {
-		return err
-	}
-
-	inputTensors, err = op.ValidateInputs(inputTensors)
-	if err != nil {
-		return err
-	}
-
-	outputTensors, err := op.Apply(inputTensors)
-	if err != nil {
-		return err
-	}
-
-	return setOutputTensorsOfNode(n.GetOutput(), outputTensors, tensors)
-}
-
-// validateShapes validates if the tensors passed in have the same shape as the shapes defined
-// by the onnx.Shapes.
-func (m *Model) validateShapes(inputTensors Tensors) error {
-	for name, shapeExpected := range m.InputShapes() {
-		// If the input is a parameter, the user does not have to provide a tensor for it.
-		if _, ok := m.parameters[name]; ok {
 			continue
 		}
 
-		tensor, ok := inputTensors[name]
-		if !ok {
-			return ErrModel("tensor: %v not found", name)
+		if values[slot] == nil {
+			return ErrModel("no tensor yet for name %v", n.inputNames[i])
 		}
 
+		nodeInputs = append(nodeInputs, values[slot])
+	}
+
+	nodeInputs, err := n.operator.ValidateInputs(nodeInputs)
+	if err != nil {
+		return err
+	}
+
+	outputTensors, err := n.operator.Apply(nodeInputs)
+	if err != nil {
+		return err
+	}
+
+	if len(n.outputs) != len(outputTensors) {
+		return ErrModel("could not set output tensor")
+	}
+
+	for i, slot := range n.outputs {
+		if slot != noSlot {
+			values[slot] = outputTensors[i]
+		}
+	}
+
+	return nil
+}
+
+// validateShapes validates if the tensors passed in have the same shape as the shapes
+// of the graph inputs that are not parameters.
+func (m *Model) validateShapes(inputTensors Tensors) error {
+	for _, input := range m.inputShapes {
+		tensor, ok := inputTensors[input.name]
+		if !ok {
+			return ErrModel("tensor: %v not found", input.name)
+		}
+
+		shapeExpected := input.shape
 		shapeReceived := tensor.Shape()
 
 		if len(shapeReceived) != len(shapeExpected) {
@@ -240,40 +367,6 @@ func (m *Model) validateShapes(inputTensors Tensors) error {
 				return ErrInvalidShape(shapeExpected, shapeReceived)
 			}
 		}
-	}
-
-	return nil
-}
-
-func getInputTensorsForNode(names []string, tensors Tensors) ([]tensor.Tensor, error) {
-	var inputTensors []tensor.Tensor
-
-	for _, tensorName := range names {
-		// An empty name can happen in between optional inputs, like:
-		//   [<required_input>, <optional_input>, nil, <optional_input>]
-		// In such a case, ONNX includes the name of the input in the node, and we need
-		// to set a value (nil) for it, although it will not be used.
-		if tensorName == "" {
-			inputTensors = append(inputTensors, nil)
-		} else if tensor, ok := tensors[tensorName]; ok {
-			inputTensors = append(inputTensors, tensor)
-		} else {
-			return nil, ErrModel("no tensor yet for name %v", tensorName)
-		}
-	}
-
-	return inputTensors, nil
-}
-
-func setOutputTensorsOfNode(
-	names []string, outputTensors []tensor.Tensor, tensors Tensors,
-) error {
-	if len(names) != len(outputTensors) {
-		return ErrModel("could not set output tensor")
-	}
-
-	for i, tensor := range outputTensors {
-		tensors[names[i]] = tensor
 	}
 
 	return nil

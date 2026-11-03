@@ -11,7 +11,7 @@ import (
 	"io"
 	"math"
 
-	"gorgonia.org/tensor"
+	"github.com/advancedclimatesystems/gonnx/tensor"
 )
 
 // InputNames returns the input names for a GraphProto.
@@ -40,9 +40,9 @@ func (g *GraphProto) ParamNames() []string {
 }
 
 // Params returns the parameters of the graph proto as a map of tensors.
-func (g *GraphProto) Params() (map[string]tensor.Tensor, error) {
+func (g *GraphProto) Params() (map[string]*tensor.Tensor, error) {
 	initializers := g.GetInitializer()
-	res := make(map[string]tensor.Tensor, len(initializers))
+	res := make(map[string]*tensor.Tensor, len(initializers))
 
 	for _, i := range initializers {
 		t, err := TensorFromProto(i)
@@ -155,62 +155,69 @@ func getNamesFromTensorProto(protos []*TensorProto) []string {
 	return res
 }
 
-// TensorFromProto returns a tensor.Tensor from an onnx.TensorProto.
-func TensorFromProto(tp *TensorProto) (tensor.Tensor, error) {
-	var (
-		values interface{}
-		err    error
-	)
-
+// TensorFromProto returns a *tensor.Tensor from an onnx.TensorProto.
+func TensorFromProto(tp *TensorProto) (*tensor.Tensor, error) {
+	dims := getDims(tp)
 	typeMap := TensorProto_DataType_value
 
 	switch tp.DataType {
 	case typeMap["FLOAT"]:
-		values, err = getFloatData(tp)
+		return newTensor(getFloatData(tp))(dims)
 	case typeMap["UINT8"]:
-		values, err = getUint8Data(tp)
+		return newTensor(getUint8Data(tp))(dims)
 	case typeMap["INT8"]:
-		values, err = getInt8Data(tp)
+		return newTensor(getInt8Data(tp))(dims)
 	case typeMap["UINT16"]:
-		values, err = getUint16Data(tp)
+		return newTensor(getUint16Data(tp))(dims)
 	case typeMap["INT16"]:
-		values, err = getInt16Data(tp)
+		return newTensor(getInt16Data(tp))(dims)
 	case typeMap["UINT32"]:
-		values, err = getUint32Data(tp)
+		return newTensor(getUint32Data(tp))(dims)
 	case typeMap["INT32"]:
-		values, err = getInt32Data(tp)
+		return newTensor(getInt32Data(tp))(dims)
 	case typeMap["UINT64"]:
-		values, err = getUint64Data(tp)
+		return newTensor(getUint64Data(tp))(dims)
 	case typeMap["INT64"]:
-		values, err = getInt64Data(tp)
+		return newTensor(getInt64Data(tp))(dims)
 	case typeMap["DOUBLE"]:
-		values, err = getDoubleData(tp)
+		return newTensor(getDoubleData(tp))(dims)
 	case typeMap["BOOL"]:
-		values = getBoolData(tp)
+		return newTensor(getBoolData(tp), nil)(dims)
+	}
+
+	// At this moment the datatype is either UNDEFINED or some datatype we currently
+	// do not support.
+	switch {
+	case len(tp.FloatData) > 0:
+		return newTensor(getFloatData(tp))(dims)
+	case len(tp.Int32Data) > 0:
+		return newTensor(getInt32Data(tp))(dims)
+	case len(tp.Int64Data) > 0:
+		return newTensor(getInt64Data(tp))(dims)
+	case len(tp.DoubleData) > 0:
+		return newTensor(getDoubleData(tp))(dims)
+	case len(tp.Uint64Data) > 0:
+		return newTensor(getUint64Data(tp))(dims)
 	default:
-		// At this moment the datatype is either UNDEFINED or some datatype we currently
-		// do not support.
-		switch {
-		case len(tp.FloatData) > 0:
-			values, err = getFloatData(tp)
-		case len(tp.Int32Data) > 0:
-			values, err = getInt32Data(tp)
-		case len(tp.Int64Data) > 0:
-			values, err = getInt64Data(tp)
-		case len(tp.DoubleData) > 0:
-			values, err = getDoubleData(tp)
-		case len(tp.Uint64Data) > 0:
-			values, err = getUint64Data(tp)
-		default:
-			return nil, ErrInvalidType
+		return nil, ErrInvalidType
+	}
+}
+
+// newTensor returns a constructor for a tensor holding data, so that the (data, error)
+// result of a getter can be passed directly. The constructor rejects data that does not
+// fit the dimensions, as a malformed model file can contain such tensors.
+func newTensor[T tensor.Element](data []T, err error) func(dims []int) (*tensor.Tensor, error) {
+	return func(dims []int) (*tensor.Tensor, error) {
+		if err != nil {
+			return nil, err
 		}
-	}
 
-	if err != nil {
-		return nil, err
-	}
+		if len(data) != tensor.Shape(dims).Size() {
+			return nil, fmt.Errorf("%w: %d elements for shape %v", tensor.ErrShapeMismatch, len(data), dims)
+		}
 
-	return tensor.New(tensor.WithShape(getDims(tp)...), tensor.WithBacking(values)), nil
+		return tensor.New(data, dims...), nil
+	}
 }
 
 func getFloatData(tp *TensorProto) ([]float32, error) {

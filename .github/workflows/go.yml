@@ -18,7 +18,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.23
+        go-version: 1.27
 
     - name: Install linter
       run: make install_lint
@@ -34,7 +34,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.23
+        go-version: 1.27
 
     - name: Install dependencies
       run: make install
@@ -48,6 +48,36 @@ jobs:
     - name: Tests
       run: make test
 
+    - name: Tests without assembly kernels
+      run: CGO_ENABLED=0 go test -tags purego $(go list ./... | grep -v /onnx/)
+
+    - name: Tests with race detector
+      run: CGO_ENABLED=1 go test -race $(go list ./... | grep -v /onnx/)
+
+  # The arm and arm64 SIMD kernels are assembly, so the tests also run on those
+  # architectures, emulated with QEMU.
+  tests_arm:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goarch: [arm, arm64]
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.27
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Setup ONNX test data
+      run: make test_data
+
+    - name: Tests
+      run: GOARCH=${{ matrix.goarch }} GOARM=7 CGO_ENABLED=0 go test $(go list ./... | grep -v /onnx/)
+
   build_amd64:
     runs-on: ubuntu-latest
     steps:
@@ -56,7 +86,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.23
+        go-version: 1.27
 
     - name: Build amd64
       run: make build_amd64
@@ -69,7 +99,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: 1.23
+        go-version: 1.27
 
     - name: Build arm64
       run: make build_arm64
