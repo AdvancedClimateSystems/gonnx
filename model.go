@@ -5,20 +5,30 @@ import (
 	"io"
 	"os"
 
+	"github.com/advancedclimatesystems/gonnx/internal/ops"
 	"github.com/advancedclimatesystems/gonnx/onnx"
-	"github.com/advancedclimatesystems/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/tensor"
 	"google.golang.org/protobuf/proto"
-	"gorgonia.org/tensor"
 )
 
 // Tensors is a map with tensors.
-type Tensors map[string]tensor.Tensor
+type Tensors map[string]*tensor.Tensor
 
 // Model defines a model that can be used for inference.
 type Model struct {
-	mp         *onnx.ModelProto
-	parameters Tensors
-	Opset      Opset
+	mp          *onnx.ModelProto
+	parameters  Tensors
+	nodes       []node
+	inputShapes onnx.Shapes
+	outputNames []string
+}
+
+// node is a node of the graph together with its operator, initialized with the
+// attributes of the node.
+type node struct {
+	operator ops.Operator
+	inputs   []string
+	outputs  []string
 }
 
 // NewModelFromFile creates a new model from a path to a file.
@@ -74,15 +84,34 @@ func NewModel(mp *onnx.ModelProto) (*Model, error) {
 		}
 	}
 
-	opset, err := ResolveOpset(opsetID)
+	resolved, err := resolveOpset(opsetID)
 	if err != nil {
 		return nil, err
 	}
 
+	graphNodes := mp.Graph.GetNode()
+	nodes := make([]node, len(graphNodes))
+
+	for i, n := range graphNodes {
+		newOperator, ok := resolved[n.GetOpType()]
+		if !ok {
+			return nil, ops.ErrUnknownOperatorType(n.GetOpType())
+		}
+
+		operator := newOperator()
+		if err := operator.Init(n); err != nil {
+			return nil, err
+		}
+
+		nodes[i] = node{operator: operator, inputs: n.GetInput(), outputs: n.GetOutput()}
+	}
+
 	return &Model{
-		mp:         mp,
-		parameters: params,
-		Opset:      opset,
+		mp:          mp,
+		parameters:  params,
+		nodes:       nodes,
+		inputShapes: mp.Graph.InputShapes(),
+		outputNames: mp.Graph.OutputNames(),
 	}, nil
 }
 
@@ -157,7 +186,7 @@ func (m *Model) Run(inputs Tensors) (Tensors, error) {
 		return nil, err
 	}
 
-	tensors := make(Tensors)
+	tensors := make(Tensors, len(inputs)+len(m.parameters)+len(m.nodes))
 	for inputName, inputTensor := range inputs {
 		tensors[inputName] = inputTensor
 	}
@@ -166,53 +195,45 @@ func (m *Model) Run(inputs Tensors) (Tensors, error) {
 		tensors[parameterName] = parameterTensor
 	}
 
-	for _, n := range m.mp.Graph.GetNode() {
-		op, ok := m.Opset[n.GetOpType()]
-		if !ok {
-			return nil, ops.ErrUnknownOperatorType(n.GetOpType())
-		}
-
-		if err := m.applyOp(op(), n, tensors); err != nil {
+	for _, n := range m.nodes {
+		if err := applyOp(n, tensors); err != nil {
 			return nil, err
 		}
 	}
 
-	outputTensors := make(Tensors)
-	for _, outputName := range m.OutputNames() {
+	outputTensors := make(Tensors, len(m.outputNames))
+	for _, outputName := range m.outputNames {
 		outputTensors[outputName] = tensors[outputName]
 	}
 
 	return outputTensors, nil
 }
 
-// applyOp applies the operation to the graph.
-func (m *Model) applyOp(op ops.Operator, n *onnx.NodeProto, tensors Tensors) error {
-	if err := op.Init(n); err != nil {
-		return err
-	}
-
-	inputTensors, err := getInputTensorsForNode(n.GetInput(), tensors)
+// applyOp applies the operator of a node to its input tensors, and stores the results
+// under the names of its outputs.
+func applyOp(n node, tensors Tensors) error {
+	inputTensors, err := getInputTensorsForNode(n.inputs, tensors)
 	if err != nil {
 		return err
 	}
 
-	inputTensors, err = op.ValidateInputs(inputTensors)
+	inputTensors, err = n.operator.ValidateInputs(inputTensors)
 	if err != nil {
 		return err
 	}
 
-	outputTensors, err := op.Apply(inputTensors)
+	outputTensors, err := n.operator.Apply(inputTensors)
 	if err != nil {
 		return err
 	}
 
-	return setOutputTensorsOfNode(n.GetOutput(), outputTensors, tensors)
+	return setOutputTensorsOfNode(n.outputs, outputTensors, tensors)
 }
 
 // validateShapes validates if the tensors passed in have the same shape as the shapes defined
 // by the onnx.Shapes.
 func (m *Model) validateShapes(inputTensors Tensors) error {
-	for name, shapeExpected := range m.InputShapes() {
+	for name, shapeExpected := range m.inputShapes {
 		// If the input is a parameter, the user does not have to provide a tensor for it.
 		if _, ok := m.parameters[name]; ok {
 			continue
@@ -245,8 +266,8 @@ func (m *Model) validateShapes(inputTensors Tensors) error {
 	return nil
 }
 
-func getInputTensorsForNode(names []string, tensors Tensors) ([]tensor.Tensor, error) {
-	var inputTensors []tensor.Tensor
+func getInputTensorsForNode(names []string, tensors Tensors) ([]*tensor.Tensor, error) {
+	var inputTensors []*tensor.Tensor
 
 	for _, tensorName := range names {
 		// An empty name can happen in between optional inputs, like:
@@ -266,7 +287,7 @@ func getInputTensorsForNode(names []string, tensors Tensors) ([]tensor.Tensor, e
 }
 
 func setOutputTensorsOfNode(
-	names []string, outputTensors []tensor.Tensor, tensors Tensors,
+	names []string, outputTensors []*tensor.Tensor, tensors Tensors,
 ) error {
 	if len(names) != len(outputTensors) {
 		return ErrModel("could not set output tensor")

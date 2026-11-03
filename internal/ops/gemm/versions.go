@@ -1,0 +1,25 @@
+package gemm
+
+import (
+	"github.com/advancedclimatesystems/gonnx/internal/ops"
+	"github.com/advancedclimatesystems/gonnx/tensor"
+)
+
+var gemmVersions = ops.OperatorVersions{
+	7: ops.NewOperatorConstructor(
+		newGemm9,
+		7,
+		[][]tensor.DataType{
+			{tensor.Float32, tensor.Float64},
+			{tensor.Float32, tensor.Float64},
+			{tensor.Float32, tensor.Float64},
+		},
+	),
+	9:  ops.NewOperatorConstructor(newGemm9, 9, gemmTypeConstraints),
+	11: ops.NewOperatorConstructor(newGemm, 11, gemmTypeConstraints),
+	13: ops.NewOperatorConstructor(newGemm, 13, gemmTypeConstraints),
+}
+
+func GetVersions() ops.OperatorVersions {
+	return gemmVersions
+}

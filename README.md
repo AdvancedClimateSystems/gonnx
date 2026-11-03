@@ -37,24 +37,31 @@ A simple example is shown below:
 package main
 
 import (
+    "log"
+
     "github.com/advancedclimatesystems/gonnx"
-    "gorgonia.org/tensor"
+    "github.com/advancedclimatesystems/gonnx/tensor"
 )
 
-
 func main() {
-    model, err := gonnx.NewModel("./path_to_onnx/model.onnx")
+    model, err := gonnx.NewModelFromFile("./path_to_onnx/model.onnx")
     if err != nil {
         log.Fatal(err)
     }
 
-    var inputs map[string]*tensor.Tensor
-    inputs = // However you construct inputs. It must have a tensor for all inputs.
+    // The model needs a tensor for every input. A tensor takes ownership of its data,
+    // which is interpreted in row-major order with the given shape.
+    inputs := gonnx.Tensors{
+        "input": tensor.New([]float32{1, 2, 3, 4, 5, 6}, 2, 3),
+    }
 
     result, err := model.Run(inputs)
     if err != nil {
         log.Fatal(err)
     }
+
+    output := tensor.Data[float32](result["output"])
+    log.Println(output)
 }
 ```
 

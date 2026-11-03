@@ -3,17 +3,17 @@ package gonnx
 import (
 	"testing"
 
-	"github.com/advancedclimatesystems/gonnx/ops"
+	"github.com/advancedclimatesystems/gonnx/internal/ops"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestResolveOpset(t *testing.T) {
-	_, err := ResolveOpset(13)
+	_, err := resolveOpset(13)
 	assert.Nil(t, err)
 }
 
 func TestResolveOpsetNotSupported(t *testing.T) {
-	opset, err := ResolveOpset(6)
-	assert.Nil(t, opset)
+	resolved, err := resolveOpset(6)
+	assert.Nil(t, resolved)
 	assert.Equal(t, ops.ErrUnsupportedOpsetVersion, err)
 }

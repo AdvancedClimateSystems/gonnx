@@ -39,6 +39,10 @@ linters:
     - whitespace
     - wsl
 linters-settings:
+  exhaustive:
+    # Switches over tensor data types list the types an operation supports and reject
+    # the others in a default branch.
+    default-signifies-exhaustive: true
   gomnd:
     ignored-functions:
       - "strconv.ParseInt"

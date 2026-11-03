@@ -1,0 +1,11 @@
+package sinh
+
+import "github.com/advancedclimatesystems/gonnx/internal/ops"
+
+var sinhVersions = ops.OperatorVersions{
+	9: ops.NewOperatorConstructor(newSinh, 9, sinhTypeConstraints),
+}
+
+func GetVersions() ops.OperatorVersions {
+	return sinhVersions
+}
