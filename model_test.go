@@ -1,6 +1,7 @@
 package gonnx
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/advancedclimatesystems/gonnx/onnx"
@@ -284,4 +285,34 @@ func TestModelOutputIsInput(t *testing.T) {
 	outputs, err := model.Run(inputs)
 	assert.Nil(t, err)
 	assert.Equal(t, inputs["data_input"], outputs["data_input"])
+}
+
+func TestModelConcurrentRuns(t *testing.T) {
+	model, err := NewModelFromFile("./sample_models/onnx_models/ndm.onnx")
+	assert.Nil(t, err)
+
+	inputs := tensorsFixture(
+		[]string{"sensor_input", "setpoint_input"},
+		[][]int{{1, 18, 4}, {1, 1}},
+		[][]float32{rangeFloat(72), rangeFloat(1)},
+	)
+
+	expected, err := model.Run(inputs)
+	assert.Nil(t, err)
+
+	var wg sync.WaitGroup
+
+	for range 8 {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			outputs, err := model.Run(inputs)
+			assert.Nil(t, err)
+			assert.Equal(t, expected["optimal_supply_temp"].Data(), outputs["optimal_supply_temp"].Data())
+		}()
+	}
+
+	wg.Wait()
 }

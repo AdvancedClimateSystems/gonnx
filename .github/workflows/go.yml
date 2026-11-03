@@ -51,6 +51,9 @@ jobs:
     - name: Tests without assembly kernels
       run: CGO_ENABLED=0 go test -tags purego $(go list ./... | grep -v /onnx/)
 
+    - name: Tests with race detector
+      run: CGO_ENABLED=1 go test -race $(go list ./... | grep -v /onnx/)
+
   # The arm and arm64 SIMD kernels are assembly, so the tests also run on those
   # architectures, emulated with QEMU.
   tests_arm:

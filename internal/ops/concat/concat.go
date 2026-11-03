@@ -69,13 +69,13 @@ func (c *Concat) ValidateInputs(inputs []*tensor.Tensor) ([]*tensor.Tensor, erro
 		inputTypeConstraints[i] = ops.AllTypes
 	}
 
-	c.BaseOperator = ops.NewBaseOperator(
-		c.BaseOperator.Version(),
-		c.BaseOperator.GetMinInputs(),
+	operator := ops.NewBaseOperator(
+		c.Version(),
+		c.GetMinInputs(),
 		len(inputs),
 		inputTypeConstraints,
 		"concat",
 	)
 
-	return ops.ValidateInputs(c.BaseOperator, inputs)
+	return ops.ValidateInputs(operator, inputs)
 }
